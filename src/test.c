@@ -81,6 +81,7 @@ int main(int argc, void *argv[])
 	struct sndfw_reactor reactor;
 	struct sndfw_reactant reactant;
 	struct sndfw_fw_transaction resp;
+	struct sndfw_fw_transaction fcp_resp;
 
 
 	if (argc != 2) {
@@ -120,20 +121,17 @@ int main(int argc, void *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-
-	if (sndfw_reactor_init(&reactor, 0) < 0)
-		printf("hoge\n");
-	if (sndfw_reactor_start(&reactor, 10, 100) < 0)
-		printf("fuga\n");
+	sndfw_reactor_init(&reactor, 0);
+	sndfw_reactor_start(&reactor, 10, 100);
 
 	sndfw_fw_transaction_init(&resp);
 	sndfw_fw_transaction_listen(&resp, fd);
 
-	if (send_write_request(fd, reset.generation) < 0)
-		exit(EXIT_FAILURE);
+	sndfw_fcp_init(&fcp_resp);
+	sndfw_fcp_listen(&fcp_resp, fd);
 
-	if (send_read_request(fd, reset.generation) < 0)
-		exit(EXIT_FAILURE);
+	send_write_request(fd, reset.generation);
+	send_read_request(fd, reset.generation);
 
 	sleep(15);
 
