@@ -1,23 +1,45 @@
-#include "reactor.h"
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/epoll.h>
 
-static LIST_HEAD(reactor_list_head, sndfw_reactor) reactors =
-				LIST_HEAD_INITIALIZER(sndfw_reactor_head);
+#include "internal.h"
+
+static LIST_HEAD(reactor_list_head, hinawa_reactor) reactors =
+				LIST_HEAD_INITIALIZER(hinawa_reactor_head);
 static pthread_mutex_t reactors_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void killing_reactor(void *arg)
 {
-	struct sndfw_reactor *reactor = arg;
+	struct hinawa_reactor *reactor = arg;
 
 	reactor->active = false;
 
 	reactor->thread = 0;
 	close(reactor->fd);
-	free(reactor->results);
+	hinawa_free(reactor->results);
 }
 
-static void running_reactor(struct sndfw_reactor *reactor)
+static void hinawa_reactant_prepared(struct hinawa_reactant *reactant,
+				     uint32_t event, int *err)
 {
-	struct sndfw_reactant *reactant;
+	HinawaReactantState state;
+
+	if (!reactant->callback)
+		return;
+
+	if (event & EPOLLIN)
+		state = HinawaReactantStateReadable;
+	else if (event & EPOLLOUT)
+		state = HinawaReactantStateWritable;
+	else
+		state = HinawaReactantStateError;
+
+	reactant->callback(reactant->private_data, state, err);
+}
+
+static void running_reactor(struct hinawa_reactor *reactor)
+{
+	struct hinawa_reactant *reactant;
 	struct epoll_event *ev;
 	uint32_t event;
 	unsigned int i;
@@ -29,7 +51,7 @@ static void running_reactor(struct sndfw_reactor *reactor)
 
 	while (reactor->active) {
 		count = epoll_wait(reactor->fd, reactor->results,
-				   reactor->result_count, reactor->timeout);
+				   reactor->result_count, reactor->period);
 		if (count < 0) {
 			printf("%s\n", strerror(errno));
 			reactor->active = false;
@@ -39,15 +61,8 @@ static void running_reactor(struct sndfw_reactor *reactor)
 		for (i = 0; i < count; i++) {
 			ev = &reactor->results[i];
 			event = ev->events;
-			reactant = (struct sndfw_reactant *)ev->data.ptr;
-			if (reactant->callback != NULL) {
-				err = reactant->callback(reactant, event);
-				if (err < 0) {
-					/* TODO */
-					perror("reactant callback: ");
-					reactor->active = false;
-				}
-			}
+			reactant = (struct hinawa_reactant *)ev->data.ptr;
+			hinawa_reactant_prepared(reactant, event, &err);
 		}
 	}
 
@@ -55,86 +70,139 @@ static void running_reactor(struct sndfw_reactor *reactor)
 	pthread_cleanup_pop(true);
 }
 
-int sndfw_reactor_init(struct sndfw_reactor *reactor, unsigned int priority)
+HinawaReactor *hinawa_reactor_create(unsigned int priority,
+				     HinawaReactorCallback callback,
+				     void *private_data, int *err)
 {
+	HinawaReactor *reactor;
+
+	hinawa_malloc(reactor, sizeof(HinawaReactor), err);
+	if (*err)
+		return NULL;
+
+	if (callback) {
+		callback(private_data, HinawaReactorStateCreated, err);
+		if (*err) {
+			hinawa_free(reactor);
+			return NULL;
+		}
+	}
+
 	reactor->priority = priority;
+	reactor->callback = callback;
+	reactor->private_data = private_data;
 
 	pthread_mutex_lock(&reactors_mutex);
 	LIST_INSERT_HEAD(&reactors, reactor, link);
 	pthread_mutex_unlock(&reactors_mutex);
 
-	return 0;
+	return reactor;
 }
 
-int sndfw_reactor_start(struct sndfw_reactor *reactor,
-			unsigned int result_count, unsigned int timeout)
+void hinawa_reactor_start(HinawaReactor *reactor, unsigned int result_count,
+			  unsigned int period, int *err)
 {
 	pthread_attr_t attr;
-	int err;
 
 	reactor->fd = epoll_create1(EPOLL_CLOEXEC);
 	if (reactor->fd < 0) {
-		err = errno;
-		goto end;
+		*err = errno;
+		return;
 	}
 
-	reactor->results = malloc(sizeof(struct epoll_event) * result_count);
-	if (reactor->results == NULL) {
-		err = -ENOMEM;
-		goto end;
+	hinawa_malloc(reactor->results,
+		      sizeof(struct epoll_event) * result_count, err);
+	if (*err) {
+		close(reactor->fd);
+		return;
 	}
-	memset(reactor->results, 0, sizeof(struct epoll_event) * result_count);
 	reactor->result_count = result_count;
-	reactor->timeout = timeout;
+	reactor->period = period;
 
-	err = -pthread_attr_init(&attr);
-	if (err < 0)
+	*err = -pthread_attr_init(&attr);
+	if (*err)
 		goto end;
 	
-	err = -pthread_attr_setinheritsched(&attr, PTHREAD_INHERIT_SCHED);
-	if (err < 0)
+	*err = -pthread_attr_setinheritsched(&attr, PTHREAD_INHERIT_SCHED);
+	if (*err)
 		goto end;
 
-	err = -pthread_create(&reactor->thread, &attr,
+	*err = -pthread_create(&reactor->thread, &attr,
 			      (void *)running_reactor, (void *)reactor);
+	if (*err)
+		goto end;
+
+	if (reactor->callback)
+		reactor->callback(reactor->private_data,
+				  HinawaReactorStateStarted, err);
 end:
-	return err;
+	if (*err) {
+		close(reactor->fd);
+		hinawa_free(reactor->results);
+	}
 }
 
-void sndfw_reactor_stop(struct sndfw_reactor *reactor)
+void hinawa_reactor_stop(HinawaReactor *reactor)
 {
+	int err;
+
 	reactor->active = false;
 
 	if (reactor->thread)
 		pthread_join(reactor->thread, NULL);
+
+	if (reactor->callback)
+		reactor->callback(reactor->private_data,
+				  HinawaReactorStateStopped, &err);
 }
 
-void sndfw_reactor_destroy(struct sndfw_reactor *reactor)
+void hinawa_reactor_destroy(HinawaReactor *reactor)
 {
-	sndfw_reactor_stop(reactor);
+	HinawaReactorCallback callback = reactor->callback;
+	void *private_data = reactor->private_data;
+	int err;
 
 	pthread_mutex_lock(&reactors_mutex);
 	LIST_REMOVE(reactor, link);
 	pthread_mutex_unlock(&reactors_mutex);
+
+	hinawa_free(reactor);
+
+	if (callback)
+		callback(private_data, HinawaReactorStateDestroyed, &err);
 }
 
-int sndfw_reactant_init(struct sndfw_reactant *reactant, unsigned int priority,
-			int fd, void *private_data,
-			sndfw_reactant_callback_t callback)
+HinawaReactant *hinawa_reactant_create(unsigned int priority, int fd,
+				       HinawaReactantCallback callback,
+				       void *private_data, int *err)
 {
+	HinawaReactant *reactant;
+
+	hinawa_malloc(reactant, sizeof(HinawaReactant), err);
+	if (*err)
+		return NULL;
+
+	if (reactant->callback) {
+		callback(reactant->private_data, HinawaReactantStateCreated,
+			 err);
+		if (*err) {
+			hinawa_free(reactant);
+			return NULL;
+		}
+	}
+
 	reactant->priority = priority;
 	reactant->fd = fd;
 	reactant->callback = callback;
 	reactant->private_data = private_data;
 
-	return 0;
+	return reactant;
 }
 
-int sndfw_reactant_add(struct sndfw_reactant *reactant, uint32_t events)
+void hinawa_reactant_add(HinawaReactant *reactant, uint32_t events, int *err)
 {
-	struct sndfw_reactor *reactor;
+	struct hinawa_reactor *reactor;
 	struct epoll_event ev;
-	int err = 0;
 
 	reactant->events = events;
 
@@ -146,37 +214,55 @@ int sndfw_reactant_add(struct sndfw_reactant *reactant, uint32_t events)
 	}
 
 	if (reactor == NULL) {
-		err = -EINVAL;
+		*err = -EINVAL;
 		goto end;
 	}
 
 	ev.events = reactant->events;
 	ev.data.ptr = (void *)reactant;
 
-	if (epoll_ctl(reactor->fd, EPOLL_CTL_ADD, reactant->fd, &ev) < 0)
-		err = errno;
+	if (epoll_ctl(reactor->fd, EPOLL_CTL_ADD, reactant->fd, &ev) < 0) {
+		*err = errno;
+		goto end;
+	}
+
+	if (reactant->callback) {
+		reactant->callback(reactant->private_data,
+				   HinawaReactantStateAdded, err);
+		if (*err) {
+			epoll_ctl(reactor->fd, EPOLL_CTL_DEL,
+				  reactant->fd, &ev);
+			goto end;
+		}
+	}
 end:
 	pthread_mutex_unlock(&reactors_mutex);
-	return err;
 }
 
-void sndfw_reactant_remove(struct sndfw_reactant *reactant)
+void hinawa_reactant_remove(HinawaReactant *reactant)
 {
-	struct sndfw_reactor *reactor;
+	struct hinawa_reactor *reactor;
+	int err;
 
 	pthread_mutex_lock(&reactors_mutex);
 
-	LIST_FOREACH(reactor, &reactors, link) {
-		if (reactor->priority != reactant->priority)
-			continue;
-
+	LIST_FOREACH(reactor, &reactors, link)
 		epoll_ctl(reactor->fd, EPOLL_CTL_DEL, reactant->fd, NULL);
-	}
 
 	pthread_mutex_unlock(&reactors_mutex);
+
+	if (reactant->callback)
+		reactant->callback(reactant->private_data,
+				   HinawaReactantStateRemoved, &err);
 }
 
-void sndfw_reactant_destroy(struct sndfw_reactant *reactant)
+void hinawa_reactant_destroy(HinawaReactant *reactant)
 {
-	/* nothing? */
+	HinawaReactantCallback callback = reactant->callback;
+	void *private_data = reactant->private_data;
+	int err;
+
+	hinawa_free(reactant);
+
+	callback(private_data, HinawaReactantStateDestroyed, &err);
 }
