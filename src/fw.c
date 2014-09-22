@@ -4,8 +4,8 @@
 #include <sys/epoll.h>
 
 #include "internal.h"
-#include "linux/firewire-cdev.h"
-#include "linux/firewire-constants.h"
+#include <linux/firewire-cdev.h>
+#include <linux/firewire-constants.h>
 
 typedef void (*HinawaFwListenHandle)(int fd, union fw_cdev_event *ev);
 
