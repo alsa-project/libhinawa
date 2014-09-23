@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "include/hinawa.h"
+#include <libhinawa/hinawa.h>
 
 static void read_transaction(HinawaFwUnit *unit, int *err)
 {
@@ -191,6 +191,14 @@ static void reactor_event(void *private_data, HinawaReactorState state, int *err
 	}
 }
 
+/* NOTE: these need to be backported for linux kernel 3.15 or former. */
+static const char *snd_unit_types[] = {
+	"Not defined",
+	"Dice",
+	"Fireworks",
+	"BeBoB",
+};
+
 int main(int argc, char *argv[])
 {
 	int err = 0;
@@ -202,6 +210,10 @@ int main(int argc, char *argv[])
 	HinawaReactor *reactor;
 
 	HinawaSndUnit *snd_unit;
+	char name[32];
+	uint8_t guid[8];
+	unsigned int type;
+
 	HinawaFwUnit *fw_unit;
 
 	if (argc < 2) {
@@ -229,11 +241,32 @@ int main(int argc, char *argv[])
 		printf("fail to open.\n");
 		goto error_reactor;
 	}
+
+	hinawa_snd_unit_get_name(snd_unit, name);
+	printf("name: %s\n", name);
+
+	hinawa_snd_unit_get_guid(snd_unit, guid);
+	printf("GUID: %02x %02x %02x %02x %02x %02x %02x %02x\n",
+	       guid[0], guid[1], guid[2], guid[3],
+	       guid[4], guid[5], guid[6], guid[7]);
+
+	type = hinawa_snd_unit_get_type(snd_unit);
+	if (type > sizeof(snd_unit_types) / sizeof(snd_unit_types[0])) {
+		printf("Unsupported sound device.\n");
+		goto error_reactor;
+	}
+	printf("This sound device is %s\n", snd_unit_types[type]);
+
 	hinawa_snd_unit_listen(snd_unit, priority, &err);
 	if (err) {
 		printf("fail to listen: %s.\n", strerror(err));
 		goto error_snd_listen;
 	}
+
+	if (hinawa_snd_unit_is_streaming(snd_unit))
+		printf("streaming.\n");
+	else
+		printf("not streaming.\n");
 
 	if (lock) {
 		hinawa_snd_unit_reserve(snd_unit, &err);
@@ -262,13 +295,18 @@ int main(int argc, char *argv[])
 	if (err)
 		goto error_fw_listen;
 
-	fcp_transaction(fw_unit, &err);
-	if (err)
-		goto error_fw_listen;
+	/* Only for Fireworks/BeBoB/OXFW */
+	if (type == 2 || type == 3 || type == 4) {
+		fcp_transaction(fw_unit, &err);
+		if (err)
+			goto error_fw_listen;
+	}
 
-	efw_transaction(snd_unit, &err);
-	/* Only for fireworks*/
-	err = 0;
+	/* Only for Fireworks */
+	if (type == 2) {
+		efw_transaction(snd_unit, &err);
+		err = 0;
+	}
 
 	lock_transaction(fw_unit, &err);
 	if (err)
@@ -276,13 +314,18 @@ int main(int argc, char *argv[])
 
 	sleep(10);
 
-	fcp_transaction(fw_unit, &err);
-	if (err)
-		goto error_fw_listen;
+	/* Only for Fireworks/BeBoB/OXFW */
+	if (type == 2 ||  type == 3 || type == 4) {
+		fcp_transaction(fw_unit, &err);
+		if (err)
+			goto error_fw_listen;
+	}
 
-	efw_transaction(snd_unit, &err);
-	/* Only for fireworks*/
-	err = 0;
+	/* Only for Fireworks */
+	if (type == 2) {
+		efw_transaction(snd_unit, &err);
+		err = 0;
+	}
 
 	write_transaction(fw_unit, &err);
 error_fw_listen:

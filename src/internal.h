@@ -34,6 +34,7 @@ struct hinawa_snd_unit {
 	unsigned int type;
 	unsigned int card;
 	char device[16];
+	unsigned char name[32];
 
 	void *buf;
 	unsigned int length;

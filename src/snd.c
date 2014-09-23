@@ -9,13 +9,14 @@
 
 #include "internal.h"
 
-HinawaSndUnit *hinawa_snd_unit_create(char *hwdep_path, int *err)
+HinawaSndUnit *hinawa_snd_unit_create(char *hw_path, int *err)
 {
 	HinawaSndUnit *unit;
 	snd_hwdep_t *hwdep;
 	struct snd_firewire_get_info info;
+	char *name;
 
-	*err = -snd_hwdep_open(&hwdep, hwdep_path, SND_HWDEP_OPEN_DUPLEX);
+	*err = -snd_hwdep_open(&hwdep, hw_path, SND_HWDEP_OPEN_DUPLEX);
 	if (*err)
 		return NULL;
 
@@ -31,6 +32,15 @@ HinawaSndUnit *hinawa_snd_unit_create(char *hwdep_path, int *err)
 		return NULL;
 	}
 
+	*err = snd_card_get_name(info.card, &name);
+	if (*err > 0) {
+		snd_hwdep_close(hwdep);
+		return NULL;
+	}
+	strncpy(unit->name, name, sizeof(unit->name));
+	free(name);
+	*err = 0;
+
 	unit->hwdep = hwdep;
 	unit->type = info.type;
 	unit->card = info.card;
@@ -38,6 +48,26 @@ HinawaSndUnit *hinawa_snd_unit_create(char *hwdep_path, int *err)
 	memcpy(unit->device, info.device_name, strlen(info.device_name));
 
 	return unit;
+}
+
+void hinawa_snd_unit_get_name(HinawaSndUnit *unit, char name[32])
+{
+	memcpy(name, unit->name, 32);
+}
+
+void hinawa_snd_unit_get_guid(HinawaSndUnit *unit, uint8_t guid[8])
+{
+	memcpy(guid, unit->guid, 8);
+}
+
+bool hinawa_snd_unit_is_streaming(HinawaSndUnit *unit)
+{
+	return unit->streaming;
+}
+
+unsigned int hinawa_snd_unit_get_type(HinawaSndUnit *unit)
+{
+	return unit->type;
 }
 
 void hinawa_snd_unit_reserve(HinawaSndUnit *unit, int *err)

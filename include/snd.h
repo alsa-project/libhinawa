@@ -10,6 +10,10 @@ void hinawa_snd_unit_listen(HinawaSndUnit *unit, unsigned int priority,
 			    int *err);
 void hinawa_snd_unit_unlisten(HinawaSndUnit *unit);
 void hinawa_snd_unit_destroy(HinawaSndUnit *unit);
-typedef struct hinawa_fw_unit HinawaFwUnit;
+
+void hinawa_snd_unit_get_name(HinawaSndUnit *unit, char name[32]);
+void hinawa_snd_unit_get_guid(HinawaSndUnit *unit, uint8_t guid[8]);
+bool hinawa_snd_unit_is_streaming(HinawaSndUnit *unit);
+unsigned int hinawa_snd_unit_get_type(HinawaSndUnit *unit);
 
 #endif
