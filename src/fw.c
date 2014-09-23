@@ -147,6 +147,9 @@ void hinawa_fw_request_run(HinawaFwRequest *req, HinawaFwUnit *unit,
 	/* Not implemented yet. */
 	} else if ((type == HinawaFwRequestTypeCompareSwap) &&
 		   ((quadlets == 2) || (quadlets == 4))) {
+			req->buf = NULL;
+			req->length = 0;
+			send.data = (uint64_t)buf;
 			send.tcode = TCODE_LOCK_COMPARE_SWAP;
 	} else {
 		*err = EINVAL;
@@ -169,7 +172,6 @@ void hinawa_fw_request_run(HinawaFwRequest *req, HinawaFwUnit *unit,
 	}
 
 	*err = pthread_cond_timedwait(&req->cond, &req->mutex, &abstime);
-
 	req->buf = NULL;
 	req->length = 0;
 

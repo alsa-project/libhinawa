@@ -61,6 +61,56 @@ static void write_transaction(HinawaFwUnit *unit, int *err)
 	hinawa_fw_request_destroy(req);
 }
 
+static void lock_transaction(HinawaFwUnit *unit, int *err)
+{
+	HinawaFwRequest *req;
+	uint32_t old, new;
+	uint32_t buf[2];
+	uint64_t addr = 0xfffff0000904;
+
+	req = hinawa_fw_request_create(err);
+	if (*err) {
+		printf("Fail to create request for lock: %s.\n",
+		       strerror(*err));
+		return;
+	}
+
+	hinawa_fw_request_read(req, unit, addr, &buf, 4, err);
+	if (*err)
+		printf("Fail to send request for read: %s\n",
+		       strerror(*err));
+
+	old = buf[0];
+	new = old | 0x00000001;
+
+	buf[0] = old;
+	buf[1] = new;
+	hinawa_fw_request_run(req, unit, HinawaFwRequestTypeCompareSwap,
+			      addr, &buf, 8, err);
+	if (*err) {
+		printf("Fail to send request for lock: %s\n",
+		       strerror(*err));
+		return;
+	} else if (old != buf[0]) {
+		printf("Fail to swap: %08x %08x %08x", old, new, buf[0]);
+		return;
+	}
+
+	buf[0] = new;
+	buf[1] = old;
+	hinawa_fw_request_run(req, unit, HinawaFwRequestTypeCompareSwap,
+			      addr, &buf, 8, err);
+	if (*err)
+		printf("Fail to send request for lock: %s\n",
+		       strerror(*err));
+	else if (new != buf[0])
+		printf("Fail to swap: %08x %08x %08x", new, old, buf[0]);
+	else
+		printf("Success to swap.\n");
+
+	hinawa_fw_request_destroy(req);
+}
+
 static void fcp_transaction(HinawaFwUnit *unit, int *err)
 {
 	HinawaFcpTransaction *trans;
@@ -219,6 +269,10 @@ int main(int argc, char *argv[])
 	efw_transaction(snd_unit, &err);
 	/* Only for fireworks*/
 	err = 0;
+
+	lock_transaction(fw_unit, &err);
+	if (err)
+		goto error_fw_listen;
 
 	sleep(10);
 
