@@ -1,0 +1,11 @@
+Requirements
+- Linux kernel 3.16 or later
+- alsa-lib
+- autoconf
+- automake
+
+How to build
+ $ ./autogen.sh
+ $ ./configure
+ $ make
+ $ make install
