@@ -1,13 +1,14 @@
 AC_PREREQ(2.65)
 
-AC_INIT([libhinawa], [0.3.0], [o-takashi@sakamocchi.jp])
+AC_INIT([libhinawa], [0.3], [o-takashi@sakamocchi.jp])
+
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_CONFIG_SRCDIR([src/internal.h])
 AC_CONFIG_HEADERS([config.h])
 
-AM_INIT_AUTOMAKE([1.13 foreign])
+AM_INIT_AUTOMAKE([foreign])
 AM_SILENT_RULES([yes])
 
 # Checks for programs.
@@ -35,6 +36,7 @@ AC_TYPE_UINT8_T
 AC_CONFIG_FILES([
   Makefile
   src/Makefile
+  include/Makefile
 ])
 
 AC_OUTPUT
