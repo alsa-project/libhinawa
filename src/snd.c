@@ -13,6 +13,7 @@ HinawaSndUnit *hinawa_snd_unit_create(char *hw_path, int *err)
 {
 	HinawaSndUnit *unit;
 	snd_hwdep_t *hwdep;
+	snd_hwdep_info_t *hwdep_info;
 	struct snd_firewire_get_info info;
 	char *name;
 
@@ -32,11 +33,24 @@ HinawaSndUnit *hinawa_snd_unit_create(char *hw_path, int *err)
 		return NULL;
 	}
 
-	*err = snd_card_get_name(info.card, &name);
-	if (*err > 0) {
+	*err = -snd_hwdep_info_malloc(&hwdep_info);
+	if (*err) {
+		hinawa_free(unit);
 		snd_hwdep_close(hwdep);
 		return NULL;
 	}
+
+	*err = -snd_hwdep_info(hwdep, hwdep_info);
+	if (*err == 0)
+		*err = snd_card_get_name(snd_hwdep_info_get_card(hwdep_info),
+					 &name);
+	snd_hwdep_info_free(hwdep_info);
+	if (*err) {
+		hinawa_free(unit);
+		snd_hwdep_close(hwdep);
+		return NULL;
+	}
+
 	strncpy(unit->name, name, sizeof(unit->name));
 	free(name);
 	*err = 0;
