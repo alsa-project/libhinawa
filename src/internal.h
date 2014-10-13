@@ -48,6 +48,11 @@ struct hinawa_snd_unit {
 	uint32_t seqnum;
 	LIST_HEAD(efw_transactions_list_head, hinawa_efw_transaction)
 							efw_transactions;
+
+	/* For any asynchronous notification */
+	HinawaSndUnitCallback callback;
+	void *private_data;
+
 	pthread_mutex_t efw_transactions_lock;
 };
 

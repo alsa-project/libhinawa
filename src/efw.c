@@ -52,8 +52,9 @@ HinawaEfwTransaction *hinawa_efw_transaction_create(int *err)
 	return trans;
 }
 
-void hinawa_efw_transaction_run(HinawaEfwTransaction *trans, HinawaSndUnit *unit,
-				unsigned int category, unsigned int command,
+void hinawa_efw_transaction_run(HinawaEfwTransaction *trans,
+				HinawaSndUnit *unit, unsigned int category,
+				unsigned int command,
 				uint32_t *args, unsigned int args_count,
 				uint32_t *params, unsigned int *params_count,
 				int *err)

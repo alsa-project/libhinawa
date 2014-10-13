@@ -110,8 +110,9 @@ static void handle_dice_notification(HinawaSndUnit *unit, void *buf,
 	struct snd_firewire_event_dice_notification *event =
 		(struct snd_firewire_event_dice_notification *)buf;
 
-	/* TODO */
-	printf("Dice\n");
+	if (unit->callback)
+		unit->callback(&event->notification, sizeof(unsigned int),
+			       unit->private_data);
 }
 
 static void read_event(void *private_data, int *err)
@@ -200,4 +201,12 @@ void hinawa_snd_unit_destroy(HinawaSndUnit *unit)
 	hinawa_snd_unit_release(unit);
 	snd_hwdep_close(unit->hwdep);
 	hinawa_free(unit);
+}
+
+void hinawa_snd_unit_register_handler(HinawaSndUnit *unit,
+				      HinawaSndUnitCallback callback,
+				      void *private_data)
+{
+	unit->callback = callback;
+	unit->private_data = private_data;
 }

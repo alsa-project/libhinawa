@@ -173,7 +173,16 @@ static void efw_transaction(HinawaSndUnit *unit, int *err)
 	hinawa_efw_transaction_destroy(trans);
 }
 
-static void reactor_event(void *private_data, HinawaReactorState state, int *err)
+static void handle_notification(void *buf, unsigned int length,
+				void *private_data)
+{
+	uint32_t *notification = (uint32_t *)buf;
+
+	printf("Notified: %08x\n", *notification);
+}
+
+static void reactor_event(void *private_data, HinawaReactorState state,
+			  int *err)
 {
 	switch (state) {
 	case HinawaReactorStateCreated:
@@ -256,6 +265,11 @@ int main(int argc, char *argv[])
 		goto error_reactor;
 	}
 	printf("This sound device is %s\n", snd_unit_types[type]);
+
+	/* Dice has asynchronous notification. */
+	if (type == 1)
+		hinawa_snd_unit_register_handler(snd_unit,
+						 handle_notification, NULL);
 
 	hinawa_snd_unit_listen(snd_unit, priority, &err);
 	if (err) {
