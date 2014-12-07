@@ -14,6 +14,15 @@ struct hinawa_efw_transaction {
 	pthread_mutex_t mutex;
 };
 
+struct _HinawaSndEftPrivate {
+	guint32 seqnum;
+	void *buf;
+	unsigned int len;
+
+	GCond cond;
+};
+G_DEFINE_TYPE_WITH_PRIVATE (HinawaSndEft, hinawa_snd_eft, G_TYPE_OBJECT)
+
 enum efw_status {
 	EFW_STATUS_OK			= 0,
 	EFW_STATUS_BAD			= 1,
@@ -34,38 +43,75 @@ enum efw_status {
 	EFW_STATUS_INCOMPLETE		= 0x80000000
 };
 
-HinawaEfwTransaction *hinawa_efw_transaction_create(int *err)
+static void hinawa_snd_eft_dispose(GObject *gobject)
 {
-	HinawaEfwTransaction *trans;
-
-	hinawa_malloc(trans, sizeof(HinawaEfwTransaction), err);
-	if (*err)
-		return NULL;
-
-	hinawa_malloc(trans->buf, MAXIMUM_FRAME_BYTES, err);
-	if (*err) {
-		hinawa_free(trans);
-		return NULL;
-	}
-	trans->length = MAXIMUM_FRAME_BYTES;
-
-	return trans;
+	G_OBJECT_CLASS (hinawa_snd_eft_parent_class)->dispose(gobject);
 }
 
-void hinawa_efw_transaction_run(HinawaEfwTransaction *trans,
-				HinawaSndUnit *unit, unsigned int category,
-				unsigned int command,
-				uint32_t *args, unsigned int args_count,
-				uint32_t *params, unsigned int *params_count,
-				int *err)
+static void hinawa_snd_eft_finalize (GObject *gobject)
 {
-	struct snd_efw_transaction *frame =
-					(struct snd_efw_transaction *)trans->buf;
-	unsigned int quadlets, i;
-	struct timespec abstime;
+	HinawaSndEft *self = HINAWA_FW_EFT(gobject);
 
-	if (unit->type != SNDRV_FIREWIRE_TYPE_FIREWORKS) {
-		*err = EINVAL;
+	G_OBJECT_CLASS(hinawa_snd_eft_parent_class)->finalize(gobject);
+}
+
+static void hinawa_snd_eft_class_init(HinawaFwReqClass *klass)
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+
+	gobject_class->get_property = NULL;
+	gobject_class->set_property = NULL;
+	gobject_class->dispose = hinawa_snd_eft_dispose;
+	gobject_class->finalize = hinawa_snd_eft_finalize;
+}
+
+static void hinawa_snd_eft_init(HinawaFwReq *self)
+{
+	self->priv = hinawa_snd_eft_get_instance_private(self);
+}
+
+HinawaSndEft *hinawa_snd_eft_new(GError **exception)
+{
+	HinawaSndEft *self;
+	void *buf;
+
+	buf = g_malloc0(EFT_MAX_FRAME_BYTES);
+	if (buf == NULL) {
+		g_set_error(exception, g_quark_from_static_string(__func__),
+			    ENOMEM, "%s", strerror(ENOMEM));
+		return NULL;
+	}
+
+	self = g_object_new(HINAWA_TYPE_SND_EFT, NULL);
+	if (self == NULL) {
+		g_set_error(exception, g_quark_from_static_string(__func__),
+			    ENOMEM, "%s", strerror(ENOMEM));
+		return NULL;
+	}
+	self->priv->buf = buf;
+	self->priv->len = EFT_MAX_FRAME_BYTES;
+
+	return self;
+}
+
+void hinawa_snd_eft_transact(HinawaSndEft *self, HinawaSndUnit *unit,
+			     unsigned int category, unsigned int command,
+			     guint32 *args, unsigned int args_count,
+			     guint32 *params, unsigned int *params_count,
+			     GError **exception)
+{
+	struct snd_efw_transaction *self =
+				(struct snd_efw_transaction *)self->priv->buf;
+	unsigned int type;
+	unsigned int quads;
+	unsigned int i;
+	gint64 expiration;
+
+	g_object_get(G_OBJECT(uint), "type", &type, NULL);
+
+	if (type != SNDRV_FIREWIRE_TYPE_FIREWORKS) {
+		g_set_error(exception, g_quark_from_static_string(__func__),
+			    EINVAL, "%s", strerror(EINVAL));
 		return;
 	}
 
@@ -153,8 +199,8 @@ static void dump_response(struct snd_efw_transaction *trans)
 		printf("param[%02d]: %08x\n", i, be32toh(trans->params[i]));
 }
 
-void handle_efw_response(HinawaSndUnit *unit, void *buf, unsigned int length,
-			 int *err)
+void hinawa_snd_eft_handle_response(HinawaSndUnit *unit, void *buf,
+				    unsigned int len, int *err)
 {
 	struct snd_firewire_event_efw_response *event =
 				(struct snd_firewire_event_efw_response *)buf;
@@ -187,10 +233,4 @@ void handle_efw_response(HinawaSndUnit *unit, void *buf, unsigned int length,
 		responses += quadlets;
 		length -= quadlets * sizeof(uint32_t);
 	}
-}
-
-void hinawa_efw_transaction_destroy(HinawaEfwTransaction *trans)
-{
-	hinawa_free(trans->buf);
-	hinawa_free(trans);
 }

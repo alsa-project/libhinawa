@@ -49,6 +49,17 @@ ghinawa_snd_unit_init(GHinawaSndUnit *self)
 	printf("init\n");
 }
 
+gboolean ghinawa_snd_unit_new(GHinawaSndUnit *self, gchar *name)
+{
+	int err = 0;
+
+	self->priv->unit = hinawa_snd_unit_create(name, &err);
+	if (err > 0)
+		return FALSE;
+
+	return TRUE;
+}
+
 gint ghinawa_snd_unit_assign_hwdep(GHinawaSndUnit *self, gchar *name)
 {
 	gint err = 0;

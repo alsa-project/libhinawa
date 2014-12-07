@@ -46,9 +46,9 @@ struct _GHinawaSndUnitClass
 
 GType ghinawa_snd_unit_get_type(void) G_GNUC_CONST;
 
-typedef void (*GHinawaSndUnitCB)(GHinawaSndUnit* unit, void *private_data, gint val);
+typedef void (*GHinawaSndUnitCB)(GHinawaSndUnit *unit, void *private_data, gint val);
 
-GHinawaSndUnit *ghinawa_snd_unit_new(void);
+gboolean ghinawa_snd_unit_new(GHinawaSndUnit *unit, gchar *name);
 const gchar *ghinawa_snd_unit_greet(GHinawaSndUnit *unit);
 gchar *ghinawa_snd_unit_do(GHinawaSndUnit *unit, gchar *str, const guint length);
 

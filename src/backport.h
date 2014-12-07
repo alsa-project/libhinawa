@@ -1,5 +1,15 @@
 /* backporting from 3.16 */
 
+/* alsa-lib 1.0.28 is a lack of some Hwdep interfaces */
+#ifndef SND_HWDEP_IFACE_FW_DICE
+#define SND_HWDEP_IFACE_FW_DICE		(SND_HWDEP_IFACE_SB_RC + 3)
+#define SND_HWDEP_IFACE_FW_FIREWORKS	(SND_HWDEP_IFACE_SB_RC + 4)
+#define SND_HWDEP_IFACE_FW_BEBOB	(SND_HWDEP_IFACE_SB_RC + 5)
+#define SND_HWDEP_IFACE_FW_OXFW		(SND_HWDEP_IFACE_SB_RC + 6)
+#endif
+
+
+
 #ifndef SND_EFW_TRANSACTION_USER_SEQNUM_MAX
 
 #include <linux/types.h>
@@ -27,3 +37,4 @@ struct snd_firewire_event_efw_response {
 #define SNDRV_FIREWIRE_TYPE_BEBOB	3
 
 #endif
+
