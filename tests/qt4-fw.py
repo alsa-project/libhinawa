@@ -1,13 +1,13 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2
 
 import sys
 
 # Hinawa-1.0 gir
 from gi.repository import Hinawa
 
-# Qt5 python binding
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QWidget
+# Qt4 python binding
+from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QApplication, QWidget
 
 try:
 	snd_unit = Hinawa.SndUnit.new("hw:0")

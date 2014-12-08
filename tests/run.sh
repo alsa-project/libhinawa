@@ -6,7 +6,9 @@
 export LD_LIBRARY_PATH=src/.libs/:/usr/lib:/lib
 export GI_TYPELIB_PATH=src/:/usr/lib/girepository-1.0
 
-if [[ $1 == 'qt' ]] ; then
+if [[ $1 == 'qt4' ]] ; then
+	./tests/qt4-fw.py
+elif [[ $1 == 'qt5' ]] ; then
 	./tests/qt5-fw.py
 elif [[ $1 == 'gtk' ]] ; then
 	./tests/gtk3-fw.py
