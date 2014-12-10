@@ -50,7 +50,14 @@ GType hinawa_fw_resp_get_type(void) G_GNUC_CONST;
 
 HinawaFwResp *hinawa_fw_resp_new(HinawaFwUnit *unit, GError **exception);
 
+typedef int (*HinawaFwRespCallback)(void *private_data,
+				    const unsigned char *frame,
+				    unsigned int len);
+
+void hinawa_fw_resp_set_frame(HinawaFwResp *self, GArray *frame,
+			      guint len, GError **exception);
+
 void hinawa_fw_resp_register(HinawaFwResp *self, guint64 addr, guint width,
-			     GError **exception);
+			     gpointer private_data, GError **exception);
 void hinawa_fw_resp_unregister(HinawaFwResp *self);
 #endif

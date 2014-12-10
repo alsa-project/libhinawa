@@ -1,7 +1,10 @@
 #include <unistd.h>
 #include <alsa/asoundlib.h>
 #include <sound/firewire.h>
+
+#include "hinawa_context.h"
 #include "snd_unit.h"
+#include "internal.h"
 
 typedef struct {
 	GSource src;
@@ -11,18 +14,24 @@ typedef struct {
 
 struct _HinawaSndUnitPrivate {
 	snd_hwdep_t *hwdep;
-	guchar name[32];
+	gchar name[32];
 	snd_hwdep_iface_t iface;
 	gint card;
-	guchar device[16];
+	gchar device[16];
 	guint64 guid;
 	gboolean streaming;
+
+	HinawaSndUnitHandle *handle;
+	void *private_data;
 
 	void *buf;
 	unsigned int len;
 	SndUnitSource *src;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndUnit, hinawa_snd_unit, G_TYPE_OBJECT)
+#define SND_UNIT_GET_PRIVATE(obj)					\
+	(G_TYPE_INSTANCE_GET_PRIVATE((obj), 				\
+				HINAWA_TYPE_SND_UNIT, HinawaSndUnitPrivate))
 
 enum snd_unit_prop_type {
 	SND_UNIT_PROP_TYPE_NAME = 1,
@@ -42,14 +51,14 @@ enum snd_unit_sig_type {
 };
 static guint snd_unit_sigs[SND_UNIT_SIG_TYPE_COUNT] = { 0 };
 
-static void hinawa_snd_unit_get_property(GObject *obj, guint id,
-					 GValue *val, GParamSpec *spec)
+static void snd_unit_get_property(GObject *obj, guint id,
+				  GValue *val, GParamSpec *spec)
 {
 	HinawaSndUnit *self = HINAWA_SND_UNIT(obj);
 
 	switch (id) {
 	case SND_UNIT_PROP_TYPE_NAME:
-		g_value_set_string(val, self->priv->name);
+		g_value_set_string(val, (const gchar *)self->priv->name);
 		break;
 	case SND_UNIT_PROP_TYPE_IFACE:
 		g_value_set_int(val, self->priv->iface);
@@ -58,7 +67,7 @@ static void hinawa_snd_unit_get_property(GObject *obj, guint id,
 		g_value_set_int(val, self->priv->card);
 		break;
 	case SND_UNIT_PROP_TYPE_DEVICE:
-		g_value_set_string(val, self->priv->device);
+		g_value_set_string(val, (const gchar *)self->priv->device);
 		break;
 	case SND_UNIT_PROP_TYPE_GUID:
 		g_value_set_uint64(val, self->priv->guid);
@@ -72,8 +81,8 @@ static void hinawa_snd_unit_get_property(GObject *obj, guint id,
 	}
 }
 
-static void hinawa_snd_unit_set_property(GObject *obj, guint id,
-					 const GValue *val, GParamSpec *spec)
+static void snd_unit_set_property(GObject *obj, guint id,
+				  const GValue *val, GParamSpec *spec)
 {
 	HinawaSndUnit *self = HINAWA_SND_UNIT(obj);
 
@@ -106,19 +115,19 @@ static void hinawa_snd_unit_set_property(GObject *obj, guint id,
 	}
 }
 
-static void hinawa_snd_unit_dispose(GObject *obj)
+static void snd_unit_dispose(GObject *obj)
 {
 	HinawaSndUnit *self = HINAWA_SND_UNIT(obj);
+	HinawaSndUnitPrivate *priv = SND_UNIT_GET_PRIVATE(self);
 
-	snd_hwdep_close(self->priv->hwdep);
+	if (priv->src != NULL)
+		hinawa_snd_unit_unlisten(self);
 
 	G_OBJECT_CLASS (hinawa_snd_unit_parent_class)->dispose(obj);
 }
 
-static void hinawa_snd_unit_finalize (GObject *gobject)
+static void snd_unit_finalize(GObject *gobject)
 {
-	HinawaSndUnit *self = HINAWA_SND_UNIT(gobject);
-
 	G_OBJECT_CLASS(hinawa_snd_unit_parent_class)->finalize(gobject);
 }
 
@@ -126,10 +135,10 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
-	gobject_class->get_property = hinawa_snd_unit_get_property;
-	gobject_class->set_property = hinawa_snd_unit_set_property;
-	gobject_class->dispose = hinawa_snd_unit_dispose;
-	gobject_class->finalize = hinawa_snd_unit_finalize;
+	gobject_class->get_property = snd_unit_get_property;
+	gobject_class->set_property = snd_unit_set_property;
+	gobject_class->dispose = snd_unit_dispose;
+	gobject_class->finalize = snd_unit_finalize;
 
 	snd_unit_props[SND_UNIT_PROP_TYPE_NAME] =
 		g_param_spec_string("name", "name",
@@ -170,15 +179,14 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 					  SND_UNIT_PROP_TYPE_COUNT,
 					  snd_unit_props);
 
-	/* TODO: marshal. */
 	snd_unit_sigs[SND_UNIT_SIG_TYPE_LOCK_STATUS] =
 		g_signal_new("lock-status",
 			     G_OBJECT_CLASS_TYPE(klass),
 			     G_SIGNAL_RUN_LAST,
 			     0,
 			     NULL, NULL,
-			     g_cclosure_marshal_VOID__VOID,
-			     G_TYPE_NONE, 0, NULL);
+			     g_cclosure_marshal_VOID__BOOLEAN,
+			     G_TYPE_NONE, 1, G_TYPE_BOOLEAN);
 }
 
 static void
@@ -271,31 +279,29 @@ void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
 			    -err, "%s", snd_strerror(err));
 }
 
-static void handle_lock_event(void *buf, unsigned int length)
+void hinawa_snd_unit_write(HinawaSndUnit *unit,
+			   const void *buf, unsigned int length,
+			   GError **exception)
+{
+	int err;
+
+	err = snd_hwdep_write(unit->priv->hwdep, buf, length);
+	if (err < 0)
+		g_set_error(exception, g_quark_from_static_string(__func__),
+			    -err, "%s", snd_strerror(err));
+}
+
+static void handle_lock_event(HinawaSndUnit *self,
+			      void *buf, unsigned int length)
 {
 	struct snd_firewire_event_lock_status *event =
 			(struct snd_firewire_event_lock_status *)buf;
-	printf("lock\n");
 
-//	g_signal_emit(self, snd_unit_sigs[SND_UNIT_SIG_TYPE_LOCK_STATUS], 0);
+	g_signal_emit(self, snd_unit_sigs[SND_UNIT_SIG_TYPE_LOCK_STATUS], 0,
+		      event->status);
 }
 
-static void hinawa_snd_dice_handle_notification(void *buf, unsigned int length)
-{
-	struct snd_firewire_event_dice_notification *notice =
-			(struct snd_firewire_event_dice_notification *)buf;
-	printf("dice\n");
-}
-
-static void hinawa_snd_eft_handle_response(void *buf, unsigned int length)
-{
-	struct snd_firewire_event_efw_response *resp =
-			(struct snd_firewire_event_efw_response *)buf;
-
-	printf("eft\n");
-}
-
-static gboolean preparing_src(GSource *src, gint *timeout)
+static gboolean prepare_src(GSource *src, gint *timeout)
 {
 	/* Set 2msec for poll(2) timeout. */
 	*timeout = 2;
@@ -304,16 +310,15 @@ static gboolean preparing_src(GSource *src, gint *timeout)
 	return FALSE;
 }
 
-static gboolean checking_src(GSource *gsrc)
+static gboolean check_src(GSource *gsrc)
 {
 	SndUnitSource *src = (SndUnitSource *)gsrc;
 	HinawaSndUnit *unit = src->unit;
+	HinawaSndUnitPrivate *priv = SND_UNIT_GET_PRIVATE(unit);
 	GIOCondition condition;
-	HinawaSndUnitHandle handle;
 
 	struct snd_firewire_event_common *common;
 	int len;
-
 
 	if (unit == NULL)
 		goto end;
@@ -331,28 +336,22 @@ static gboolean checking_src(GSource *gsrc)
 	common = (struct snd_firewire_event_common *)unit->priv->buf;
 
 	if (common->type == SNDRV_FIREWIRE_EVENT_LOCK_STATUS)
-		handle = handle_lock_event;
-	else if (common->type == SNDRV_FIREWIRE_EVENT_DICE_NOTIFICATION)
-		handle = hinawa_snd_dice_handle_notification;
-	else if (common->type == SNDRV_FIREWIRE_EVENT_EFW_RESPONSE)
-		handle = hinawa_snd_eft_handle_response;
-	else
-		goto end;
-
-	handle(unit->priv->buf, len);
+		handle_lock_event(unit, priv->buf, len);
+	else if (priv->handle != NULL)
+		priv->handle(priv->private_data, priv->buf, len);
 end:
 	/* Don't go to dispatch, then continue to process this source. */
 	return FALSE;
 }
 
-static gboolean dispatching_src(GSource *src, GSourceFunc callback,
-				gpointer user_data)
+static gboolean dispatch_src(GSource *src, GSourceFunc callback,
+			     gpointer user_data)
 {
 	/* Just be sure to continue to process this source. */
 	return TRUE;
 }
 
-static void finalizing_src(GSource *src)
+static void finalize_src(GSource *src)
 {
 	/* Do nothing paticular. */
 	return;
@@ -361,15 +360,15 @@ static void finalizing_src(GSource *src)
 void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 {
 	static GSourceFuncs funcs = {
-		.prepare	= preparing_src,
-		.check		= checking_src,
-		.dispatch	= dispatching_src,
-		.finalize	= finalizing_src,
+		.prepare	= prepare_src,
+		.check		= check_src,
+		.dispatch	= dispatch_src,
+		.finalize	= finalize_src,
 	};
+	HinawaSndUnitPrivate *priv = SND_UNIT_GET_PRIVATE(self);
 	void *buf;
 	struct pollfd pfds;
 	GSource *src;
-	GMainContext *ctx;
 	int err;
 
 	/*
@@ -383,7 +382,7 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 		return;
 	}
 
-	if (snd_hwdep_poll_descriptors(self->priv->hwdep, &pfds, 1) != 1) {
+	if (snd_hwdep_poll_descriptors(priv->hwdep, &pfds, 1) != 1) {
 		g_set_error(exception, g_quark_from_static_string(__func__),
 			    EINVAL, "%s", strerror(EINVAL));
 		return;
@@ -402,30 +401,72 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 	g_source_set_can_recurse(src, TRUE);
 
 	((SndUnitSource *)src)->unit = self;
-	self->priv->src = (SndUnitSource *)src;
-	self->priv->buf = buf;
-	self->priv->len = getpagesize();
+	priv->src = (SndUnitSource *)src;
+	priv->buf = buf;
+	priv->len = getpagesize();
 
-	ctx = g_main_context_default();
-	/* NOTE: The returned ID is never used. */
-	g_source_attach(src, ctx);
 	((SndUnitSource *)src)->tag =
-			g_source_add_unix_fd(src, pfds.fd, G_IO_IN);
+		hinawa_context_add_src(src, pfds.fd, G_IO_IN, exception);
+	if (*exception != NULL) {
+		g_free(buf);
+		g_source_destroy(src);
+		priv->buf = NULL;
+		priv->len = 0;
+		priv->src = NULL;
+		return;
+	}
 
-	/* Confirm locked or not. */
-	err = snd_hwdep_ioctl(self->priv->hwdep, SNDRV_FIREWIRE_IOCTL_LOCK,
+	/* Check locked or not. */
+	err = snd_hwdep_ioctl(priv->hwdep, SNDRV_FIREWIRE_IOCTL_LOCK,
 			      NULL);
-	self->priv->streaming = (err == -EBUSY);
+	priv->streaming = (err == -EBUSY);
 	if (err == -EBUSY)
 		return;
-
-	snd_hwdep_ioctl(self->priv->hwdep, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
+	snd_hwdep_ioctl(priv->hwdep, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
 }
 
-void hinawa_snd_unit_unlisten(HinawaSndUnit *self, GError **exception)
+void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 {
-	snd_hwdep_ioctl(self->priv->hwdep, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
-	g_free(self->priv->buf);
-	self->priv->buf = NULL;
-	self->priv->len = 0;
+	HinawaSndUnitPrivate *priv = SND_UNIT_GET_PRIVATE(self);
+
+	if (priv->streaming)
+		snd_hwdep_ioctl(priv->hwdep, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
+
+	g_source_destroy((GSource *)priv->src);
+	g_free(priv->src);
+	priv->src = NULL;
+
+	snd_hwdep_close(priv->hwdep);
+
+	g_free(priv->buf);
+	priv->buf = NULL;
+	priv->len = 0;
+}
+
+void hinawa_snd_unit_add_handle(HinawaSndUnit *self, unsigned int type,
+				HinawaSndUnitHandle *handle,
+				void *private_data, GError **exception)
+{
+	HinawaSndUnitPrivate *priv = SND_UNIT_GET_PRIVATE(self);
+
+	if (priv->iface != type) {
+		g_set_error(exception, g_quark_from_static_string(__func__),
+			    EINVAL, "%s", strerror(EINVAL));
+		return;
+	}
+
+	priv->handle = handle;
+	priv->private_data = private_data;
+	g_object_ref(self);
+}
+
+void hinawa_snd_unit_remove_handle(HinawaSndUnit *self,
+				   HinawaSndUnitHandle *handle)
+{
+	HinawaSndUnitPrivate *priv = SND_UNIT_GET_PRIVATE(self);
+
+	if (priv->handle == handle) {
+		priv->handle = NULL;
+		g_object_unref(self);
+	}
 }

@@ -8,15 +8,17 @@
 #include <linux/firewire-constants.h>
 
 #include "backport.h"
+#include "snd_unit.h"
 
 typedef void (*HinawaFwUnitHandle)(int fd, union fw_cdev_event *ev);
 void hinawa_fw_resp_handle_request(int fd, union fw_cdev_event *ev);
 void hinawa_fw_req_handle_response(int fd, union fw_cdev_event *ev);
 
-typedef void (*HinawaSndUnitHandle)(void *buf, unsigned int len);
-
-#define FCP_MAXIMUM_FRAME_BYTES	0x200U
-#define FCP_REQUEST_ADDR	0xfffff0000b00
-#define FCP_RESPOND_ADDR	0xfffff0000d00
-
+typedef void (HinawaSndUnitHandle)(void *private_data,
+				   const void *buf, unsigned int len);
+void hinawa_snd_unit_add_handle(HinawaSndUnit *self, unsigned int type,
+				HinawaSndUnitHandle *handle,
+				void *private_data, GError **exception);
+void hinawa_snd_unit_remove_handle(HinawaSndUnit *self,
+				   HinawaSndUnitHandle *handle);
 #endif

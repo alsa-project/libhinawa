@@ -35,6 +35,7 @@ struct snd_firewire_event_efw_response {
 
 #define SNDRV_FIREWIRE_TYPE_FIREWORKS	2
 #define SNDRV_FIREWIRE_TYPE_BEBOB	3
+#define SNDRV_FIREWIRE_TYPE_OXFW	4
 
 #endif
 

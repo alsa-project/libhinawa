@@ -5,7 +5,8 @@ AM_CPPFLAGS =					\
 	 -I$(top_srcdir)
 
 AM_CFLAGS =					\
-	$(GLIB_CFLAGS)
+	$(GLIB_CFLAGS)				\
+	-Wall
 
 lib_LTLIBRARIES =				\
 	libhinawa.la
@@ -15,14 +16,45 @@ libhinawa_la_LIBADD =				\
 	-lasound
 
 libhinawa_la_SOURCES =				\
+	hinawa_context.c			\
+	hinawa_sigs_marshal.h			\
+	hinawa_sigs_marshal.c			\
 	fw_req.h				\
 	fw_req.c				\
 	fw_resp.h				\
 	fw_resp.c				\
 	fw_unit.h				\
 	fw_unit.c				\
+	fw_fcp.h				\
+	fw_fcp.c				\
 	snd_unit.h				\
-	snd_unit.c
+	snd_unit.c				\
+	snd_eft.h				\
+	snd_eft.c				\
+	snd_dice_notify.h			\
+	snd_dice_notify.c
+
+pkginclude_HEADERS =				\
+	hinawa_sigs_marshal.h			\
+	fw_req.h				\
+	fw_resp.h				\
+	fw_unit.h				\
+	fw_fcp.h				\
+	snd_unit.h				\
+	snd_eft.h				\
+	snd_dice_notify.h
+
+hinawa_sigs_marshal.list:
+	find | grep \.c$$ | xargs cat | 				\
+	sed -n -e 's/.*hinawa_sigs_marshal_\([A-Z]*__[A-Z_]*\).*/\1/p' |\
+	sed -e 's/__/:/' -e 'y/_/,/' | sort -u > $@
+
+hinawa_sigs_marshal.h: hinawa_sigs_marshal.list
+	glib-genmarshal --header --prefix=hinawa_sigs_marshal $< > $@
+
+hinawa_sigs_marshal.c: hinawa_sigs_marshal.list hinawa_sigs_marshal.h
+	echo '#include "hinawa_sigs_marshal.h"' > $@
+	glib-genmarshal --body --prefix=hinawa_sigs_marshal $< >> $@
 
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =

@@ -1,86 +1,106 @@
 #include <linux/types.h>
-#include "internal.h"
+#include <sound/firewire.h>
+#include <alsa/asoundlib.h>
+#include "snd_eft.h"
 
 #define MINIMUM_SUPPORTED_VERSION	1
 #define MAXIMUM_FRAME_BYTES		0x200U
 
-struct hinawa_efw_transaction {
-	uint32_t seqnum;
-	void *buf;
-	unsigned int length;
-
-	LIST_ENTRY(hinawa_efw_transaction) link;
-	pthread_cond_t cond;
-	pthread_mutex_t mutex;
+enum eft_status {
+	EFT_STATUS_OK			= 0,
+	EFT_STATUS_BAD			= 1,
+	EFT_STATUS_BAD_COMMAND		= 2,
+	EFT_STATUS_COMM_ERR		= 3,
+	EFT_STATUS_BAD_QUAD_COUNT	= 4,
+	EFT_STATUS_UNSUPPORTED		= 5,
+	EFT_STATUS_1394_TIMEOUT		= 6,
+	EFT_STATUS_DSP_TIMEOUT		= 7,
+	EFT_STATUS_BAD_RATE		= 8,
+	EFT_STATUS_BAD_CLOCK		= 9,
+	EFT_STATUS_BAD_CHANNEL		= 10,
+	EFT_STATUS_BAD_PAN		= 11,
+	EFT_STATUS_FLASH_BUSY		= 12,
+	EFT_STATUS_BAD_MIRROR		= 13,
+	EFT_STATUS_BAD_LED		= 14,
+	EFT_STATUS_BAD_PARAMETER	= 15,
+};
+static const char *const eft_status_names[] = {
+	[EFT_STATUS_OK]			= "OK",
+	[EFT_STATUS_BAD]		= "bad",
+	[EFT_STATUS_BAD_COMMAND]	= "bad command",
+	[EFT_STATUS_COMM_ERR]		= "comm err",
+	[EFT_STATUS_BAD_QUAD_COUNT]	= "bad quad count",
+	[EFT_STATUS_UNSUPPORTED]	= "unsupported",
+	[EFT_STATUS_1394_TIMEOUT]	= "1394 timeout",
+	[EFT_STATUS_DSP_TIMEOUT]	= "DSP timeout",
+	[EFT_STATUS_BAD_RATE]		= "bad rate",
+	[EFT_STATUS_BAD_CLOCK]		= "bad clock",
+	[EFT_STATUS_BAD_CHANNEL]	= "bad channel",
+	[EFT_STATUS_BAD_PAN]		= "bad pan",
+	[EFT_STATUS_FLASH_BUSY]		= "flash busy",
+	[EFT_STATUS_BAD_MIRROR]		= "bad mirror",
+	[EFT_STATUS_BAD_LED]		= "bad LED",
+	[EFT_STATUS_BAD_PARAMETER]	= "bad parameter",
 };
 
-struct _HinawaSndEftPrivate {
-	guint32 seqnum;
-	void *buf;
-	unsigned int len;
+struct efw_transaction {
+	guint seqnum;
+
+	struct snd_efw_transaction *frame;
 
 	GCond cond;
 };
-G_DEFINE_TYPE_WITH_PRIVATE (HinawaSndEft, hinawa_snd_eft, G_TYPE_OBJECT)
 
-enum efw_status {
-	EFW_STATUS_OK			= 0,
-	EFW_STATUS_BAD			= 1,
-	EFW_STATUS_BAD_COMMAND		= 2,
-	EFW_STATUS_COMM_ERR		= 3,
-	EFW_STATUS_BAD_QUAD_COUNT	= 4,
-	EFW_STATUS_UNSUPPORTED		= 5,
-	EFW_STATUS_1394_TIMEOUT		= 6,
-	EFW_STATUS_DSP_TIMEOUT		= 7,
-	EFW_STATUS_BAD_RATE		= 8,
-	EFW_STATUS_BAD_CLOCK		= 9,
-	EFW_STATUS_BAD_CHANNEL		= 10,
-	EFW_STATUS_BAD_PAN		= 11,
-	EFW_STATUS_FLASH_BUSY		= 12,
-	EFW_STATUS_BAD_MIRROR		= 13,
-	EFW_STATUS_BAD_LED		= 14,
-	EFW_STATUS_BAD_PARAMETER	= 15,
-	EFW_STATUS_INCOMPLETE		= 0x80000000
+struct _HinawaSndEftPrivate {
+	HinawaSndUnit *unit;
+	guint seqnum;
+
+	GList *transactions;
+	GMutex lock;
 };
+G_DEFINE_TYPE_WITH_PRIVATE (HinawaSndEft, hinawa_snd_eft, G_TYPE_OBJECT)
+#define SND_EFT_GET_PRIVATE(obj)					\
+	(G_TYPE_INSTANCE_GET_PRIVATE((obj), 				\
+				     HINAWA_TYPE_SND_EFT, HinawaSndEftPrivate))
 
-static void hinawa_snd_eft_dispose(GObject *gobject)
+static void handle_response(void *private_data,
+			    const void *buf, unsigned int len);
+
+static void snd_eft_dispose(GObject *obj)
 {
-	G_OBJECT_CLASS (hinawa_snd_eft_parent_class)->dispose(gobject);
+	HinawaSndEft *self = HINAWA_SND_EFT(obj);
+	HinawaSndEftPrivate *priv = SND_EFT_GET_PRIVATE(self);
+
+	if (priv->unit != NULL)
+		hinawa_snd_unit_remove_handle(priv->unit, handle_response);
+
+	G_OBJECT_CLASS (hinawa_snd_eft_parent_class)->dispose(obj);
 }
 
-static void hinawa_snd_eft_finalize (GObject *gobject)
+static void snd_eft_finalize (GObject *gobject)
 {
-	HinawaSndEft *self = HINAWA_FW_EFT(gobject);
-
 	G_OBJECT_CLASS(hinawa_snd_eft_parent_class)->finalize(gobject);
 }
 
-static void hinawa_snd_eft_class_init(HinawaFwReqClass *klass)
+static void hinawa_snd_eft_class_init(HinawaSndEftClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
 	gobject_class->get_property = NULL;
 	gobject_class->set_property = NULL;
-	gobject_class->dispose = hinawa_snd_eft_dispose;
-	gobject_class->finalize = hinawa_snd_eft_finalize;
+	gobject_class->dispose = snd_eft_dispose;
+	gobject_class->finalize = snd_eft_finalize;
 }
 
-static void hinawa_snd_eft_init(HinawaFwReq *self)
+static void hinawa_snd_eft_init(HinawaSndEft *self)
 {
 	self->priv = hinawa_snd_eft_get_instance_private(self);
 }
 
-HinawaSndEft *hinawa_snd_eft_new(GError **exception)
+HinawaSndEft *hinawa_snd_eft_new(HinawaSndUnit *unit, GError **exception)
 {
 	HinawaSndEft *self;
-	void *buf;
-
-	buf = g_malloc0(EFT_MAX_FRAME_BYTES);
-	if (buf == NULL) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    ENOMEM, "%s", strerror(ENOMEM));
-		return NULL;
-	}
+	HinawaSndEftPrivate *priv;
 
 	self = g_object_new(HINAWA_TYPE_SND_EFT, NULL);
 	if (self == NULL) {
@@ -88,149 +108,190 @@ HinawaSndEft *hinawa_snd_eft_new(GError **exception)
 			    ENOMEM, "%s", strerror(ENOMEM));
 		return NULL;
 	}
-	self->priv->buf = buf;
-	self->priv->len = EFT_MAX_FRAME_BYTES;
+
+	hinawa_snd_unit_add_handle(unit, SNDRV_FIREWIRE_TYPE_FIREWORKS,
+				   handle_response, self, exception);
+	if (*exception != NULL) {
+		g_clear_object(&self);
+		return NULL;
+	}
+
+	priv = SND_EFT_GET_PRIVATE(self);
+	priv->unit = unit;
+	priv->seqnum = 0;
+	priv->transactions = NULL;
+	g_mutex_init(&priv->lock);
 
 	return self;
 }
 
-void hinawa_snd_eft_transact(HinawaSndEft *self, HinawaSndUnit *unit,
-			     unsigned int category, unsigned int command,
-			     guint32 *args, unsigned int args_count,
-			     guint32 *params, unsigned int *params_count,
+/**
+ * hinawa_snd_eft_transact:
+ * @self: A #HinawaSndEft
+ * @category: one of category for the transact
+ * @command: one of commands for the transact
+ * @args: (element-type guint8) (array) (in): arguments for the transaction
+ * @params: (element-type guint8) (array) (out caller-allocates): return params
+ * @exception: A #GError
+ */
+void hinawa_snd_eft_transact(HinawaSndEft *self, guint category, guint command,
+			     GArray *args, GArray *params,
 			     GError **exception)
 {
-	struct snd_efw_transaction *self =
-				(struct snd_efw_transaction *)self->priv->buf;
+	HinawaSndEftPrivate *priv = SND_EFT_GET_PRIVATE(self);
 	unsigned int type;
+
+	struct efw_transaction trans;
+	__le32 *items;
+
 	unsigned int quads;
+	unsigned int count;
 	unsigned int i;
+
 	gint64 expiration;
+	GMutex local_lock;
 
-	g_object_get(G_OBJECT(uint), "type", &type, NULL);
-
-	if (type != SNDRV_FIREWIRE_TYPE_FIREWORKS) {
+	/* Check unit type and function arguments . */
+	g_object_get(G_OBJECT(priv->unit), "iface", &type, NULL);
+	if (type != SNDRV_FIREWIRE_TYPE_FIREWORKS ||
+	    (args->len > 0 && args == NULL)) {
 		g_set_error(exception, g_quark_from_static_string(__func__),
 			    EINVAL, "%s", strerror(EINVAL));
 		return;
 	}
 
-	if (args_count > 0 && args == NULL) {
-		*err = EINVAL;
+	trans.frame = g_malloc0(MAXIMUM_FRAME_BYTES);
+	if (trans.frame == NULL) {
+		g_set_error(exception, g_quark_from_static_string(__func__),
+			    ENOMEM, "%s", strerror(ENOMEM));
 		return;
 	}
 
-	trans->seqnum = unit->seqnum;
-	unit->seqnum += 2;
-	if (unit->seqnum > SND_EFW_TRANSACTION_USER_SEQNUM_MAX)
-		unit->seqnum = 0;
+	/* Increment the sequence number for next transaction. */
+	trans.frame->seqnum = priv->seqnum;
+	priv->seqnum += 2;
+	if (priv->seqnum > SND_EFW_TRANSACTION_USER_SEQNUM_MAX)
+		priv->seqnum = 0;
 
-	/* copy a request */
-	quadlets = sizeof(struct snd_efw_transaction) / sizeof(uint32_t) +
-		   args_count;
-	frame->length	= htobe32(quadlets);
-	frame->version	= htobe32(1);
-	frame->seqnum	= htobe32(trans->seqnum);
-	frame->category	= htobe32(category);
-	frame->command	= htobe32(command);
-	for (i = 0; i < args_count; i++)
-		frame->params[i] = htobe32(args[i]);
+	/* Fill transaction frame. */
+	quads = (sizeof(struct snd_efw_transaction) + args->len) / 4;
+	trans.frame->length	= quads;
+	trans.frame->version	= MINIMUM_SUPPORTED_VERSION;
+	trans.frame->category	= category;
+	trans.frame->command	= command;
+	trans.frame->status   = 0xff;
+	memcpy(trans.frame->params, args->data, args->len);
 
-	pthread_mutex_lock(&unit->efw_transactions_lock);
-	LIST_INSERT_HEAD(&unit->efw_transactions, trans, link);
-	pthread_mutex_unlock(&unit->efw_transactions_lock);
+	/* The transactions are aligned to big-endian. */
+	items = (__le32 *)trans.frame;
+	for (i = 0; i < quads; i++)
+		items[i] = htobe32(items[i]);
 
-	pthread_cond_init(&trans->cond, NULL);
-	pthread_mutex_init(&trans->mutex, NULL);
-	abstime.tv_sec = time(NULL) + 2;
-	abstime.tv_nsec = 0;
+	/* Insert this entry to list. */
+	g_mutex_lock(&priv->lock);
+	priv->transactions = g_list_append(priv->transactions, &trans);
+	g_mutex_unlock(&priv->lock);
 
-	*err = snd_hwdep_write(unit->hwdep, trans->buf,
-			       quadlets * sizeof(uint32_t));
-	if (*err < 0) {
-		*err *= -1;
+	/* NOTE: Timeout is 200 milli-seconds. */
+	expiration = g_get_monotonic_time() + 200 * G_TIME_SPAN_MILLISECOND;
+	g_cond_init(&trans.cond);
+	g_mutex_init(&local_lock);
+
+	/* Send this request frame. */
+	hinawa_snd_unit_write(priv->unit, trans.frame, quads * 4, exception);
+	if (*exception != NULL)
+		goto end;
+
+	/* Wait corresponding response till timeout. */
+	g_mutex_lock(&local_lock);
+	if (!g_cond_wait_until(&trans.cond, &local_lock, expiration)) {
+		g_set_error(exception, g_quark_from_static_string(__func__),
+			    ETIMEDOUT, "%s", strerror(ETIMEDOUT));
+		goto end;
+	}
+	g_mutex_unlock(&local_lock);
+
+	quads = be32toh(trans.frame->length);
+
+	/* The transactions are aligned to big-endian. */
+	items = (__le32 *)trans.frame;
+	for (i = 0; i < quads; i++)
+		items[i] = be32toh(items[i]);
+
+	/* Check transaction status. */
+	if (trans.frame->status != EFT_STATUS_OK) {
+		g_set_error(exception, g_quark_from_static_string(__func__),
+			    EPROTO, "%s", strerror(trans.frame->status));
 		goto end;
 	}
 
-	*err = pthread_cond_timedwait(&trans->cond, &trans->mutex, &abstime);
-	if (*err)
-		goto end;
-
-	/* transaction header includes wrong info. */
-	if ((be32toh(frame->version)	<  MINIMUM_SUPPORTED_VERSION) ||
-	    (be32toh(frame->category)	!= category) ||
-	    (be32toh(frame->command)	!= command)) {
-		*err = EPROTO;
+	/* Check transaction headers. */
+	if ((trans.frame->version  <  MINIMUM_SUPPORTED_VERSION) ||
+	    (trans.frame->category != category) ||
+	    (trans.frame->command  != command)) {
+		g_set_error(exception, g_quark_from_static_string(__func__),
+			    EIO, "%s", strerror(EIO));
 		goto end;
 	}
 
-	quadlets = be32toh(frame->length) -
-		   sizeof(struct snd_efw_transaction) / sizeof(uint32_t);
-	if (quadlets > 0 &&
-	    (params == NULL || *params_count < quadlets * sizeof(uint32_t))) {
-		*err = EINVAL;
+	/* Check returned parameters. */
+	count = quads - sizeof(struct snd_efw_transaction) / 4;
+	if (count > 0 && params == NULL) {
+		g_set_error(exception, g_quark_from_static_string(__func__),
+			    EINVAL, "%s", strerror(EINVAL));
 		goto end;
 	}
 
-	*params_count = quadlets;
-	for (i = 0; i < *params_count; i++)
-		params[i] = be32toh(frame->params[i]);
+	/* Copy parameters. */
+	g_array_insert_vals(params, 0, trans.frame->params, count * 4);
 end:
-	pthread_mutex_lock(&unit->efw_transactions_lock);
-	LIST_REMOVE(trans, link);
-	pthread_mutex_unlock(&unit->efw_transactions_lock);
+	g_mutex_lock(&priv->lock);
+	priv->transactions =
+			g_list_remove(priv->transactions, (gpointer *)&trans);
+	g_mutex_unlock(&priv->lock);
+
+	g_mutex_clear(&local_lock);
+	g_free(trans.frame);
 }
 
-static void dump_response(struct snd_efw_transaction *trans)
+static void handle_response(void *private_data,
+			    const void *buf, unsigned int len)
 {
-	unsigned int quadlets, i;
-
-	printf("Quadlets:\t%d\n",	be32toh(trans->length));
-	printf("Version:\t%d\n",	be32toh(trans->version));
-	printf("Sequence:\t%d\n",	be32toh(trans->seqnum));
-	printf("Category:\t%d\n",	be32toh(trans->category));
-	printf("Command:\t%d\n",	be32toh(trans->command));
-	printf("Status:\t%d\n",		be32toh(trans->status));
-
-	quadlets = be32toh(trans->length) -
-		   sizeof(struct snd_efw_transaction) / sizeof(uint32_t);
-
-	for (i = 0; i < quadlets; i++)
-		printf("param[%02d]: %08x\n", i, be32toh(trans->params[i]));
-}
-
-void hinawa_snd_eft_handle_response(HinawaSndUnit *unit, void *buf,
-				    unsigned int len, int *err)
-{
+	HinawaSndEftPrivate *priv = SND_EFT_GET_PRIVATE(private_data);
 	struct snd_firewire_event_efw_response *event =
 				(struct snd_firewire_event_efw_response *)buf;
-	uint32_t *responses = event->response;
-	struct snd_efw_transaction *resp;
-	HinawaEfwTransaction *trans;
+	guint *responses = event->response;
+
+	struct snd_efw_transaction *resp_frame;
+	struct efw_transaction *trans;
+
 	unsigned int quadlets;
+	GList *entry;
 
-	while (length > 0) {
- 		resp =  (struct snd_efw_transaction *)responses;
-		quadlets = be32toh(resp->length);
+	while (len > 0) {
+ 		resp_frame =  (struct snd_efw_transaction *)responses;
 
-		pthread_mutex_lock(&unit->efw_transactions_lock);
+		g_mutex_lock(&priv->lock);
 
-		LIST_FOREACH(trans, &unit->efw_transactions, link) {
-			if (trans->seqnum + 1 == be32toh(resp->seqnum))
+		trans = NULL;
+		for (entry = priv->transactions;
+		     entry != NULL; entry = entry->next) {
+			trans = (struct efw_transaction *)entry->data;
+
+			if (be32toh(resp_frame->seqnum) == trans->seqnum)
 				break;
 		}
 
-		if (trans != NULL &&
-		    trans->length >= quadlets * sizeof(uint32_t)) {
-			memcpy(trans->buf, resp, quadlets * sizeof(uint32_t));
-			pthread_cond_signal(&trans->cond);
-		} else {
-			dump_response(resp);
-		}
+		g_mutex_unlock(&priv->lock);
 
-		pthread_mutex_unlock(&unit->efw_transactions_lock);
+		if (trans == NULL)
+			continue;
+
+		quadlets = be32toh(resp_frame->length);
+		memcpy(trans->frame, resp_frame, quadlets * 4);
+		g_cond_signal(&trans->cond);
 
 		responses += quadlets;
-		length -= quadlets * sizeof(uint32_t);
+		len -= quadlets * sizeof(guint);
 	}
 }

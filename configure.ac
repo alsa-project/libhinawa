@@ -1,6 +1,6 @@
 AC_PREREQ(2.65)
 
-AC_INIT([ghinawa], [1.0.0], [o-takashi@sakamocchi.jp])
+AC_INIT([hinawa], [1.0.0], [o-takashi@sakamocchi.jp])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 

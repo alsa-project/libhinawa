@@ -1,7 +1,10 @@
+#include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+
+#include "hinawa_context.h"
 #include "fw_unit.h"
 
 #ifdef HAVE_CONFIG_H
@@ -22,7 +25,10 @@ struct _HinawaFwUnitPrivate {
 	void *buf;
 	FwUnitSource *src;
 };
-G_DEFINE_TYPE_WITH_PRIVATE (HinawaFwUnit, hinawa_fw_unit, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwUnit, hinawa_fw_unit, G_TYPE_OBJECT)
+#define FW_UNIT_GET_PRIVATE(obj)					\
+	(G_TYPE_INSTANCE_GET_PRIVATE((obj), 				\
+				     HINAWA_TYPE_FW_UNIT, HinawaFwUnitPrivate))
 
 /* This object has properties. */
 enum fw_unit_prop_type {
@@ -32,17 +38,25 @@ enum fw_unit_prop_type {
 };
 static GParamSpec *fw_unit_props[FW_UNIT_PROP_TYPE_COUNT] = { NULL, };
 
-static void hinawa_fw_unit_get_property(GObject *obj, guint id,
-					GValue *val, GParamSpec *spec)
+/* This object has one signal. */
+enum fw_unit_sig_type {
+	FW_UNIT_SIG_TYPE_BUS_UPDATE = 0,
+	FW_UNIT_SIG_TYPE_COUNT,
+};
+static guint fw_unit_sigs[FW_UNIT_SIG_TYPE_COUNT] = { 0 };
+
+static void fw_unit_get_property(GObject *obj, guint id,
+				 GValue *val, GParamSpec *spec)
 {
 	HinawaFwUnit *self = HINAWA_FW_UNIT(obj);
+	HinawaFwUnitPrivate *priv = FW_UNIT_GET_PRIVATE(self);
 
 	switch (id) {
 	case FW_UNIT_PROP_TYPE_FD:
-		g_value_set_int(val, self->priv->fd);
+		g_value_set_int(val, priv->fd);
 		break;
 	case FW_UNIT_PROP_TYPE_GENERATION:
-		g_value_set_uint64(val, self->priv->generation);
+		g_value_set_uint64(val, priv->generation);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, id, spec);
@@ -50,17 +64,18 @@ static void hinawa_fw_unit_get_property(GObject *obj, guint id,
 	}
 }
 
-static void hinawa_fw_unit_set_property(GObject *obj, guint id,
-					const GValue *val, GParamSpec *spec)
+static void fw_unit_set_property(GObject *obj, guint id,
+				 const GValue *val, GParamSpec *spec)
 {
 	HinawaFwUnit *self = HINAWA_FW_UNIT(obj);
+	HinawaFwUnitPrivate *priv = FW_UNIT_GET_PRIVATE(self);
 
 	switch (id) {
 	case FW_UNIT_PROP_TYPE_FD:
-		self->priv->fd = g_value_get_int(val);
+		priv->fd = g_value_get_int(val);
 		break;
 	case FW_UNIT_PROP_TYPE_GENERATION:
-		self->priv->generation = g_value_get_uint64(val);
+		priv->generation = g_value_get_uint64(val);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, id, spec);
@@ -68,31 +83,30 @@ static void hinawa_fw_unit_set_property(GObject *obj, guint id,
 	}
 }
 
-static void hinawa_fw_unit_dispose(GObject *obj)
+static void fw_unit_dispose(GObject *obj)
 {
 	HinawaFwUnit *self = HINAWA_FW_UNIT(obj);
+	HinawaFwUnitPrivate *priv = FW_UNIT_GET_PRIVATE(self);
 
-	close(self->priv->fd);
-	self->priv->fd = 0;
+	if (priv->src != NULL)
+		hinawa_fw_unit_unlisten(self);
 
 	G_OBJECT_CLASS (hinawa_fw_unit_parent_class)->dispose(obj);
 }
 
-static void hinawa_fw_unit_finalize (GObject *gobject)
+static void fw_unit_finalize (GObject *gobject)
 {
-	HinawaFwUnit *self = HINAWA_FW_UNIT(gobject);
-
-	G_OBJECT_CLASS(hinawa_fw_unit_parent_class)->finalize (gobject);
+	G_OBJECT_CLASS(hinawa_fw_unit_parent_class)->finalize(gobject);
 }
 
 static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
-	gobject_class->get_property = hinawa_fw_unit_get_property;
-	gobject_class->set_property = hinawa_fw_unit_set_property;
-	gobject_class->dispose = hinawa_fw_unit_dispose;
-	gobject_class->finalize = hinawa_fw_unit_finalize;
+	gobject_class->get_property = fw_unit_get_property;
+	gobject_class->set_property = fw_unit_set_property;
+	gobject_class->dispose = fw_unit_dispose;
+	gobject_class->finalize = fw_unit_finalize;
 
 	fw_unit_props[FW_UNIT_PROP_TYPE_FD] =
 		g_param_spec_int("fd", "fd",
@@ -108,10 +122,18 @@ static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 	g_object_class_install_properties(gobject_class,
 					  FW_UNIT_PROP_TYPE_COUNT,
 					  fw_unit_props);
+
+	fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE] =
+		g_signal_new("bus-update",
+			     G_OBJECT_CLASS_TYPE(klass),
+			     G_SIGNAL_RUN_LAST,
+			     0,
+			     NULL, NULL,
+			     g_cclosure_marshal_VOID__VOID,
+			     G_TYPE_NONE, 0, G_TYPE_NONE);
 }
 
-static void
-hinawa_fw_unit_init(HinawaFwUnit *self)
+static void hinawa_fw_unit_init(HinawaFwUnit *self)
 {
 	self->priv = hinawa_fw_unit_get_instance_private(self);
 }
@@ -154,18 +176,21 @@ HinawaFwUnit *hinawa_fw_unit_new(gchar *path, GError **exception)
 	return self;
 }
 
-static void handling_update(int fd, union fw_cdev_event *ev)
+static void handle_update(int fd, union fw_cdev_event *ev)
 {
 	struct fw_cdev_event_bus_reset *event = &ev->bus_reset;
-	HinawaFwUnit *unit = (HinawaFwUnit *)event->closure;
+	HinawaFwUnit *self = (HinawaFwUnit *)event->closure;
 
-	if (unit == NULL)
+	if (self == NULL)
 		return;
 
-	unit->priv->generation = event->generation;
+	self->priv->generation = event->generation;
+
+	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE], 0,
+		      NULL);
 }
 
-static gboolean preparing_src(GSource *src, gint *timeout)
+static gboolean prepare_src(GSource *src, gint *timeout)
 {
 	/* Set 2msec for poll(2) timeout. */
 	*timeout = 2;
@@ -174,16 +199,17 @@ static gboolean preparing_src(GSource *src, gint *timeout)
 	return FALSE;
 }
 
-static gboolean checking_src(GSource *gsrc)
+static gboolean check_src(GSource *gsrc)
 {
 	FwUnitSource *src = (FwUnitSource *)gsrc;
 	HinawaFwUnit *unit = src->unit;
+	HinawaFwUnitPrivate *priv = FW_UNIT_GET_PRIVATE(unit);
 	struct fw_cdev_event_common *common;
 	int len;
 	GIOCondition condition;
 
 	HinawaFwUnitHandle handles[] = {
-		[FW_CDEV_EVENT_BUS_RESET] = handling_update,
+		[FW_CDEV_EVENT_BUS_RESET] = handle_update,
 		[FW_CDEV_EVENT_RESPONSE]  = hinawa_fw_req_handle_response,
 		[FW_CDEV_EVENT_REQUEST2]  = hinawa_fw_resp_handle_request
 	};
@@ -196,32 +222,31 @@ static gboolean checking_src(GSource *gsrc)
 	if (!(condition & G_IO_IN))
 		goto end;
 
-	len = read(unit->priv->fd, unit->priv->buf, unit->priv->len);
+	len = read(priv->fd, priv->buf, priv->len);
 	if (len <= 0)
 		goto end;
 
-	common = (struct fw_cdev_event_common *)unit->priv->buf;
+	common = (struct fw_cdev_event_common *)priv->buf;
 
 	if (common->type != FW_CDEV_EVENT_BUS_RESET &&
 	    common->type != FW_CDEV_EVENT_RESPONSE &&
 	    common->type != FW_CDEV_EVENT_REQUEST2)
 		goto end;
 
-	handles[common->type](unit->priv->fd,
-			      (union fw_cdev_event *)unit->priv->buf);
+	handles[common->type](priv->fd, (union fw_cdev_event *)priv->buf);
 end:
 	/* Don't go to dispatch, then continue to process this source. */
 	return FALSE;
 }
 
-static gboolean dispatching_src(GSource *src, GSourceFunc callback,
-				gpointer user_data)
+static gboolean dispatch_src(GSource *src, GSourceFunc callback,
+			     gpointer user_data)
 {
 	/* Just be sure to continue to process this source. */
 	return TRUE;
 }
 
-static void finalizing_src(GSource *src)
+static void finalize_src(GSource *src)
 {
 	/* Do nothing paticular. */
 	return;
@@ -230,14 +255,14 @@ static void finalizing_src(GSource *src)
 void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 {
 	static GSourceFuncs funcs = {
-		.prepare	= preparing_src,
-		.check		= checking_src,
-		.dispatch	= dispatching_src,
-		.finalize	= finalizing_src,
+		.prepare	= prepare_src,
+		.check		= check_src,
+		.dispatch	= dispatch_src,
+		.finalize	= finalize_src,
 	};
+	HinawaFwUnitPrivate *priv = FW_UNIT_GET_PRIVATE(self);
 	void *buf;
 	GSource *src;
-	GMainContext *ctx;
 
 	/*
 	 * MEMO: allocate one page because we cannot assume the size of
@@ -263,23 +288,33 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 	g_source_set_can_recurse(src, TRUE);
 
 	((FwUnitSource *)src)->unit = self;
-	self->priv->src = (FwUnitSource *)src;
-	self->priv->buf = buf;
-	self->priv->len = getpagesize();
+	priv->src = (FwUnitSource *)src;
+	priv->buf = buf;
+	priv->len = getpagesize();
 
-	ctx = g_main_context_default();
-	/* NOTE: The returned ID is never used. */
-	g_source_attach(src, ctx);
 	((FwUnitSource *)src)->tag =
-			g_source_add_unix_fd(src, self->priv->fd, G_IO_IN);
+		hinawa_context_add_src(src, priv->fd, G_IO_IN, exception);
+	if (*exception != NULL) {
+		g_free(buf);
+		g_source_destroy(src);
+		priv->buf = NULL;
+		priv->len = 0;
+		priv->src = NULL;
+		return;
+	}
 }
 
 void hinawa_fw_unit_unlisten(HinawaFwUnit *self)
 {
-	g_source_destroy((GSource *)self->priv->src);
-	close(self->priv->fd);
+	HinawaFwUnitPrivate *priv = FW_UNIT_GET_PRIVATE(self);
 
-	g_free(self->priv->buf);
-	self->priv->buf = NULL;
+	g_source_destroy((GSource *)priv->src);
+	g_free(priv->src);
+	priv->src = NULL;
+
+	close(priv->fd);
+
+	g_free(priv->buf);
+	priv->buf = NULL;
 	self->priv->len = 0;
 }

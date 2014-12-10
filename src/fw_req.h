@@ -50,13 +50,12 @@ GType hinawa_fw_req_get_type(void) G_GNUC_CONST;
 
 HinawaFwReq *hinawa_fw_req_new(GError **exception);
 
-void hinawa_fw_req_write(HinawaFwReq *req, HinawaFwUnit *unit, gint64 addr,
-			 gpointer *buf, gint len, GError **exception);
+void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
+			 GArray *frame, GError **exception);
 
-void hinawa_fw_req_read(HinawaFwReq *req, HinawaFwUnit *unit, gint64 addr,
-			gpointer *buf, gint len, GError **exception);
+void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
+			GArray *frame, guint len, GError **exception);
 
-void hinawa_fw_req_compare_swap(HinawaFwReq *req, HinawaFwUnit *unit,
-				gint64 addr, gpointer *buf, gint len,
-				GError **exception);
+void hinawa_fw_req_compare_swap(HinawaFwReq *self, HinawaFwUnit *unit,
+				guint64 addr, GArray *frame, GError **exception);
 #endif

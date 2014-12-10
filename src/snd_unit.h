@@ -3,7 +3,6 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include "internal.h"
 
 G_BEGIN_DECLS
 
@@ -42,7 +41,7 @@ struct _HinawaSndUnit
 
 struct _HinawaSndUnitClass
 {
-    GObjectClass parent_class;
+	GObjectClass parent_class;
 };
 
 GType hinawa_snd_unit_get_type(void) G_GNUC_CONST;
@@ -52,6 +51,11 @@ HinawaSndUnit *hinawa_snd_unit_new(gchar *path, GError **exception);
 void hinawa_snd_unit_lock(HinawaSndUnit *unit, GError **exception);
 void hinawa_snd_unit_unlock(HinawaSndUnit *unit, GError **exception);
 
+void hinawa_snd_unit_write(HinawaSndUnit *unit,
+			   const void *buf, unsigned int length,
+			   GError **exception);
+
 void hinawa_snd_unit_listen(HinawaSndUnit *unit, GError **exception);
-void hinawa_snd_unit_unlisten(HinawaSndUnit *unit, GError **exception);
+void hinawa_snd_unit_unlisten(HinawaSndUnit *unit);
+
 #endif
