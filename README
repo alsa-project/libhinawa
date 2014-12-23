@@ -3,9 +3,24 @@ Requirements
 - alsa-lib
 - autoconf
 - automake
+- glib-2.0
+- gobject-2.0
 
 How to build
  $ ./autogen.sh
  $ ./configure
  $ make
  $ make install
+
+How to test
+(needless to install)
+ $ ./autogen.sh
+ $ ./configure
+ $ make
+ $ ./test/run.sh [gtk|qt4|qt5]
+gtk - PyGObject is required.
+qt4 - PyQt4 is resuired (python2 only).
+qt5 - PyQt5 is required.
+
+Overview
+see 'doc/overview.png'.
