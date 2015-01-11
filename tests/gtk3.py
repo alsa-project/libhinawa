@@ -85,18 +85,17 @@ if snd_unit.get_property('iface') is not 1:
 # Echo Fireworks Transaction
 from array import array
 if snd_unit.get_property("iface") is 2:
-    args = bytearray(0)
+    # The width with 'L' parameter is depending on environment.
+    args = array('L')
+    if args.itemsize is not 4:
+        args = array('I')
+    args.append(5)
     try:
         eft = Hinawa.SndEft.new(snd_unit)
-        vals = eft.transact(3, 1, args)
+        params = eft.transact(6, 1, args)
     except Exception as e:
         print(e)
         sys.exit()
-    # The width with 'L' parameter is depending on environment.
-    params = array('L')
-    if params.itemsize is not 4:
-        params = array('I')
-    params.frombytes(vals)
     print('Echo Fireworks Transaction Response:')
     for i in range(len(params)):
         print("\t[{0:02d}]: {1:08x}".format(i, params[i]))

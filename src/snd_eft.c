@@ -130,13 +130,13 @@ HinawaSndEft *hinawa_snd_eft_new(HinawaSndUnit *unit, GError **exception)
  * @self: A #HinawaSndEft
  * @category: one of category for the transact
  * @command: one of commands for the transact
- * @args: (element-type guint8) (array) (in): arguments for the transaction
- * @params: (element-type guint8) (array) (out caller-allocates): return params
+ * @args: (nullable) (element-type guint32) (array) (in): arguments for the
+ *        transaction
+ * @params: (element-type guint32) (array) (out caller-allocates): return params
  * @exception: A #GError
  */
 void hinawa_snd_eft_transact(HinawaSndEft *self, guint category, guint command,
-			     GArray *args, GArray *params,
-			     GError **exception)
+			     GArray *args, GArray *params, GError **exception)
 {
 	HinawaSndEftPrivate *priv = SND_EFT_GET_PRIVATE(self);
 	unsigned int type;
@@ -153,8 +153,9 @@ void hinawa_snd_eft_transact(HinawaSndEft *self, guint category, guint command,
 
 	/* Check unit type and function arguments . */
 	g_object_get(G_OBJECT(priv->unit), "iface", &type, NULL);
-	if (type != SNDRV_FIREWIRE_TYPE_FIREWORKS ||
-	    (args->len > 0 && args == NULL)) {
+	if ((type != SNDRV_FIREWIRE_TYPE_FIREWORKS) ||
+	    (args && g_array_get_element_size(args) != sizeof(guint32)) ||
+	    (params && g_array_get_element_size(params) != sizeof(guint32))) {
 		g_set_error(exception, g_quark_from_static_string(__func__),
 			    EINVAL, "%s", strerror(EINVAL));
 		return;
@@ -174,13 +175,17 @@ void hinawa_snd_eft_transact(HinawaSndEft *self, guint category, guint command,
 		priv->seqnum = 0;
 
 	/* Fill transaction frame. */
-	quads = (sizeof(struct snd_efw_transaction) + args->len) / 4;
+	quads = sizeof(struct snd_efw_transaction) / 4;
+	if (args)
+		quads += args->len;
 	trans.frame->length	= quads;
 	trans.frame->version	= MINIMUM_SUPPORTED_VERSION;
 	trans.frame->category	= category;
 	trans.frame->command	= command;
-	trans.frame->status   = 0xff;
-	memcpy(trans.frame->params, args->data, args->len);
+	trans.frame->status   	= 0xff;
+	if (args)
+		memcpy(trans.frame->params,
+		       args->data, args->len * sizeof(guint32));
 
 	/* The transactions are aligned to big-endian. */
 	items = (__le32 *)trans.frame;
@@ -221,7 +226,8 @@ void hinawa_snd_eft_transact(HinawaSndEft *self, guint category, guint command,
 	/* Check transaction status. */
 	if (trans.frame->status != EFT_STATUS_OK) {
 		g_set_error(exception, g_quark_from_static_string(__func__),
-			    EPROTO, "%s", strerror(trans.frame->status));
+			    EPROTO, "%s",
+			    eft_status_names[trans.frame->status]);
 		goto end;
 	}
 
@@ -243,7 +249,7 @@ void hinawa_snd_eft_transact(HinawaSndEft *self, guint category, guint command,
 	}
 
 	/* Copy parameters. */
-	g_array_insert_vals(params, 0, trans.frame->params, count * 4);
+	g_array_insert_vals(params, 0, trans.frame->params, count);
 end:
 	g_mutex_lock(&priv->lock);
 	priv->transactions =
