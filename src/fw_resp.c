@@ -53,7 +53,7 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	 * HinawaFwResp::requested:
 	 * @self: A #HinawaFwResp
 	 * @tcode: Transaction code
-	 * @frame: (element-type guint8) (array): The frame content
+	 * @frame: (element-type guint32) (array): The frame content
 	 * @private_data: A user data
 	 *
 	 * Returns: data error
@@ -163,7 +163,8 @@ void hinawa_fw_resp_handle_request(int fd, union fw_cdev_event *ev)
 	HinawaFwResp *self = (HinawaFwResp *)event->closure;
 	HinawaFwRespPrivate *priv = FW_RESP_GET_PRIVATE(self);
 
-	GArray *frame;
+	GArray *frame = NULL;
+	guint quads;
 
 	struct fw_cdev_send_response resp = {0};
 	gboolean error;
@@ -173,13 +174,15 @@ void hinawa_fw_resp_handle_request(int fd, union fw_cdev_event *ev)
 		goto respond;
 	}
 
-	frame = g_array_new(FALSE, TRUE, 1);
+	/* Allocate 32bit array. */
+	quads = event->length / 4;
+	frame = g_array_sized_new(FALSE, TRUE, sizeof(guint32), quads);
 	if (frame == NULL) {
 		resp.rcode = RCODE_TYPE_ERROR;
 		goto respond;
 	}
-	frame->data = (gchar *)event->data;
-	frame->len = event->length;
+	g_array_set_size(frame, quads);
+	memcpy(frame->data, event->data, event->length);
 
 	g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ], 0,
 		      event->tcode, frame, priv->private_data, &error);
@@ -197,4 +200,6 @@ respond:
 	ioctl(priv->fd, FW_CDEV_IOC_SEND_RESPONSE, &resp);
 
 	priv->len = 0;
+	if (frame == NULL)
+		g_array_free(frame, TRUE);
 }

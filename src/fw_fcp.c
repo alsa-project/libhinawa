@@ -96,8 +96,10 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	struct fcp_transaction trans = {0};
 	GMutex local_lock;
 	gint64 expiration;
+	guint quads, bytes;
 
-	if (req_frame == NULL || resp_frame == NULL ||
+	if (req_frame == NULL  || g_array_get_element_size(req_frame)  != 1 ||
+	    resp_frame == NULL || g_array_get_element_size(resp_frame) != 1 ||
 	    req_frame->len > FCP_MAXIMUM_FRAME_BYTES) {
 		g_set_error(exception, g_quark_from_static_string(__func__),
 			    EINVAL, "%s", strerror(EINVAL));
@@ -108,9 +110,18 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	if (*exception != NULL)
 		return;
 
+	/* Copy guint8 array to guint32 array. */
+	quads = (req_frame->len + sizeof(guint32) - 1) / sizeof(guint32);
+	trans.req_frame = g_array_sized_new(FALSE, TRUE,
+					    sizeof(guint32), quads);
+	g_array_set_size(trans.req_frame, quads);
+	memcpy(trans.req_frame->data, req_frame->data, req_frame->len);
+
+	/* Prepare response buffer. */
+	trans.resp_frame = g_array_sized_new(FALSE, TRUE,
+					    sizeof(guint32), quads);
+
 	/* Insert this entry. */
-	trans.req_frame = req_frame;
-	trans.resp_frame = resp_frame;
 	g_mutex_lock(&priv->lock);
 	priv->transactions = g_list_prepend(priv->transactions, &trans);
 	g_mutex_unlock(&priv->lock);
@@ -121,7 +132,7 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	g_mutex_init(&local_lock);
 
 	/* Send this request frame. */
-	hinawa_fw_req_write(req, priv->unit, FCP_REQUEST_ADDR, req_frame,
+	hinawa_fw_req_write(req, priv->unit, FCP_REQUEST_ADDR, trans.req_frame,
 			    exception);
 	if (*exception != NULL)
 		goto end;
@@ -141,12 +152,16 @@ deferred:
 		goto end;
 
 	/* It's a deffered transaction, wait 200 milli-seconds again. */
-	if (resp_frame->data[0] == AVC_STATUS_INTERIM) {
+	if (trans.resp_frame->data[0] >> 24 == AVC_STATUS_INTERIM) {
 		expiration = g_get_monotonic_time() +
 			     2 * G_TIME_SPAN_MILLISECOND;
 		goto deferred;
 	}
 
+	/* Convert guint32 array to guint8 array. */
+	bytes = trans.resp_frame->len * sizeof(guint32);
+	g_array_set_size(resp_frame, bytes);
+	memcpy(resp_frame->data, trans.resp_frame->data, bytes);
 end:
 	/* Remove this entry. */
 	g_mutex_lock(&priv->lock);
@@ -154,6 +169,7 @@ end:
 			g_list_remove(priv->transactions, (gpointer *)&trans);
 	g_mutex_unlock(&priv->lock);
 
+	g_array_free(trans.req_frame, TRUE);
 	g_mutex_clear(&local_lock);
 	g_clear_object(&req);
 }
@@ -165,7 +181,6 @@ static gboolean handle_response(HinawaFwResp *self, gint tcode,
 	HinawaFwFcp *fcp = (HinawaFwFcp *)private_data;
 	HinawaFwFcpPrivate *priv = FW_FCP_GET_PRIVATE(fcp);
 	struct fcp_transaction *trans;
-	unsigned char *req_frame;
 	gboolean error;
 	GList *entry;
 
@@ -175,14 +190,12 @@ static gboolean handle_response(HinawaFwResp *self, gint tcode,
 	for (entry = priv->transactions; entry != NULL; entry = entry->next) {
 		trans = (struct fcp_transaction *)entry->data;
 
-		req_frame = (unsigned char *)trans->req_frame->data;
-
-		/* Compare second and third byte. */
-		if (req_frame[1] == ((unsigned char *)resp_frame->data)[1] &&
-		    req_frame[2] == ((unsigned char *)resp_frame->data)[2])
+		if ((trans->req_frame->data[1] == resp_frame->data[1]) &&
+		    (trans->req_frame->data[2] == resp_frame->data[2]))
 			break;
 
 	}
+
 	/* No requests corresponding to this response. */
 	if (entry == NULL) {
 		error = TRUE;

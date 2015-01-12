@@ -8,6 +8,13 @@ from gi.repository import Gtk
 # Hinawa-1.0 gir
 from gi.repository import Hinawa
 
+def get_array():
+    # The width with 'L' parameter is depending on environment.
+    arr = array('L')
+    if arr.itemsize is not 4:
+        arr = array('I')
+    return arr
+
 # create sound unit
 def handle_lock_status(snd_unit, status):
     if status:
@@ -50,7 +57,7 @@ except Exception as e:
 def handle_request(resp, tcode, frame, private_data):
     print('Requested with tcode {0}:'.format(tcode))
     for i in range(len(frame)):
-        print(' [{0:02d}]: 0x{1:02x}'.format(i, frame[i]))
+        print(' [{0:02d}]: 0x{1:08x}'.format(i, frame[i]))
     return True
 try:
     resp = Hinawa.FwResp.new(fw_unit)
@@ -85,10 +92,7 @@ if snd_unit.get_property('iface') is not 1:
 # Echo Fireworks Transaction
 from array import array
 if snd_unit.get_property("iface") is 2:
-    # The width with 'L' parameter is depending on environment.
-    args = array('L')
-    if args.itemsize is not 4:
-        args = array('I')
+    args = get_array()
     args.append(5)
     try:
         eft = Hinawa.SndEft.new(snd_unit)
@@ -146,13 +150,12 @@ class Sample(Gtk.Window):
     def on_click_transact(self, button):
         try:
             addr = int(self.entry.get_text(), 16)
-            val = req.read(fw_unit, addr, 4)
+            val = req.read(fw_unit, addr, 1)
         except Exception as e:
             print(e)
             return
 
-        template = "0x{0:02x}{1:02x}{2:02x}{3:02x}"
-        self.label.set_text(template.format(val[0], val[1], val[2], val[3]))
+        self.label.set_text('0x{0:08x}'.format(val[0]))
         print(self.label.get_text())
 
     def on_click_close(self, button):

@@ -66,7 +66,6 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 {
 	struct fw_cdev_send_request req = {0};
 	HinawaFwReqPrivate *priv = FW_REQ_GET_PRIVATE(self);
-	unsigned int quads;
 	int tcode;
 
 	int fd;
@@ -75,28 +74,23 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 	guint64 expiration;
 	GMutex lock;
 
-	/* Transaction frame should be aligned to 4 bytes. */
-	quads = (frame->len + 3) / 4;
-	if (quads * 4 != frame->len)
-		frame = g_array_set_size(frame, quads * 4);
-
 	/* Setup a private structure. */
 	if (type == FW_REQ_TYPE_READ) {
 		priv->frame = frame;
 		req.data = (guint64)NULL;
-		if (quads == 1)
+		if (frame->len == 1)
 			tcode = TCODE_READ_QUADLET_REQUEST;
 		else
 			tcode = TCODE_READ_BLOCK_REQUEST;
 	} else if (type == FW_REQ_TYPE_WRITE) {
 		priv->frame = NULL;
 		req.data = (guint64)frame->data;
-		if (quads == 1)
+		if (frame->len == 1)
 			tcode = TCODE_WRITE_QUADLET_REQUEST;
 		else
 			tcode = TCODE_WRITE_BLOCK_REQUEST;
 	} else if ((type == FW_REQ_TYPE_COMPARE_SWAP) &&
-		   ((quads == 2) || (quads == 4))) {
+		   ((frame->len == 2) || (frame->len == 4))) {
 			priv->frame = NULL;
 			req.data = (guint64)frame->data;
 			tcode = TCODE_LOCK_COMPARE_SWAP;
@@ -111,7 +105,7 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 
 	/* Setup a transaction structure. */
 	req.tcode = tcode;
-	req.length = frame->len;
+	req.length = frame->len * sizeof(guint32);
 	req.offset = addr;
 	req.closure = (guint64)self;
 	req.generation = generation;
@@ -143,7 +137,7 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
  * @self: A #HinawaFwReq
  * @unit: A #HinawaFwUnit
  * @addr: A destination address of target device
- * @frame: (element-type guint8) (array) (in): a byte frame
+ * @frame: (element-type guint32) (array) (in): a byte frame
  * @exception: A #GError
  */
 void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
@@ -151,7 +145,7 @@ void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 {
 	int err;
 
-	if (frame == NULL) {
+	if (frame == NULL || g_array_get_element_size(frame) != 4) {
 		err = EINVAL;
 	} else {
 		g_object_ref(unit);
@@ -170,7 +164,7 @@ void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
  * @self: A #HinawaFwReq
  * @unit: A #HinawaFwUnit
  * @addr: A destination address of target device
- * @frame: (element-type guint8) (array) (out caller-allocates): a byte frame
+ * @frame: (element-type guint32) (array) (out caller-allocates): a byte frame
  * @len: the bytes to read
  * @exception: A #GError
  */
@@ -179,7 +173,7 @@ void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 {
 	int err;
 
-	if (frame == NULL) {
+	if (frame == NULL || g_array_get_element_size(frame) != 4) {
 		err = EINVAL;
 	} else {
 		g_object_ref(unit);
@@ -199,7 +193,7 @@ void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
  * @self: A #HinawaFwReq
  * @unit: A #HinawaFwUnit
  * @addr: A destination address of target device
- * @frame: (element-type guint8) (array) (inout): a byte frame
+ * @frame: (element-type guint32) (array) (inout): a byte frame
  * @exception: A #GError
  */
 void hinawa_fw_req_compare_swap(HinawaFwReq *self, HinawaFwUnit *unit,
@@ -207,7 +201,7 @@ void hinawa_fw_req_compare_swap(HinawaFwReq *self, HinawaFwUnit *unit,
 {
 	int err;
 
-	if (frame == NULL) {
+	if (frame == NULL || g_array_get_element_size(frame) != 4) {
 		err = EINVAL;
 	} else {
 		g_object_ref(unit);
@@ -233,8 +227,11 @@ void hinawa_fw_req_handle_response(int fd, union fw_cdev_event *ev)
 	priv = FW_REQ_GET_PRIVATE(req);
 
 	/* Copy transaction frame. */
-	if (req->priv->frame != NULL)
-		g_array_insert_vals(priv->frame, 0, event->data, event->length);
+	if (req->priv->frame != NULL) {
+		priv->frame->len = 0;
+		g_array_append_vals(priv->frame, event->data,
+			event->length / g_array_get_element_size(priv->frame));
+	}
 
 	/* Waken a thread of an user application. */
 	g_cond_signal(&req->priv->cond);
