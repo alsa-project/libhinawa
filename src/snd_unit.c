@@ -144,36 +144,36 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 		g_param_spec_string("name", "name",
 				    "A name of this sound device.",
 				    NULL,
-				    G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
+				    G_PARAM_READABLE);
 	snd_unit_props[SND_UNIT_PROP_TYPE_IFACE] =
 		g_param_spec_int("iface", "iface",
 				 "HwDep type, snd_hwdep_iface_t in alsa-lib",
 				 SND_HWDEP_IFACE_FW_DICE,
 				 SND_HWDEP_IFACE_FW_OXFW,
 				 SND_HWDEP_IFACE_FW_DICE,
-				 G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
+				 G_PARAM_READABLE);
 	snd_unit_props[SND_UNIT_PROP_TYPE_CARD] =
 		g_param_spec_int("card", "card",
 				 "A numerical ID for ALSA sound card",
 				 0, INT_MAX,
 				 0,
-				 G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
+				 G_PARAM_READABLE);
 	snd_unit_props[SND_UNIT_PROP_TYPE_DEVICE] =
 		g_param_spec_string("device", "device",
 				    "A name of special file for this firewire "
 				    "unit.",
 				    NULL,
-				    G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
+				    G_PARAM_READABLE);
 	snd_unit_props[SND_UNIT_PROP_TYPE_STREAMING] =
 		g_param_spec_boolean("streaming", "streaming",
 				     "Whether this device is streaming or not",
 				     FALSE,
-				     G_PARAM_READWRITE);
+				     G_PARAM_READABLE);
 	snd_unit_props[SND_UNIT_PROP_TYPE_GUID] =
 		g_param_spec_uint64("guid", "guid",
 				    "Global unique ID for this firewire unit.",
 				    0, ULONG_MAX, 0,
-				    G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
+				    G_PARAM_READABLE);
 
 	g_object_class_install_properties(gobject_class,
 					  SND_UNIT_PROP_TYPE_COUNT,

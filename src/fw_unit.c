@@ -112,12 +112,12 @@ static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 		g_param_spec_int("fd", "fd",
 				 "a file descriptor for fw cdev.",
 				 INT_MIN, INT_MAX, 0,
-				 G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
+				 G_PARAM_READABLE);
 	fw_unit_props[FW_UNIT_PROP_TYPE_GENERATION] =
 		g_param_spec_uint64("generation", "generation",
 				    "current level of generation on this bus.",
 				    0, ULONG_MAX, 0,
-				    G_PARAM_READWRITE);
+				    G_PARAM_READABLE);
 
 	g_object_class_install_properties(gobject_class,
 					  FW_UNIT_PROP_TYPE_COUNT,
