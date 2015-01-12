@@ -161,7 +161,7 @@ class Sample(QWidget):
         close.clicked.connect(app.quit)
 
         self.addr = QLineEdit(buttom_grp)
-        self.addr.setText('0xfffff0000984')
+        self.addr.setText('0xfffff0000980')
         buttom_layout.addWidget(self.addr)
 
         self.value = QLabel(buttom_grp)

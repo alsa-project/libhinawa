@@ -140,7 +140,7 @@ class Sample(Gtk.Window):
         vbox.pack_start(bottombox, True, True, 0)
 
         self.entry = Gtk.Entry()
-        self.entry.set_text("0x00000000")
+        self.entry.set_text("0xfffff0000980")
         bottombox.pack_start(self.entry, True, True, 0)
 
         self.label = Gtk.Label("result")

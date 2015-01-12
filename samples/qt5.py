@@ -148,7 +148,7 @@ class Sample(QWidget):
         close.clicked.connect(app.quit)
 
         self.addr = QLineEdit(buttom_grp)
-        self.addr.setText('0xfffff0000984')
+        self.addr.setText('0xfffff0000980')
         buttom_layout.addWidget(self.addr)
 
         self.value = QLabel(buttom_grp)
@@ -162,7 +162,7 @@ class Sample(QWidget):
         except Exception as e:
             print(e)
             return
-            
+
         self.value.setText('0x{0:08x}'.format(val[0]))
         print(self.value.text())
 
