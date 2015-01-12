@@ -74,6 +74,16 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 	guint64 expiration;
 	GMutex lock;
 
+	guint32 *buf;
+	int i;
+
+	/* From host order to be32. */
+	if (frame != NULL) {
+		buf = (guint32 *)frame->data;
+		for (i = 0; i < frame->len; i++)
+			buf[i] = htobe32(buf[i]);
+	}
+
 	/* Setup a private structure. */
 	if (type == FW_REQ_TYPE_READ) {
 		priv->frame = frame;
@@ -126,6 +136,13 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 		else
 			*err = 0;
 		g_mutex_unlock(&lock);
+	}
+
+	/* From be32 to host order. */
+	if (frame != NULL) {
+		buf = (guint32 *)frame->data;
+		for (i = 0; i < frame->len; i++)
+			buf[i] = be32toh(buf[i]);
 	}
 
 	g_mutex_clear(&lock);

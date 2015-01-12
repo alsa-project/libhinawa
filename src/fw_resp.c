@@ -164,7 +164,8 @@ void hinawa_fw_resp_handle_request(int fd, union fw_cdev_event *ev)
 	HinawaFwRespPrivate *priv = FW_RESP_GET_PRIVATE(self);
 
 	GArray *frame = NULL;
-	guint quads;
+	guint i, quads;
+	guint32 *buf;
 
 	struct fw_cdev_send_response resp = {0};
 	gboolean error;
@@ -183,6 +184,10 @@ void hinawa_fw_resp_handle_request(int fd, union fw_cdev_event *ev)
 	}
 	g_array_set_size(frame, quads);
 	memcpy(frame->data, event->data, event->length);
+
+	buf = (guint32 *)frame->data;
+	for (i = 0; i < quads; i++)
+		buf[i] = be32toh(buf[i]);
 
 	g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ], 0,
 		      event->tcode, frame, priv->private_data, &error);

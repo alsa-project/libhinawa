@@ -96,7 +96,8 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	struct fcp_transaction trans = {0};
 	GMutex local_lock;
 	gint64 expiration;
-	guint quads, bytes;
+	guint32 *buf;
+	guint i, quads, bytes;
 
 	if (req_frame == NULL  || g_array_get_element_size(req_frame)  != 1 ||
 	    resp_frame == NULL || g_array_get_element_size(resp_frame) != 1 ||
@@ -116,6 +117,9 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 					    sizeof(guint32), quads);
 	g_array_set_size(trans.req_frame, quads);
 	memcpy(trans.req_frame->data, req_frame->data, req_frame->len);
+	buf = (guint32 *)trans.req_frame->data;
+	for (i = 0; i < trans.req_frame->len; i++)
+		buf[i] = htobe32(buf[i]);
 
 	/* Prepare response buffer. */
 	trans.resp_frame = g_array_sized_new(FALSE, TRUE,
@@ -159,6 +163,9 @@ deferred:
 	}
 
 	/* Convert guint32 array to guint8 array. */
+	buf = (guint32 *)trans.resp_frame->data;
+	for (i = 0; i < trans.resp_frame->len; i++)
+		buf[i] = htobe32(buf[i]);
 	bytes = trans.resp_frame->len * sizeof(guint32);
 	g_array_set_size(resp_frame, bytes);
 	memcpy(resp_frame->data, trans.resp_frame->data, bytes);
