@@ -1,4 +1,6 @@
-CLEANFILES =
+# Remove auto-generated files when cleaning
+CLEANFILES =					\
+	hinawa_sigs_marshal.*
 
 AM_CPPFLAGS =					\
 	 -I$(top_builddir)			\

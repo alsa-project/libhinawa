@@ -12,6 +12,15 @@ How to build
  $ make
  $ make install
 
+How to refer document
+ $ ./autogen.sh
+ $ ./configure --enable-gtk-doc
+ $ make
+ $ make install
+
+Overview
+see 'doc/overview.png'.
+
 How to test
 (needless to install)
  $ ./autogen.sh
@@ -19,8 +28,5 @@ How to test
  $ make
  $ ./test/run.sh [gtk|qt4|qt5]
 gtk - PyGObject is required.
-qt4 - PyQt4 is resuired (python2 only).
+qt4 - PyQt4 is required (also test python2).
 qt5 - PyQt5 is required.
-
-Overview
-see 'doc/overview.png'.
