@@ -13,6 +13,9 @@ AM_CFLAGS =					\
 lib_LTLIBRARIES =				\
 	libhinawa.la
 
+libhinawa_la_LDFLAGS =				\
+	-version-info $(LT_IFACE)
+
 libhinawa_la_LIBADD =				\
 	$(GLIB_LIBS)				\
 	-lasound

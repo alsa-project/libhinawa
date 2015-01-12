@@ -1,8 +1,21 @@
 # Audiconf 2.65 or later because Automake 1.13 requires.
 AC_PREREQ(2.65)
 
+# Use -release option for libtool
+# See:
+# http://www.gnu.org/software/libtool/manual/html_node/Release-numbers.html
+m4_define([my_major], [0])
+m4_define([my_minor], [2])
+m4_define([my_micro], [0])
+m4_define([my_version],	[my_major.my_minor.my_revision])
+
+m4_define([my_current], [m4_eval(my_major * 100 + my_minor)])
+m4_define([my_revision],[my_major])
+m4_define([my_age],     [my_minor])
+m4_define([my_iface],	[my_current:my_revision:my_age])
+
 # Initialize Autoconf
-AC_INIT([hinawa], [1.0.0], [o-takashi@sakamocchi.jp])
+AC_INIT([hinawa], [my_version], [o-takashi@sakamocchi.jp])
 # The directory for helper scripts
 AC_CONFIG_AUX_DIR([config])
 # The directory for M4 macros
@@ -20,8 +33,16 @@ AM_SILENT_RULES([yes])
 
 # Detect C language compiler
 AC_PROG_CC
+
+# Libtools
+AC_PROG_LIBTOOL
+
 # Initialize Libtools
 LT_INIT
+
+# Define library release
+LT_IFACE="my_iface"
+AC_SUBST(LT_IFACE)
 
 # Glib 2.32 or later
 AM_PATH_GLIB_2_0([2.32.4], [], [], [gobject])

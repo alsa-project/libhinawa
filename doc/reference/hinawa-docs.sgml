@@ -28,7 +28,7 @@
     <index id="index-deprecated" role="deprecated">
         <title>Index of deprecated symbols</title>
     </index>
-    <index id="index-1-0-0" role="1.0.0">
-        <title>Index of new symbols in 1.0.0</title>
+    <index id="index-0-2-0" role="0.2.0">
+        <title>Index of new symbols in 0.2.0</title>
     </index>
 </book>
