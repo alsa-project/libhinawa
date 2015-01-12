@@ -26,11 +26,11 @@ except Exception as e:
     print(e)
     sys.exit()
 print('Sound device info:')
-print('\tname:\t{0}'.format(snd_unit.get_property("name")))
-print('\tiface:\t{0}'.format(snd_unit.get_property("iface")))
-print('\tcard:\t{0}'.format(snd_unit.get_property("card")))
-print('\tdevice:\t{0}'.format(snd_unit.get_property("device")))
-print('\tGUID:\t{0:016x}'.format(snd_unit.get_property("guid")))
+print(' name:\t{0}'.format(snd_unit.get_property("name")))
+print(' iface:\t{0}'.format(snd_unit.get_property("iface")))
+print(' card:\t{0}'.format(snd_unit.get_property("card")))
+print(' device:\t{0}'.format(snd_unit.get_property("device")))
+print(' GUID:\t{0:016x}'.format(snd_unit.get_property("guid")))
 snd_unit.connect("lock-status", handle_lock_status)
 
 # create FireWire unit
@@ -56,7 +56,7 @@ except Exception as e:
 def handle_request(resp, tcode, frame, private_data):
     print('Requested with tcode {0}:'.format(tcode))
     for i in range(len(frame)):
-        print('\t[{0:02d}]: 0x{1:02x}'.format(i, frame[i]))
+        print(' [{0:02d}]: 0x{1:02x}'.format(i, frame[i]))
     return True
 try:
     resp = Hinawa.FwResp.new(fw_unit)
@@ -93,7 +93,7 @@ if snd_unit.get_property('iface') is not 1:
         sys.exit()
     print('FCP Response:')
     for i in range(len(response)):
-        print('\t[{0:02d}]: 0x{1:02x}'.format(i, ord(response[i])))
+        print(' [{0:02d}]: 0x{1:02x}'.format(i, ord(response[i])))
     fcp.unlisten()
 
 # Echo Fireworks Transaction
@@ -112,7 +112,7 @@ if snd_unit.get_property("iface") is 2:
         sys.exit()
     print('Echo Fireworks Transaction Response:')
     for i in range(len(params)):
-        print("\t[{0:02d}]: {1:08x}".format(i, params[i]))
+        print(" [{0:02d}]: {1:08x}".format(i, params[i]))
 
 # Dice notification
 def handle_notification(self, message):
