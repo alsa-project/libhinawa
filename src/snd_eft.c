@@ -149,7 +149,6 @@ void hinawa_snd_eft_transact(HinawaSndEft *self, guint category, guint command,
 	unsigned int i;
 
 	gint64 expiration;
-	GMutex local_lock;
 
 	/* Check unit type and function arguments . */
 	g_object_get(G_OBJECT(priv->unit), "iface", &type, NULL);
@@ -192,29 +191,28 @@ void hinawa_snd_eft_transact(HinawaSndEft *self, guint category, guint command,
 	for (i = 0; i < quads; i++)
 		items[i] = htobe32(items[i]);
 
-	/* Insert this entry to list. */
+	/* Insert this entry to list and enter critical section. */
 	g_mutex_lock(&priv->lock);
 	priv->transactions = g_list_append(priv->transactions, &trans);
-	g_mutex_unlock(&priv->lock);
 
 	/* NOTE: Timeout is 200 milli-seconds. */
 	expiration = g_get_monotonic_time() + 200 * G_TIME_SPAN_MILLISECOND;
 	g_cond_init(&trans.cond);
-	g_mutex_init(&local_lock);
 
 	/* Send this request frame. */
 	hinawa_snd_unit_write(priv->unit, trans.frame, quads * 4, exception);
 	if (*exception != NULL)
 		goto end;
 
-	/* Wait corresponding response till timeout. */
-	g_mutex_lock(&local_lock);
-	if (!g_cond_wait_until(&trans.cond, &local_lock, expiration)) {
+	/*
+	 * Wait corresponding response till timeout and temporarily leave the
+	 * critical section.
+	 */
+	if (!g_cond_wait_until(&trans.cond, &priv->lock, expiration)) {
 		g_set_error(exception, g_quark_from_static_string(__func__),
 			    ETIMEDOUT, "%s", strerror(ETIMEDOUT));
 		goto end;
 	}
-	g_mutex_unlock(&local_lock);
 
 	quads = be32toh(trans.frame->length);
 
@@ -251,12 +249,11 @@ void hinawa_snd_eft_transact(HinawaSndEft *self, guint category, guint command,
 	/* Copy parameters. */
 	g_array_insert_vals(params, 0, trans.frame->params, count);
 end:
-	g_mutex_lock(&priv->lock);
+	/* Remove thie entry from list and leave the critical section. */
 	priv->transactions =
 			g_list_remove(priv->transactions, (gpointer *)&trans);
 	g_mutex_unlock(&priv->lock);
 
-	g_mutex_clear(&local_lock);
 	g_free(trans.frame);
 }
 
