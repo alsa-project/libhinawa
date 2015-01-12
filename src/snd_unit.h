@@ -51,10 +51,6 @@ HinawaSndUnit *hinawa_snd_unit_new(gchar *path, GError **exception);
 void hinawa_snd_unit_lock(HinawaSndUnit *unit, GError **exception);
 void hinawa_snd_unit_unlock(HinawaSndUnit *unit, GError **exception);
 
-void hinawa_snd_unit_write(HinawaSndUnit *unit,
-			   const void *buf, unsigned int length,
-			   GError **exception);
-
 void hinawa_snd_unit_listen(HinawaSndUnit *unit, GError **exception);
 void hinawa_snd_unit_unlisten(HinawaSndUnit *unit);
 

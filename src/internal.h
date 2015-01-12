@@ -21,4 +21,7 @@ void hinawa_snd_unit_add_handle(HinawaSndUnit *self, unsigned int type,
 				void *private_data, GError **exception);
 void hinawa_snd_unit_remove_handle(HinawaSndUnit *self,
 				   HinawaSndUnitHandle *handle);
+void hinawa_snd_unit_write(HinawaSndUnit *unit,
+			   const void *buf, unsigned int length,
+			   GError **exception);
 #endif
