@@ -34,10 +34,10 @@ libhinawa_la_SOURCES =				\
 	fw_fcp.c				\
 	snd_unit.h				\
 	snd_unit.c				\
-	snd_eft.h				\
-	snd_eft.c				\
-	snd_dice_notify.h			\
-	snd_dice_notify.c
+	snd_efw.h				\
+	snd_efw.c				\
+	snd_dice.h				\
+	snd_dice.c
 
 pkginclude_HEADERS =				\
 	hinawa_sigs_marshal.h			\
@@ -46,8 +46,8 @@ pkginclude_HEADERS =				\
 	fw_unit.h				\
 	fw_fcp.h				\
 	snd_unit.h				\
-	snd_eft.h				\
-	snd_dice_notify.h
+	snd_efw.h				\
+	snd_dice.h
 
 hinawa_sigs_marshal.list:
 	$(AM_V_GEN)( find | grep \.c$$ | xargs cat | 			\

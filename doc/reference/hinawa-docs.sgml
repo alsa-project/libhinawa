@@ -31,8 +31,8 @@
             of the transaction functionality in Linux firewire stack.
             </para>
             <xi:include href="xml/snd_unit.xml"/>
-            <xi:include href="xml/snd_eft.xml"/>
-            <xi:include href="xml/snd_dice_notify.xml"/>
+            <xi:include href="xml/snd_efw.xml"/>
+            <xi:include href="xml/snd_dice.xml"/>
             <xi:include href="xml/fw_unit.xml"/>
             <xi:include href="xml/fw_req.xml"/>
             <xi:include href="xml/fw_resp.xml"/>

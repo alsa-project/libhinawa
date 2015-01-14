@@ -1,12 +1,12 @@
 #include <linux/types.h>
 #include <sound/firewire.h>
 #include <alsa/asoundlib.h>
-#include "snd_eft.h"
+#include "snd_efw.h"
 
 #define MINIMUM_SUPPORTED_VERSION	1
 #define MAXIMUM_FRAME_BYTES		0x200U
 
-enum eft_status {
+enum efw_status {
 	EFT_STATUS_OK			= 0,
 	EFT_STATUS_BAD			= 1,
 	EFT_STATUS_BAD_COMMAND		= 2,
@@ -24,7 +24,7 @@ enum eft_status {
 	EFT_STATUS_BAD_LED		= 14,
 	EFT_STATUS_BAD_PARAMETER	= 15,
 };
-static const char *const eft_status_names[] = {
+static const char *const efw_status_names[] = {
 	[EFT_STATUS_OK]			= "OK",
 	[EFT_STATUS_BAD]		= "bad",
 	[EFT_STATUS_BAD_COMMAND]	= "bad command",
@@ -51,58 +51,56 @@ struct efw_transaction {
 	GCond cond;
 };
 
-struct _HinawaSndEftPrivate {
+struct _HinawaSndEfwPrivate {
 	HinawaSndUnit *unit;
 	guint seqnum;
 
 	GList *transactions;
 	GMutex lock;
 };
-G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndEft, hinawa_snd_eft, G_TYPE_OBJECT)
-#define SND_EFT_GET_PRIVATE(obj)					\
+G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndEfw, hinawa_snd_efw, HINAWA_TYPE_SND_UNIT)
+#define SND_EFW_GET_PRIVATE(obj)					\
 	(G_TYPE_INSTANCE_GET_PRIVATE((obj), 				\
-				     HINAWA_TYPE_SND_EFT, HinawaSndEftPrivate))
+				     HINAWA_TYPE_SND_EFW, HinawaSndEfwPrivate))
 
 static void handle_response(void *private_data,
 			    const void *buf, unsigned int len);
 
-static void snd_eft_dispose(GObject *obj)
+static void snd_efw_dispose(GObject *obj)
 {
-	HinawaSndEft *self = HINAWA_SND_EFT(obj);
-	HinawaSndEftPrivate *priv = SND_EFT_GET_PRIVATE(self);
+	HinawaSndEfw *self = HINAWA_SND_EFW(obj);
+	HinawaSndEfwPrivate *priv = SND_EFW_GET_PRIVATE(self);
 
 	if (priv->unit != NULL)
 		hinawa_snd_unit_remove_handle(priv->unit, handle_response);
 
-	G_OBJECT_CLASS(hinawa_snd_eft_parent_class)->dispose(obj);
+	G_OBJECT_CLASS(hinawa_snd_efw_parent_class)->dispose(obj);
 }
 
-static void snd_eft_finalize(GObject *gobject)
+static void snd_efw_finalize (GObject *gobject)
 {
-	G_OBJECT_CLASS(hinawa_snd_eft_parent_class)->finalize(gobject);
+	G_OBJECT_CLASS(hinawa_snd_efw_parent_class)->finalize(gobject);
 }
 
-static void hinawa_snd_eft_class_init(HinawaSndEftClass *klass)
+static void hinawa_snd_efw_class_init(HinawaSndEfwClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
-	gobject_class->get_property = NULL;
-	gobject_class->set_property = NULL;
-	gobject_class->dispose = snd_eft_dispose;
-	gobject_class->finalize = snd_eft_finalize;
+	gobject_class->dispose = snd_efw_dispose;
+	gobject_class->finalize = snd_efw_finalize;
 }
 
-static void hinawa_snd_eft_init(HinawaSndEft *self)
+static void hinawa_snd_efw_init(HinawaSndEfw *self)
 {
-	self->priv = hinawa_snd_eft_get_instance_private(self);
+	self->priv = hinawa_snd_efw_get_instance_private(self);
 }
 
-HinawaSndEft *hinawa_snd_eft_new(HinawaSndUnit *unit, GError **exception)
+HinawaSndEfw *hinawa_snd_efw_new(HinawaSndUnit *unit, GError **exception)
 {
-	HinawaSndEft *self;
-	HinawaSndEftPrivate *priv;
+	HinawaSndEfw *self;
+	HinawaSndEfwPrivate *priv;
 
-	self = g_object_new(HINAWA_TYPE_SND_EFT, NULL);
+	self = g_object_new(HINAWA_TYPE_SND_EFW, NULL);
 	if (self == NULL) {
 		g_set_error(exception, g_quark_from_static_string(__func__),
 			    ENOMEM, "%s", strerror(ENOMEM));
@@ -116,7 +114,7 @@ HinawaSndEft *hinawa_snd_eft_new(HinawaSndUnit *unit, GError **exception)
 		return NULL;
 	}
 
-	priv = SND_EFT_GET_PRIVATE(self);
+	priv = SND_EFW_GET_PRIVATE(self);
 	priv->unit = unit;
 	priv->seqnum = 0;
 	priv->transactions = NULL;
@@ -126,8 +124,8 @@ HinawaSndEft *hinawa_snd_eft_new(HinawaSndUnit *unit, GError **exception)
 }
 
 /**
- * hinawa_snd_eft_transact:
- * @self: A #HinawaSndEft
+ * hinawa_snd_efw_transact:
+ * @self: A #HinawaSndEfw
  * @category: one of category for the transact
  * @command: one of commands for the transact
  * @args: (nullable) (element-type guint32) (array) (in): arguments for the
@@ -135,10 +133,10 @@ HinawaSndEft *hinawa_snd_eft_new(HinawaSndUnit *unit, GError **exception)
  * @params: (element-type guint32) (array) (out caller-allocates): return params
  * @exception: A #GError
  */
-void hinawa_snd_eft_transact(HinawaSndEft *self, guint category, guint command,
+void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 			     GArray *args, GArray *params, GError **exception)
 {
-	HinawaSndEftPrivate *priv = SND_EFT_GET_PRIVATE(self);
+	HinawaSndEfwPrivate *priv = SND_EFW_GET_PRIVATE(self);
 	unsigned int type;
 
 	struct efw_transaction trans;
@@ -225,7 +223,7 @@ void hinawa_snd_eft_transact(HinawaSndEft *self, guint category, guint command,
 	if (trans.frame->status != EFT_STATUS_OK) {
 		g_set_error(exception, g_quark_from_static_string(__func__),
 			    EPROTO, "%s",
-			    eft_status_names[trans.frame->status]);
+			    efw_status_names[trans.frame->status]);
 		goto end;
 	}
 
@@ -260,7 +258,7 @@ end:
 static void handle_response(void *private_data,
 			    const void *buf, unsigned int len)
 {
-	HinawaSndEftPrivate *priv = SND_EFT_GET_PRIVATE(private_data);
+	HinawaSndEfwPrivate *priv = SND_EFW_GET_PRIVATE(private_data);
 	struct snd_firewire_event_efw_response *event =
 				(struct snd_firewire_event_efw_response *)buf;
 	guint *responses = event->response;
