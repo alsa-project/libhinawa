@@ -15,7 +15,7 @@ struct _HinawaFwRespPrivate {
 	unsigned int len;
 	gpointer private_data;
 };
-G_DEFINE_TYPE_WITH_PRIVATE (HinawaFwResp, hinawa_fw_resp, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwResp, hinawa_fw_resp, G_TYPE_OBJECT)
 #define FW_RESP_GET_PRIVATE(obj)					\
 	(G_TYPE_INSTANCE_GET_PRIVATE((obj), 				\
 				     HINAWA_TYPE_FW_RESP, HinawaFwRespPrivate))
@@ -32,10 +32,10 @@ static void fw_resp_dispose(GObject *gobject)
 	HinawaFwResp *self = HINAWA_FW_RESP(gobject);
 
 	hinawa_fw_resp_unregister(self);
-	G_OBJECT_CLASS (hinawa_fw_resp_parent_class)->dispose(gobject);
+	G_OBJECT_CLASS(hinawa_fw_resp_parent_class)->dispose(gobject);
 }
 
-static void fw_resp_finalize (GObject *gobject)
+static void fw_resp_finalize(GObject *gobject)
 {
 	G_OBJECT_CLASS(hinawa_fw_resp_parent_class)->finalize(gobject);
 }

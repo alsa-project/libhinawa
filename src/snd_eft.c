@@ -58,7 +58,7 @@ struct _HinawaSndEftPrivate {
 	GList *transactions;
 	GMutex lock;
 };
-G_DEFINE_TYPE_WITH_PRIVATE (HinawaSndEft, hinawa_snd_eft, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndEft, hinawa_snd_eft, G_TYPE_OBJECT)
 #define SND_EFT_GET_PRIVATE(obj)					\
 	(G_TYPE_INSTANCE_GET_PRIVATE((obj), 				\
 				     HINAWA_TYPE_SND_EFT, HinawaSndEftPrivate))
@@ -74,10 +74,10 @@ static void snd_eft_dispose(GObject *obj)
 	if (priv->unit != NULL)
 		hinawa_snd_unit_remove_handle(priv->unit, handle_response);
 
-	G_OBJECT_CLASS (hinawa_snd_eft_parent_class)->dispose(obj);
+	G_OBJECT_CLASS(hinawa_snd_eft_parent_class)->dispose(obj);
 }
 
-static void snd_eft_finalize (GObject *gobject)
+static void snd_eft_finalize(GObject *gobject)
 {
 	G_OBJECT_CLASS(hinawa_snd_eft_parent_class)->finalize(gobject);
 }

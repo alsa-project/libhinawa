@@ -56,7 +56,7 @@ static void hinawa_fw_fcp_dispose(GObject *obj)
 	G_OBJECT_CLASS(hinawa_fw_fcp_parent_class)->dispose(obj);
 }
 
-static void hinawa_fw_fcp_finalize (GObject *gobject)
+static void hinawa_fw_fcp_finalize(GObject *gobject)
 {
 	G_OBJECT_CLASS(hinawa_fw_fcp_parent_class)->finalize(gobject);
 }

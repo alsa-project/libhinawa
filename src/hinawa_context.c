@@ -9,7 +9,7 @@ static gint counter = 0;
 static gpointer run_main_loop(gpointer data)
 {
 	while (running)
-		g_main_context_iteration (ctx, TRUE);
+		g_main_context_iteration(ctx, TRUE);
 
 	g_thread_exit(NULL);
 

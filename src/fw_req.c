@@ -18,17 +18,17 @@ struct _HinawaFwReqPrivate {
 
 	GCond cond;
 };
-G_DEFINE_TYPE_WITH_PRIVATE (HinawaFwReq, hinawa_fw_req, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwReq, hinawa_fw_req, G_TYPE_OBJECT)
 #define FW_REQ_GET_PRIVATE(obj)						\
 	(G_TYPE_INSTANCE_GET_PRIVATE((obj), 				\
 				     HINAWA_TYPE_FW_REQ, HinawaFwReqPrivate))
 
 static void fw_req_dispose(GObject *gobject)
 {
-	G_OBJECT_CLASS (hinawa_fw_req_parent_class)->dispose(gobject);
+	G_OBJECT_CLASS(hinawa_fw_req_parent_class)->dispose(gobject);
 }
 
-static void fw_req_finalize (GObject *gobject)
+static void fw_req_finalize(GObject *gobject)
 {
 	G_OBJECT_CLASS(hinawa_fw_req_parent_class)->finalize(gobject);
 }

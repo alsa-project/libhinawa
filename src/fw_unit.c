@@ -59,7 +59,7 @@ static void fw_unit_get_property(GObject *obj, guint id,
 		g_value_set_uint64(val, priv->generation);
 		break;
 	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, id, spec);
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
 		break;
 	}
 }
@@ -78,7 +78,7 @@ static void fw_unit_set_property(GObject *obj, guint id,
 		priv->generation = g_value_get_uint64(val);
 		break;
 	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, id, spec);
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
 		break;
 	}
 }
@@ -91,17 +91,17 @@ static void fw_unit_dispose(GObject *obj)
 	if (priv->src != NULL)
 		hinawa_fw_unit_unlisten(self);
 
-	G_OBJECT_CLASS (hinawa_fw_unit_parent_class)->dispose(obj);
+	G_OBJECT_CLASS(hinawa_fw_unit_parent_class)->dispose(obj);
 }
 
-static void fw_unit_finalize (GObject *gobject)
+static void fw_unit_finalize(GObject *gobject)
 {
 	G_OBJECT_CLASS(hinawa_fw_unit_parent_class)->finalize(gobject);
 }
 
 static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
 	gobject_class->get_property = fw_unit_get_property;
 	gobject_class->set_property = fw_unit_set_property;
