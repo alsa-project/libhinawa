@@ -24,7 +24,7 @@ typedef struct {
 struct _HinawaSndUnitPrivate {
 	snd_hwdep_t *hwdep;
 	gchar name[32];
-	snd_hwdep_iface_t iface;
+	gint type;
 	gint card;
 	gchar device[16];
 	guint64 guid;
@@ -44,7 +44,7 @@ G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndUnit, hinawa_snd_unit, G_TYPE_OBJECT)
 
 enum snd_unit_prop_type {
 	SND_UNIT_PROP_TYPE_NAME = 1,
-	SND_UNIT_PROP_TYPE_IFACE,
+	SND_UNIT_PROP_TYPE_FW_TYPE,
 	SND_UNIT_PROP_TYPE_CARD,
 	SND_UNIT_PROP_TYPE_DEVICE,
 	SND_UNIT_PROP_TYPE_GUID,
@@ -69,8 +69,8 @@ static void snd_unit_get_property(GObject *obj, guint id,
 	case SND_UNIT_PROP_TYPE_NAME:
 		g_value_set_string(val, (const gchar *)self->priv->name);
 		break;
-	case SND_UNIT_PROP_TYPE_IFACE:
-		g_value_set_int(val, self->priv->iface);
+	case SND_UNIT_PROP_TYPE_FW_TYPE:
+		g_value_set_int(val, self->priv->type);
 		break;
 	case SND_UNIT_PROP_TYPE_CARD:
 		g_value_set_int(val, self->priv->card);
@@ -101,8 +101,8 @@ static void snd_unit_set_property(GObject *obj, guint id,
 			strncpy(self->priv->name, g_value_get_string(val),
 			        sizeof(self->priv->name));
 		break;
-	case SND_UNIT_PROP_TYPE_IFACE:
-		self->priv->iface= g_value_get_int(val);
+	case SND_UNIT_PROP_TYPE_FW_TYPE:
+		self->priv->type = g_value_get_int(val);
 		break;
 	case SND_UNIT_PROP_TYPE_CARD:
 		self->priv->card = g_value_get_int(val);
@@ -156,12 +156,11 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 				    "A name of this sound device.",
 				    NULL,
 				    G_PARAM_READABLE);
-	snd_unit_props[SND_UNIT_PROP_TYPE_IFACE] =
-		g_param_spec_int("iface", "iface",
-				 "HwDep type, snd_hwdep_iface_t in alsa-lib",
-				 SND_HWDEP_IFACE_FW_DICE,
-				 SND_HWDEP_IFACE_FW_OXFW,
-				 SND_HWDEP_IFACE_FW_DICE,
+	snd_unit_props[SND_UNIT_PROP_TYPE_FW_TYPE] =
+		g_param_spec_int("type", "type",
+				 "The value of SNDRV_FIREWIRE_TYPE_XXX",
+				 0, INT_MAX,
+				 0,
 				 G_PARAM_READABLE);
 	snd_unit_props[SND_UNIT_PROP_TYPE_CARD] =
 		g_param_spec_int("card", "card",
@@ -259,7 +258,7 @@ void hinawa_snd_unit_new_with_instance(HinawaSndUnit *self, gchar *path,
 	}
 
 	priv->hwdep = hwdep;
-	priv->iface = fw_info.type;
+	priv->type = fw_info.type;
 	priv->card = fw_info.card;
 	priv->guid = GUINT64_FROM_BE(*((guint64 *)fw_info.guid));
 	strcpy(priv->device, fw_info.device_name);

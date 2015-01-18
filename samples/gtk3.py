@@ -55,7 +55,7 @@ except Exception as e:
     sys.exit()
 print('Sound device info:')
 print(' name:\t{0}'.format(snd_unit.get_property("name")))
-print(' iface:\t{0}'.format(snd_unit.get_property("iface")))
+print(' type:\t{0}'.format(snd_unit.get_property("type")))
 print(' card:\t{0}'.format(snd_unit.get_property("card")))
 print(' device:\t{0}'.format(snd_unit.get_property("device")))
 print(' GUID:\t{0:016x}'.format(snd_unit.get_property("guid")))
@@ -102,7 +102,7 @@ except Exception as e:
     sys.exit()
 
 # Fireworks/BeBoB/OXFW supports FCP and some AV/C commands
-if snd_unit.get_property('iface') is not 1:
+if snd_unit.get_property('type') is not 1:
     request = bytes([0x01, 0xff, 0x19, 0x00, 0xff, 0xff, 0xff, 0xff])
     try:
         fcp = Hinawa.FwFcp.new()
@@ -118,7 +118,7 @@ if snd_unit.get_property('iface') is not 1:
 
 # Echo Fireworks Transaction
 from array import array
-if snd_unit.get_property("iface") is 2:
+if snd_unit.get_property("type") is 2:
     args = get_array()
     args.append(5)
     try:
@@ -133,7 +133,7 @@ if snd_unit.get_property("iface") is 2:
 # Dice notification
 def handle_notification(self, message):
     print("Dice Notification: {0:08x}".format(message))
-if snd_unit.get_property('iface') is 1:
+if snd_unit.get_property('type') is 1:
     snd_unit.connect('notified', handle_notification)
 
 # GUI

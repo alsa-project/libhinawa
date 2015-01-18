@@ -124,7 +124,7 @@ HinawaSndEfw *hinawa_snd_efw_new(gchar *path, GError **exception)
 		return NULL;
 	}
 
-	g_object_get(G_OBJECT(self), "iface", &type, NULL);
+	g_object_get(G_OBJECT(self), "type", &type, NULL);
 	if (type != SNDRV_FIREWIRE_TYPE_FIREWORKS) {
 		g_clear_object(&self);
 		return NULL;
@@ -167,7 +167,7 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 	priv = SND_EFW_GET_PRIVATE(self);
 
 	/* Check unit type and function arguments . */
-	g_object_get(G_OBJECT(self), "iface", &type, NULL);
+	g_object_get(G_OBJECT(self), "type", &type, NULL);
 	if ((type != SNDRV_FIREWIRE_TYPE_FIREWORKS) ||
 	    (args && g_array_get_element_size(args) != sizeof(guint32)) ||
 	    (params && g_array_get_element_size(params) != sizeof(guint32))) {

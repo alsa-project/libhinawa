@@ -90,7 +90,7 @@ HinawaSndDice *hinawa_snd_dice_new(gchar *path, GError **exception)
 		return NULL;
 	}
 
-	g_object_get(G_OBJECT(self), "iface", &type, NULL);
+	g_object_get(G_OBJECT(self), "type", &type, NULL);
 	if (type != SNDRV_FIREWIRE_TYPE_DICE) {
 		g_clear_object(&self);
 		return NULL;
