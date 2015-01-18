@@ -3,6 +3,14 @@
 #include <alsa/asoundlib.h>
 #include "snd_efw.h"
 
+/**
+ * SECTION:snd_efw
+ * @Title: HinawaSndEfw
+ * @Short_description: A transaction executor for Fireworks models
+ *
+ * A #HinawaSndEfw is an application of Echo Fireworks Transaction (EFT).
+ * This inherits #HinawaSndUnit.
+ */
 #define MINIMUM_SUPPORTED_VERSION	1
 #define MAXIMUM_FRAME_BYTES		0x200U
 
@@ -88,6 +96,13 @@ static void hinawa_snd_efw_init(HinawaSndEfw *self)
 	self->priv = hinawa_snd_efw_get_instance_private(self);
 }
 
+/**
+ * hinawa_snd_efw_new:
+ * @path: A path to ALSA hwdep device for Fireworks models (i.e. hw:0)
+ * @exception: A #GError
+ *
+ * Returns: A #HinawaSndEfw
+ */
 HinawaSndEfw *hinawa_snd_efw_new(gchar *path, GError **exception)
 {
 	HinawaSndEfw *self;

@@ -12,6 +12,15 @@
 #  include <config.h>
 #endif
 
+/**
+ * SECTION:fw_unit
+ * @Title: HinawaFwUnit
+ * @Short_description: An event listener for FireWire unit
+ *
+ * A #HinawaFwUnit is an event listener for a certain FireWire unit.
+ * This class is an application of Linux FireWire subsystem.
+ * All of operations utilize ioctl(2) with subsystem specific request commands.
+ */
 typedef struct {
 	GSource src;
 	HinawaFwUnit *unit;
@@ -113,6 +122,14 @@ static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 					  FW_UNIT_PROP_TYPE_COUNT,
 					  fw_unit_props);
 
+	/**
+	 * HinawaFwUnit::bus-update:
+	 * @self: A #HinawaFwUnit
+	 *
+	 * When IEEE 1394 bus is updated, the ::bus-update signal is generated.
+	 * Handlers can read current generation in the bus via 'generation'
+	 * property.
+	 */
 	fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE] =
 		g_signal_new("bus-update",
 			     G_OBJECT_CLASS_TYPE(klass),
@@ -128,6 +145,13 @@ static void hinawa_fw_unit_init(HinawaFwUnit *self)
 	self->priv = hinawa_fw_unit_get_instance_private(self);
 }
 
+/**
+ * hinawa_fw_unit_new:
+ * @path: A path to Linux FireWire charactor device
+ * @exception: A #GError
+ * 
+ * Returns: An instance of #HinawaFwUnit
+ */
 HinawaFwUnit *hinawa_fw_unit_new(gchar *path, GError **exception)
 {
 	HinawaFwUnit *self;
@@ -168,6 +192,7 @@ HinawaFwUnit *hinawa_fw_unit_new(gchar *path, GError **exception)
 	return self;
 }
 
+/* Internal use only. */
 void hinawa_fw_unit_ioctl(HinawaFwUnit *self, int req, void *args, int *err)
 {
 	HinawaFwUnitPrivate *priv;
@@ -256,6 +281,13 @@ static void finalize_src(GSource *src)
 	return;
 }
 
+/**
+ * hinawa_fw_unit_listen:
+ * @self: A #HinawaFwUnit
+ * @exception: A #GError
+ *
+ * Start to listen to any events from the unit.
+ */
 void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 {
 	static GSourceFuncs funcs = {
@@ -311,6 +343,12 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 	}
 }
 
+/**
+ * hinawa_fw_unit_unlisten:
+ * @self: A #HinawaFwUnit
+ *
+ * Stop to listen to any events from the unit.
+ */
 void hinawa_fw_unit_unlisten(HinawaFwUnit *self)
 {
 	HinawaFwUnitPrivate *priv;

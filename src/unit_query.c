@@ -4,6 +4,12 @@
 
 #include "unit_query.h"
 
+/**
+ * SECTION:unit_query
+ * @Title: HinawaUnitQuery
+ * @Short_description: An query to seek ALSA FireWire devices
+ *
+ */
 G_DEFINE_TYPE(HinawaUnitQuery, hinawa_unit_query, G_TYPE_OBJECT)
 
 static void unit_query_dispose(GObject *obj)
@@ -29,6 +35,13 @@ static void hinawa_unit_query_init(HinawaUnitQuery *self)
 	return;
 }
 
+/**
+ * hinawa_unit_query_get_sibling:
+ * @id: The ID of sibling.
+ * @exception: A #GError
+ *
+ * Returns: the ID of sibling.
+ */
 gint hinawa_unit_query_get_sibling(gint id, GError **exception)
 {
 	snd_ctl_t *handle = NULL;
@@ -58,6 +71,13 @@ end:
 	return id;
 }
 
+/**
+ * hinawa_unit_query_get_unit_type:
+ * @id: An ID for unit.
+ * @exception: An #GError
+ *
+ * Returns: The types of the unit. The value of SNDRV_FIREWIRE_TYPE_XXX.
+ */
 gint hinawa_unit_query_get_unit_type(gint id, GError **exception)
 {
 	snd_hwdep_t *handle = NULL;

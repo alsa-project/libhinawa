@@ -48,10 +48,10 @@ GType hinawa_snd_unit_get_type(void) G_GNUC_CONST;
 
 HinawaSndUnit *hinawa_snd_unit_new(gchar *path, GError **exception);
 
-void hinawa_snd_unit_lock(HinawaSndUnit *unit, GError **exception);
-void hinawa_snd_unit_unlock(HinawaSndUnit *unit, GError **exception);
+void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception);
+void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception);
 
-void hinawa_snd_unit_listen(HinawaSndUnit *unit, GError **exception);
-void hinawa_snd_unit_unlisten(HinawaSndUnit *unit);
+void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception);
+void hinawa_snd_unit_unlisten(HinawaSndUnit *self);
 
 #endif

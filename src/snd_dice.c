@@ -3,6 +3,15 @@
 #include <alsa/asoundlib.h>
 #include "snd_dice.h"
 
+/**
+ * SECTION:snd_dice
+ * @Title: HinawaSndDice
+ * @Short_description: A notification listener for Dice models
+ *
+ * A #HinawaSndDice listen to Dice notification and generates signal when
+ * received. This inherits #HinawaSndUnit.
+ */
+
 G_DEFINE_TYPE(HinawaSndDice, hinawa_snd_dice, HINAWA_TYPE_SND_UNIT)
 
 /* This object has one signal. */
@@ -32,6 +41,14 @@ static void hinawa_snd_dice_class_init(HinawaSndDiceClass *klass)
 	gobject_class->dispose = snd_dice_dispose;
 	gobject_class->finalize = snd_dice_finalize;
 
+	/**
+	 * HinawaSndDice::notified:
+	 * @self: A #HinawaSndDice
+	 * @message: A notification message
+	 * 
+	 * When Dice models transfer notification, the ::notified signal is
+	 * generated.
+	 */
 	dice_sigs[DICE_SIG_TYPE_NOTIFIED] =
 		g_signal_new("notified",
 			     G_OBJECT_CLASS_TYPE(klass),
@@ -47,6 +64,13 @@ static void hinawa_snd_dice_init(HinawaSndDice *self)
 	self->priv = hinawa_snd_dice_get_instance_private(self);
 }
 
+/**
+ * hinawa_snd_dice_new:
+ * @path: A path to ALSA hwdep device for Dice models (i.e. hw:0)
+ * @exception: A #GError
+ *
+ * Returns: An instance of #HinawaSndDice
+ */
 HinawaSndDice *hinawa_snd_dice_new(gchar *path, GError **exception)
 {
 	HinawaSndDice *self;

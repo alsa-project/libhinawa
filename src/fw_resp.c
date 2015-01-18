@@ -7,6 +7,17 @@
 #  include <config.h>
 #endif
 
+/**
+ * SECTION:fw_resp
+ * @Title: HinawaFwResp
+ * @Short_description: A transaction responder for a FireWire unit
+ *
+ * A HinawaFwResp responds requests from any units.
+ *
+ * Any of transaction frames should be aligned to 32bit (quadlet).
+ * This class is an application of Linux FireWire subsystem. All of operations
+ * utilize ioctl(2) with subsystem specific request commands.
+ */
 struct _HinawaFwRespPrivate {
 	HinawaFwUnit *unit;
 
@@ -80,6 +91,13 @@ static void hinawa_fw_resp_init(HinawaFwResp *self)
 	self->priv = hinawa_fw_resp_get_instance_private(self);
 }
 
+/**
+ * hinawa_fw_resp_new:
+ * @unit: A #HinawaFwUnit
+ * @exception: A #GError
+ *
+ * Returns: An instance of #HinawaFwResp
+ */
 HinawaFwResp *hinawa_fw_resp_new(HinawaFwUnit *unit, GError **exception)
 {
 	HinawaFwResp *self;
@@ -141,6 +159,12 @@ void hinawa_fw_resp_register(HinawaFwResp *self, guint64 addr, guint width,
 	priv->width = allocate.length;
 }
 
+/**
+ * hinawa_fw_resp_unregister:
+ * @self: A HinawaFwResp
+ *
+ * stop to listen to a range of address in host controller
+ */
 void hinawa_fw_resp_unregister(HinawaFwResp *self)
 {
 	HinawaFwRespPrivate *priv;
@@ -161,6 +185,9 @@ void hinawa_fw_resp_unregister(HinawaFwResp *self)
  * @frame: (element-type guint8) (array) (out caller-allocates): a byte frame
  * @len: the bytes to read
  * @exception: A #GError
+ *
+ * The caller sets transaction frame as a response against request from a unit.
+ * This function is expected to be called in 'requested' signal handler.
  */
 void hinawa_fw_resp_set_frame(HinawaFwResp *self, GArray *frame,
 			      guint len, GError **exception)

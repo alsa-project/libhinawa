@@ -5,6 +5,21 @@
 #  include <config.h>
 #endif
 
+/**
+ * SECTION:fw_req
+ * @Title: HinawaFwReq
+ * @Short_description: A transaction executor to a FireWire unit
+ *
+ * A HinawaFwReq supports three types of transactions in IEEE 1212:
+ *  - read
+ *  - write
+ *  - lock
+ *
+ * Any of transaction frames should be aligned to 32bit (quadlet).
+ * This class is an application of Linux FireWire subsystem. All of operations
+ * utilize ioctl(2) with subsystem specific request commands.
+ */
+
 enum fw_req_type {
 	FW_REQ_TYPE_WRITE = 0,
 	FW_REQ_TYPE_READ,
@@ -47,6 +62,12 @@ static void hinawa_fw_req_init(HinawaFwReq *self)
 	self->priv = hinawa_fw_req_get_instance_private(self);
 }
 
+/**
+ * hinawa_fw_req_new:
+ * @exception: A #GError
+ *
+ * Returns: An instance of #HinawaFwReq
+ */
 HinawaFwReq *hinawa_fw_req_new(GError **exception)
 {
 	HinawaFwReq *self;
@@ -150,8 +171,10 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
  * @self: A #HinawaFwReq
  * @unit: A #HinawaFwUnit
  * @addr: A destination address of target device
- * @frame: (element-type guint32) (array) (in): a byte frame
+ * @frame: (element-type guint32) (array) (in): a 32bit array
  * @exception: A #GError
+ *
+ * Execute write transactions to the given unit.
  */
 void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 			 GArray *frame, GError **exception)
@@ -179,9 +202,11 @@ void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
  * @self: A #HinawaFwReq
  * @unit: A #HinawaFwUnit
  * @addr: A destination address of target device
- * @frame: (element-type guint32) (array) (out caller-allocates): a byte frame
+ * @frame: (element-type guint32) (array) (out caller-allocates): a 32bit array
  * @len: the bytes to read
  * @exception: A #GError
+ *
+ * Execute read transaction to the given unit.
  */
 void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 			GArray *frame, guint len, GError **exception)
@@ -210,7 +235,7 @@ void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
  * @self: A #HinawaFwReq
  * @unit: A #HinawaFwUnit
  * @addr: A destination address of target device
- * @frame: (element-type guint32) (array) (inout): a quads frame
+ * @frame: (element-type guint32) (array) (inout): a 32bit array
  * @exception: A #GError
  *
  * Execute lock transaction to the given unit.

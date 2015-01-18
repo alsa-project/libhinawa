@@ -6,6 +6,15 @@
 #include "snd_unit.h"
 #include "internal.h"
 
+/**
+ * SECTION:snd_unit
+ * @Title: HinawaSndUnit
+ * @Short_description: An event listener for ALSA FireWire sound devices 
+ *
+ * This class is an application of ALSA FireWire stack. Any functionality which
+ * ALSA drivers in the stack can be available.
+ */
+
 typedef struct {
 	GSource src;
 	HinawaSndUnit *unit;
@@ -181,6 +190,14 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 					  SND_UNIT_PROP_TYPE_COUNT,
 					  snd_unit_props);
 
+	/**
+	 * HinawaSndUnit::lock-status:
+	 * @self: A #HinawaSndUnit
+	 * @state: %TRUE when locked, %FALSE when unlocked.
+	 *
+	 * When ALSA kernel-streaming status is changed, this ::lock-status
+	 * signal is generated.
+	 */
 	snd_unit_sigs[SND_UNIT_SIG_TYPE_LOCK_STATUS] =
 		g_signal_new("lock-status",
 			     G_OBJECT_CLASS_TYPE(klass),
@@ -196,6 +213,7 @@ static void hinawa_snd_unit_init(HinawaSndUnit *self)
 	self->priv = hinawa_snd_unit_get_instance_private(self);
 }
 
+/* For internal use. */
 void hinawa_snd_unit_new_with_instance(HinawaSndUnit *self, gchar *path,
 				       HinawaSndUnitHandle *handle,
 				       void *private_data, GError **exception)
@@ -254,6 +272,13 @@ exception:
 		    -err, "%s", snd_strerror(err));
 }
 
+/**
+ * hinawa_snd_unit_new:
+ * @path: A path to ALSA hwdep device (i.e. hw:0)
+ * @exception: A #GError
+ *
+ * Returns: An instance of #HinawaSndUnit
+ */
 HinawaSndUnit *hinawa_snd_unit_new(gchar *path, GError **exception)
 {
 	HinawaSndUnit *self;
@@ -274,6 +299,13 @@ HinawaSndUnit *hinawa_snd_unit_new(gchar *path, GError **exception)
 	return self;
 }
 
+/**
+ * hinawa_snd_unit_lock:
+ * @self: A #HinawaSndUnit
+ * @exception: A #GError
+ *
+ * Disallow ALSA to start kernel-streaming.
+ */
 void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception)
 {
 	int err;
@@ -287,6 +319,13 @@ void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception)
 			    -err, "%s", snd_strerror(err));
 }
 
+/**
+ * hinawa_snd_unit_unlock:
+ * @self: A #HinawaSndUnit
+ * @exception: A #GError
+ *
+ * Allow ALSA to start kernel-streaming.
+ */
 void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
 {
 	int err;
@@ -300,6 +339,7 @@ void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
 			    -err, "%s", snd_strerror(err));
 }
 
+/* For internal use. */
 void hinawa_snd_unit_write(HinawaSndUnit *self,
 			   const void *buf, unsigned int length,
 			   GError **exception)
@@ -382,6 +422,13 @@ static void finalize_src(GSource *src)
 	return;
 }
 
+/**
+ * hinawa_snd_unit_listen:
+ * @self: A #HinawaSndUnit
+ * @exception: A #GError
+ *
+ * Start listening to events.
+ */
 void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 {
 	static GSourceFuncs funcs = {
@@ -453,6 +500,12 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 	snd_hwdep_ioctl(priv->hwdep, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
 }
 
+/**
+ * hinawa_snd_unit_unlisten:
+ * @self: A #HinawaSndUnit
+ *
+ * Stop listening to events.
+ */
 void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 {
 	HinawaSndUnitPrivate *priv;

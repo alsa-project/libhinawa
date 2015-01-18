@@ -2,6 +2,20 @@
 #include "fw_resp.h"
 #include "fw_req.h"
 
+/**
+ * SECTION:fw_fcp
+ * @Title: HinawaFwFcp
+ * @Short_description: A FCP transaction executor to a FireWire unit
+ *
+ * A HinawaFwFcp supports Function Control Protocol (FCP) in IEC 61883-1.
+ * Some types of transaction in 'AV/C Digital Interface Command Set General
+ * Specification Version 4.2' (Sep 1 2004, 1394TA) requires low layer support,
+ * thus this class has a code for them.
+ *
+ * Any of transaction frames should be aligned to 8bit (byte).
+ * This class is an application of #HinawaFwReq / #HinawaFwResp.
+ */
+
 #define FCP_MAXIMUM_FRAME_BYTES	0x200U
 #define FCP_REQUEST_ADDR	0xfffff0000b00
 #define FCP_RESPOND_ADDR	0xfffff0000d00
@@ -74,6 +88,12 @@ static void hinawa_fw_fcp_init(HinawaFwFcp *self)
 	self->priv = hinawa_fw_fcp_get_instance_private(self);
 }
 
+/**
+ * hinawa_fw_fcp_new:
+ * @exception: #GError
+ *
+ * Returns: An instance of #HinawaFwFcp
+ */
 HinawaFwFcp *hinawa_fw_fcp_new(GError **exception)
 {
 	return g_object_new(HINAWA_TYPE_FW_FCP, NULL);
@@ -219,6 +239,14 @@ static gboolean handle_response(HinawaFwResp *self, gint tcode,
 	return error;
 }
 
+/**
+ * hinawa_fw_fcp_listen:
+ * @self: A #HinawaFwFcp
+ * @unit: A #HinawaFwUnit
+ * @exception: A #GError
+ *
+ * Start to listen to FCP responses.
+ */
 void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
 			  GError **exception)
 {
@@ -246,6 +274,12 @@ void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
 	priv->unit = unit;
 }
 
+/**
+ * hinawa_fw_fcp_unlisten:
+ * @self: A #HinawaFwFcp
+ *
+ * Stop to listen to FCP responses.
+ */
 void hinawa_fw_fcp_unlisten(HinawaFwFcp *self)
 {
 	HinawaFwFcpPrivate *priv;
