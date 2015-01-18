@@ -52,7 +52,6 @@ struct efw_transaction {
 };
 
 struct _HinawaSndEfwPrivate {
-	HinawaSndUnit *unit;
 	guint seqnum;
 
 	GList *transactions;
@@ -68,12 +67,6 @@ static void handle_response(void *private_data,
 
 static void snd_efw_dispose(GObject *obj)
 {
-	HinawaSndEfw *self = HINAWA_SND_EFW(obj);
-	HinawaSndEfwPrivate *priv = SND_EFW_GET_PRIVATE(self);
-
-	if (priv->unit != NULL)
-		hinawa_snd_unit_remove_handle(priv->unit, handle_response);
-
 	G_OBJECT_CLASS(hinawa_snd_efw_parent_class)->dispose(obj);
 }
 
@@ -95,10 +88,11 @@ static void hinawa_snd_efw_init(HinawaSndEfw *self)
 	self->priv = hinawa_snd_efw_get_instance_private(self);
 }
 
-HinawaSndEfw *hinawa_snd_efw_new(HinawaSndUnit *unit, GError **exception)
+HinawaSndEfw *hinawa_snd_efw_new(gchar *path, GError **exception)
 {
 	HinawaSndEfw *self;
 	HinawaSndEfwPrivate *priv;
+	int type;
 
 	self = g_object_new(HINAWA_TYPE_SND_EFW, NULL);
 	if (self == NULL) {
@@ -106,16 +100,22 @@ HinawaSndEfw *hinawa_snd_efw_new(HinawaSndUnit *unit, GError **exception)
 			    ENOMEM, "%s", strerror(ENOMEM));
 		return NULL;
 	}
+	priv = SND_EFW_GET_PRIVATE(self);
 
-	hinawa_snd_unit_add_handle(unit, SNDRV_FIREWIRE_TYPE_FIREWORKS,
-				   handle_response, self, exception);
+	hinawa_snd_unit_new_with_instance(&self->parent_instance, path,
+					  handle_response, self, exception);
 	if (*exception != NULL) {
 		g_clear_object(&self);
 		return NULL;
 	}
 
+	g_object_get(G_OBJECT(self), "iface", &type, NULL);
+	if (type != SNDRV_FIREWIRE_TYPE_FIREWORKS) {
+		g_clear_object(&self);
+		return NULL;
+	}
+
 	priv = SND_EFW_GET_PRIVATE(self);
-	priv->unit = unit;
 	priv->seqnum = 0;
 	priv->transactions = NULL;
 	g_mutex_init(&priv->lock);
@@ -137,7 +137,7 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 			     GArray *args, GArray *params, GError **exception)
 {
 	HinawaSndEfwPrivate *priv = SND_EFW_GET_PRIVATE(self);
-	unsigned int type;
+	int type;
 
 	struct efw_transaction trans;
 	__le32 *items;
@@ -149,7 +149,7 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 	gint64 expiration;
 
 	/* Check unit type and function arguments . */
-	g_object_get(G_OBJECT(priv->unit), "iface", &type, NULL);
+	g_object_get(G_OBJECT(self), "iface", &type, NULL);
 	if ((type != SNDRV_FIREWIRE_TYPE_FIREWORKS) ||
 	    (args && g_array_get_element_size(args) != sizeof(guint32)) ||
 	    (params && g_array_get_element_size(params) != sizeof(guint32))) {
@@ -198,7 +198,8 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 	g_cond_init(&trans.cond);
 
 	/* Send this request frame. */
-	hinawa_snd_unit_write(priv->unit, trans.frame, quads * 4, exception);
+	hinawa_snd_unit_write(&self->parent_instance, trans.frame, quads * 4,
+			      exception);
 	if (*exception != NULL)
 		goto end;
 

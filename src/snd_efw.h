@@ -48,7 +48,7 @@ struct _HinawaSndEfwClass
 
 GType hinawa_snd_efw_get_type(void) G_GNUC_CONST;
 
-HinawaSndEfw *hinawa_snd_efw_new(HinawaSndUnit *unit, GError **exception);
+HinawaSndEfw *hinawa_snd_efw_new(gchar *path, GError **exception);
 
 void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 			     GArray *args, GArray *params,

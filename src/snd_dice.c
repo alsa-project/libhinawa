@@ -4,7 +4,7 @@
 #include "snd_dice.h"
 
 struct _HinawaSndDicePrivate {
-	HinawaSndUnit *unit;
+	void *not_yet_decided;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndDice, hinawa_snd_dice, HINAWA_TYPE_SND_UNIT)
 #define SND_DICE_GET_PRIVATE(obj)				\
@@ -24,12 +24,6 @@ static void handle_notification(void *private_data,
 
 static void snd_dice_dispose(GObject *obj)
 {
-	HinawaSndDice *self = HINAWA_SND_DICE(obj);
-	HinawaSndDicePrivate *priv = SND_DICE_GET_PRIVATE(self);
-
-	if (priv->unit != NULL)
-		hinawa_snd_unit_remove_handle(priv->unit, handle_notification);
-
 	G_OBJECT_CLASS(hinawa_snd_dice_parent_class)->dispose(obj);
 }
 
@@ -60,10 +54,10 @@ static void hinawa_snd_dice_init(HinawaSndDice *self)
 	self->priv = hinawa_snd_dice_get_instance_private(self);
 }
 
-HinawaSndDice *hinawa_snd_dice_new(HinawaSndUnit *unit, GError **exception)
+HinawaSndDice *hinawa_snd_dice_new(gchar *path, GError **exception)
 {
 	HinawaSndDice *self;
-	HinawaSndDicePrivate *priv;
+	int type;
 
 	self = g_object_new(HINAWA_TYPE_SND_DICE, NULL);
 	if (self == NULL) {
@@ -72,15 +66,18 @@ HinawaSndDice *hinawa_snd_dice_new(HinawaSndUnit *unit, GError **exception)
 		return NULL;
 	}
 
-	hinawa_snd_unit_add_handle(unit, SNDRV_FIREWIRE_TYPE_DICE,
-				   handle_notification, self, exception);
+	hinawa_snd_unit_new_with_instance(&self->parent_instance, path,
+					  handle_notification, self, exception);
 	if (*exception != NULL) {
 		g_clear_object(&self);
 		return NULL;
 	}
 
-	priv = SND_DICE_GET_PRIVATE(self);
-	priv->unit = unit;
+	g_object_get(G_OBJECT(self), "iface", &type, NULL);
+	if (type != SNDRV_FIREWIRE_TYPE_DICE) {
+		g_clear_object(&self);
+		return NULL;
+	}
 
 	return self;
 }

@@ -123,6 +123,8 @@ static void snd_unit_dispose(GObject *obj)
 	if (priv->src != NULL)
 		hinawa_snd_unit_unlisten(self);
 
+	snd_hwdep_close(priv->hwdep);
+
 	G_OBJECT_CLASS(hinawa_snd_unit_parent_class)->dispose(obj);
 }
 
@@ -195,14 +197,18 @@ hinawa_snd_unit_init(HinawaSndUnit *self)
 	self->priv = hinawa_snd_unit_get_instance_private(self);
 }
 
-HinawaSndUnit *hinawa_snd_unit_new(gchar *path, GError **exception)
+void hinawa_snd_unit_new_with_instance(HinawaSndUnit *self, gchar *path,
+				       HinawaSndUnitHandle *handle,
+				       void *private_data, GError **exception)
 {
-	HinawaSndUnit *self;
+	HinawaSndUnitPrivate *priv;
 	snd_hwdep_t *hwdep;
 	snd_hwdep_info_t *hwdep_info;
 	struct snd_firewire_get_info fw_info;
 	char *name;
 	int err;
+
+	priv = SND_UNIT_GET_PRIVATE(self);
 
 	err = snd_hwdep_open(&hwdep, path, SND_HWDEP_OPEN_DUPLEX);
 	if (err < 0)
@@ -216,16 +222,16 @@ HinawaSndUnit *hinawa_snd_unit_new(gchar *path, GError **exception)
 	}
 
 	err = snd_hwdep_info(hwdep, hwdep_info);
-	if (err == 0) {
-		/* NOTE: Don't forget to free the returned memory object. */
+	if (err == 0)
 		err = snd_card_get_name(snd_hwdep_info_get_card(hwdep_info),
 					&name);
-	}
 	snd_hwdep_info_free(hwdep_info);
 	if (err < 0) {
 		snd_hwdep_close(hwdep);
 		goto exception;
 	}
+	strncpy(priv->name, name, sizeof(priv->name));
+	free(name);
 
 	/* Get FireWire sound device information. */
 	err = snd_hwdep_ioctl(hwdep, SNDRV_FIREWIRE_IOCTL_GET_INFO, &fw_info);
@@ -234,27 +240,38 @@ HinawaSndUnit *hinawa_snd_unit_new(gchar *path, GError **exception)
 		goto exception;
 	}
 
-	self = g_object_new(HINAWA_TYPE_SND_UNIT, NULL);
-	if (self == NULL) {
-		snd_hwdep_close(hwdep);
-		goto exception;
-	}
+	priv->hwdep = hwdep;
+	priv->iface = fw_info.type;
+	priv->card = fw_info.card;
+	priv->guid = GUINT64_FROM_BE(*((guint64 *)fw_info.guid));
+	strcpy(priv->device, fw_info.device_name);
+	priv->handle = handle;
+	priv->private_data = private_data;
 
-	strncpy(self->priv->name, name, sizeof(self->priv->name));
-	/* NOTE: Be sure. */
-	free(name);
-
-	self->priv->hwdep = hwdep;
-	self->priv->iface = fw_info.type;
-	self->priv->card = fw_info.card;
-	self->priv->guid = GUINT64_FROM_BE(*((guint64 *)fw_info.guid));
-	strcpy(self->priv->device, fw_info.device_name);
-
-	return self;
+	return;
 exception:
 	g_set_error(exception, g_quark_from_static_string(__func__),
 		    -err, "%s", snd_strerror(err));
-	return NULL;
+}
+
+HinawaSndUnit *hinawa_snd_unit_new(gchar *path, GError **exception)
+{
+	HinawaSndUnit *self;
+
+	self = g_object_new(HINAWA_TYPE_SND_UNIT, NULL);
+	if (self == NULL) {
+		g_set_error(exception, g_quark_from_static_string(__func__),
+			    ENOMEM, "%s", strerror(ENOMEM));
+		return NULL;
+	}
+
+	hinawa_snd_unit_new_with_instance(self, path, NULL, NULL, exception);
+	if (*exception != NULL) {
+		g_clear_object(&self);
+		return NULL;
+	}
+
+	return self;
 }
 
 void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception)
@@ -436,37 +453,7 @@ void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 	g_free(priv->src);
 	priv->src = NULL;
 
-	snd_hwdep_close(priv->hwdep);
-
 	g_free(priv->buf);
 	priv->buf = NULL;
 	priv->len = 0;
-}
-
-void hinawa_snd_unit_add_handle(HinawaSndUnit *self, unsigned int type,
-				HinawaSndUnitHandle *handle,
-				void *private_data, GError **exception)
-{
-	HinawaSndUnitPrivate *priv = SND_UNIT_GET_PRIVATE(self);
-
-	if (priv->iface != type) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    EINVAL, "%s", strerror(EINVAL));
-		return;
-	}
-
-	priv->handle = handle;
-	priv->private_data = private_data;
-	g_object_ref(self);
-}
-
-void hinawa_snd_unit_remove_handle(HinawaSndUnit *self,
-				   HinawaSndUnitHandle *handle)
-{
-	HinawaSndUnitPrivate *priv = SND_UNIT_GET_PRIVATE(self);
-
-	if (priv->handle == handle) {
-		priv->handle = NULL;
-		g_object_unref(self);
-	}
 }

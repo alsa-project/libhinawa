@@ -16,11 +16,9 @@ void hinawa_fw_req_handle_response(int fd, union fw_cdev_event *ev);
 
 typedef void (HinawaSndUnitHandle)(void *private_data,
 				   const void *buf, unsigned int len);
-void hinawa_snd_unit_add_handle(HinawaSndUnit *self, unsigned int type,
-				HinawaSndUnitHandle *handle,
-				void *private_data, GError **exception);
-void hinawa_snd_unit_remove_handle(HinawaSndUnit *self,
-				   HinawaSndUnitHandle *handle);
+void hinawa_snd_unit_new_with_instance(HinawaSndUnit *self, gchar *path,
+				       HinawaSndUnitHandle *handle,
+				       void *private_data, GError **exception);
 void hinawa_snd_unit_write(HinawaSndUnit *unit,
 			   const void *buf, unsigned int length,
 			   GError **exception);
