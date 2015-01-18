@@ -16,12 +16,33 @@ from gi.repository import Hinawa
 
 from array import array
 
+# helper function
 def get_array():
     # The width with 'L' parameter is depending on environment.
     arr = array('L')
     if arr.itemsize is not 4:
         arr = array('I')
     return arr
+
+# query sound devices
+index = -1
+while True:
+    try:
+        index = Hinawa.UnitQuery.get_sibling(index)
+    except Exception as e:
+        continue
+    break
+
+# no fw sound devices are detected.
+if index == -1:
+    sys.exit()
+
+# get unit type
+try:
+    unit_type = Hinawa.UnitQuery.get_unit_type(index)
+except Exception as e:
+    print(e)
+    sys.exit()
 
 # create sound unit
 def handle_lock_status(snd_unit, status):
@@ -30,7 +51,13 @@ def handle_lock_status(snd_unit, status):
     else:
         print("streaming is unlocked.");
 try:
-    snd_unit = Hinawa.SndUnit.new("hw:0")
+    path = "hw:{0}".format(index)
+    if iface == 18:
+        snd_unit = Hinawa.SndDice.new(path)
+    elif iface == 19:
+        snd_unit = Hinawa.SndEfw.new(path)
+    else:
+        snd_unit = Hinawa.SndUnit.new(path)
 except Exception as e:
     print(e)
     sys.exit()
@@ -110,8 +137,7 @@ if snd_unit.get_property("iface") is 2:
     args = get_array()
     args.append(5)
     try:
-        eft = Hinawa.SndEft.new(snd_unit)
-        params = eft.transact(6, 1, args)
+        params = snd_unit.transact(6, 1, args)
     except Exception as e:
         print(e)
         sys.exit()
@@ -123,12 +149,7 @@ if snd_unit.get_property("iface") is 2:
 def handle_notification(self, message):
     print("Dice Notification: {0:08x}".format(message))
 if snd_unit.get_property('iface') is 1:
-    try:
-        dice_notify= Hinawa.SndDiceNotify.new(snd_unit)
-    except Exception as e:
-        print(e)
-        sys.exit()
-    dice_notify.connect('notified', handle_notification)
+    dice.connect('notified', handle_notification)
 
 # GUI
 class Sample(QWidget):
