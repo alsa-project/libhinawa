@@ -93,8 +93,11 @@ HinawaFwResp *hinawa_fw_resp_new(HinawaFwUnit *unit, GError **exception)
 void hinawa_fw_resp_register(HinawaFwResp *self, guint64 addr, guint width,
 			     gpointer private_data, GError **exception)
 {
-	HinawaFwRespPrivate *priv = FW_RESP_GET_PRIVATE(self);
+	HinawaFwRespPrivate *priv;
 	struct fw_cdev_allocate allocate = {0};
+
+	g_return_if_fail(HINAWA_IS_FW_RESP(self));
+	priv = FW_RESP_GET_PRIVATE(self);
 
 	allocate.offset = addr;
 	allocate.closure = (guint64)self;
@@ -123,6 +126,8 @@ void hinawa_fw_resp_unregister(HinawaFwResp *self)
 {
 	struct fw_cdev_deallocate deallocate = {0};
 
+	g_return_if_fail(HINAWA_IS_FW_RESP(self));
+
 	deallocate.handle = self->priv->addr_handle;
 	ioctl(self->priv->fd, FW_CDEV_IOC_DEALLOCATE, &deallocate);
 }
@@ -138,6 +143,8 @@ void hinawa_fw_resp_set_frame(HinawaFwResp *self, GArray *frame,
 			      guint len, GError **exception)
 {
 	HinawaFwRespPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_FW_RESP(self));
 
 	if (self == NULL || frame == NULL) {
 		g_set_error(exception, g_quark_from_static_string(__func__),

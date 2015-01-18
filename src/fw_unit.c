@@ -260,9 +260,12 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 		.dispatch	= dispatch_src,
 		.finalize	= finalize_src,
 	};
-	HinawaFwUnitPrivate *priv = FW_UNIT_GET_PRIVATE(self);
+	HinawaFwUnitPrivate *priv;
 	void *buf;
 	GSource *src;
+
+	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
+	priv = FW_UNIT_GET_PRIVATE(self);
 
 	/*
 	 * MEMO: allocate one page because we cannot assume the size of
@@ -306,7 +309,10 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 
 void hinawa_fw_unit_unlisten(HinawaFwUnit *self)
 {
-	HinawaFwUnitPrivate *priv = FW_UNIT_GET_PRIVATE(self);
+	HinawaFwUnitPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
+	priv = FW_UNIT_GET_PRIVATE(self);
 
 	g_source_destroy((GSource *)priv->src);
 	g_free(priv->src);

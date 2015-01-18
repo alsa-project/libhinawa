@@ -136,7 +136,7 @@ HinawaSndEfw *hinawa_snd_efw_new(gchar *path, GError **exception)
 void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 			     GArray *args, GArray *params, GError **exception)
 {
-	HinawaSndEfwPrivate *priv = SND_EFW_GET_PRIVATE(self);
+	HinawaSndEfwPrivate *priv;
 	int type;
 
 	struct efw_transaction trans;
@@ -147,6 +147,9 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 	unsigned int i;
 
 	gint64 expiration;
+
+	g_return_if_fail(HINAWA_IS_SND_EFW(self));
+	priv = SND_EFW_GET_PRIVATE(self);
 
 	/* Check unit type and function arguments . */
 	g_object_get(G_OBJECT(self), "iface", &type, NULL);

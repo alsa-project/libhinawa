@@ -191,8 +191,7 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 			     G_TYPE_NONE, 1, G_TYPE_BOOLEAN);
 }
 
-static void
-hinawa_snd_unit_init(HinawaSndUnit *self)
+static void hinawa_snd_unit_init(HinawaSndUnit *self)
 {
 	self->priv = hinawa_snd_unit_get_instance_private(self);
 }
@@ -208,6 +207,7 @@ void hinawa_snd_unit_new_with_instance(HinawaSndUnit *self, gchar *path,
 	char *name;
 	int err;
 
+	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = SND_UNIT_GET_PRIVATE(self);
 
 	err = snd_hwdep_open(&hwdep, path, SND_HWDEP_OPEN_DUPLEX);
@@ -278,6 +278,8 @@ void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception)
 {
 	int err;
 
+	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+
 	err = snd_hwdep_ioctl(self->priv->hwdep, SNDRV_FIREWIRE_IOCTL_LOCK,
 			      NULL);
 	if (err < 0)
@@ -289,6 +291,8 @@ void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
 {
 	int err;
 
+	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+
 	err = snd_hwdep_ioctl(self->priv->hwdep, SNDRV_FIREWIRE_IOCTL_UNLOCK,
 			      NULL);
 	if (err < 0)
@@ -296,13 +300,15 @@ void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
 			    -err, "%s", snd_strerror(err));
 }
 
-void hinawa_snd_unit_write(HinawaSndUnit *unit,
+void hinawa_snd_unit_write(HinawaSndUnit *self,
 			   const void *buf, unsigned int length,
 			   GError **exception)
 {
 	int err;
 
-	err = snd_hwdep_write(unit->priv->hwdep, buf, length);
+	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+
+	err = snd_hwdep_write(self->priv->hwdep, buf, length);
 	if (err < 0)
 		g_set_error(exception, g_quark_from_static_string(__func__),
 			    -err, "%s", snd_strerror(err));
@@ -313,6 +319,8 @@ static void handle_lock_event(HinawaSndUnit *self,
 {
 	struct snd_firewire_event_lock_status *event =
 			(struct snd_firewire_event_lock_status *)buf;
+
+	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 
 	g_signal_emit(self, snd_unit_sigs[SND_UNIT_SIG_TYPE_LOCK_STATUS], 0,
 		      event->status);
@@ -382,11 +390,14 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 		.dispatch	= dispatch_src,
 		.finalize	= finalize_src,
 	};
-	HinawaSndUnitPrivate *priv = SND_UNIT_GET_PRIVATE(self);
+	HinawaSndUnitPrivate *priv;
 	void *buf;
 	struct pollfd pfds;
 	GSource *src;
 	int err;
+
+	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	priv = SND_UNIT_GET_PRIVATE(self);
 
 	/*
 	 * MEMO: allocate one page because we cannot assume the size of
@@ -444,7 +455,10 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 
 void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 {
-	HinawaSndUnitPrivate *priv = SND_UNIT_GET_PRIVATE(self);
+	HinawaSndUnitPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	priv = SND_UNIT_GET_PRIVATE(self);
 
 	if (priv->streaming)
 		snd_hwdep_ioctl(priv->hwdep, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);

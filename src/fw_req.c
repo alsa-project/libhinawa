@@ -162,6 +162,8 @@ void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 {
 	int err;
 
+	g_return_if_fail(HINAWA_IS_FW_REQ(self));
+
 	if (frame == NULL || g_array_get_element_size(frame) != 4) {
 		err = EINVAL;
 	} else {
@@ -190,6 +192,8 @@ void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 {
 	int err;
 
+	g_return_if_fail(HINAWA_IS_FW_REQ(self));
+
 	if (frame == NULL || g_array_get_element_size(frame) != 4) {
 		err = EINVAL;
 	} else {
@@ -217,6 +221,8 @@ void hinawa_fw_req_compare_swap(HinawaFwReq *self, HinawaFwUnit *unit,
 				guint64 addr, GArray *frame,  GError **exception)
 {
 	int err;
+
+	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
 	if (frame == NULL || g_array_get_element_size(frame) != 4) {
 		err = EINVAL;

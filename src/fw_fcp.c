@@ -91,13 +91,16 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 			    GArray *req_frame, GArray *resp_frame,
 			    GError **exception)
 {
-	HinawaFwFcpPrivate *priv = FW_FCP_GET_PRIVATE(self);
+	HinawaFwFcpPrivate *priv;
 	HinawaFwReq *req;
 	struct fcp_transaction trans = {0};
 	GMutex local_lock;
 	gint64 expiration;
 	guint32 *buf;
 	guint i, quads, bytes;
+
+	g_return_if_fail(HINAWA_IS_FW_FCP(self));
+	priv = FW_FCP_GET_PRIVATE(self);
 
 	if (req_frame == NULL  || g_array_get_element_size(req_frame)  != 1 ||
 	    resp_frame == NULL || g_array_get_element_size(resp_frame) != 1 ||
@@ -221,7 +224,10 @@ void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
 			  GError **exception)
 {
 	HinawaFwResp *resp;
-	HinawaFwFcpPrivate *priv = FW_FCP_GET_PRIVATE(self);
+	HinawaFwFcpPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_FW_FCP(self));
+	priv = FW_FCP_GET_PRIVATE(self);
 
 	resp = hinawa_fw_resp_new(unit, exception);
 	if (*exception != NULL)
@@ -243,7 +249,10 @@ void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
 
 void hinawa_fw_fcp_unlisten(HinawaFwFcp *self)
 {
-	HinawaFwFcpPrivate *priv = FW_FCP_GET_PRIVATE(self);
+	HinawaFwFcpPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_FW_FCP(self));
+	priv = FW_FCP_GET_PRIVATE(self);
 
 	hinawa_fw_resp_unregister(priv->resp);
 	priv->resp = NULL;
