@@ -15,7 +15,6 @@ struct _HinawaFwRespPrivate {
 	guint64 addr_handle;
 
 	unsigned int len;
-	gpointer private_data;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwResp, hinawa_fw_resp, G_TYPE_OBJECT)
 #define FW_RESP_GET_PRIVATE(obj)					\
@@ -58,10 +57,13 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	 * HinawaFwResp::requested:
 	 * @self: A #HinawaFwResp
 	 * @tcode: Transaction code
-	 * @frame: (element-type guint32) (array): The frame content
-	 * @private_data: A user data
+	 * @frame: (element-type guint32) (array): The requested frame content
 	 *
-	 * Returns: data error
+	 * When any units transfer requests to the range of address to which
+	 * this object listening. The ::requested signal handler should set
+	 * a response frame by hinawa_fw_resp_set_frame if needed.
+	 *
+	 * Return value: %TRUE if a data in requested frame is valid, or %FALSE.
 	 */
 	fw_resp_sigs[FW_RESP_SIG_TYPE_REQ] =
 		g_signal_new("requested",
@@ -69,9 +71,8 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 			     G_SIGNAL_RUN_LAST,
 			     0,
 			     NULL, NULL,
-			     hinawa_sigs_marshal_BOOL__INT_BOXED_POINTER,
-			     G_TYPE_BOOLEAN, 3, G_TYPE_INT, G_TYPE_ARRAY,
-			     G_TYPE_POINTER);
+			     hinawa_sigs_marshal_BOOL__INT_BOXED,
+			     G_TYPE_BOOLEAN, 2, G_TYPE_INT, G_TYPE_ARRAY);
 }
 
 static void hinawa_fw_resp_init(HinawaFwResp *self)
@@ -98,8 +99,17 @@ HinawaFwResp *hinawa_fw_resp_new(HinawaFwUnit *unit, GError **exception)
 	return self;
 }
 
+/**
+ * hinawa_fw_resp_register:
+ * @self: A #HinawaFwResp
+ * @addr: A start address to listen to in host controller
+ * @width: The byte width of address to listen to host controller
+ * @exception: A #GError
+ *
+ * Start to listen to a range of address in host controller
+ */
 void hinawa_fw_resp_register(HinawaFwResp *self, guint64 addr, guint width,
-			     gpointer private_data, GError **exception)
+			     GError **exception)
 {
 	HinawaFwRespPrivate *priv;
 	struct fw_cdev_allocate allocate = {0};
@@ -129,7 +139,6 @@ void hinawa_fw_resp_register(HinawaFwResp *self, guint64 addr, guint width,
 	}
 
 	priv->width = allocate.length;
-	priv->private_data = private_data;
 }
 
 void hinawa_fw_resp_unregister(HinawaFwResp *self)
@@ -212,7 +221,7 @@ void hinawa_fw_resp_handle_request(int fd, union fw_cdev_event *ev)
 		buf[i] = be32toh(buf[i]);
 
 	g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ], 0,
-		      event->tcode, frame, priv->private_data, &error);
+		      event->tcode, frame, &error);
 	if (!error) {
 		resp.rcode = RCODE_DATA_ERROR;
 		goto respond;

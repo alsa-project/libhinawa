@@ -185,10 +185,9 @@ end:
 }
 
 static gboolean handle_response(HinawaFwResp *self, gint tcode,
-				GArray *resp_frame, gpointer private_data,
-				gpointer something)
+				GArray *resp_frame, gpointer user_data)
 {
-	HinawaFwFcp *fcp = (HinawaFwFcp *)private_data;
+	HinawaFwFcp *fcp = (HinawaFwFcp *)user_data;
 	HinawaFwFcpPrivate *priv = FW_FCP_GET_PRIVATE(fcp);
 	struct fcp_transaction *trans;
 	gboolean error;
@@ -234,11 +233,11 @@ void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
 		return;
 
 	hinawa_fw_resp_register(resp, FCP_RESPOND_ADDR, FCP_MAXIMUM_FRAME_BYTES,
-				(void *)self, exception);
+				exception);
 	if (*exception != NULL)
 		return;
 
-	g_signal_connect(resp, "requested", G_CALLBACK(handle_response), resp);
+	g_signal_connect(resp, "requested", G_CALLBACK(handle_response), self);
 
 	g_mutex_init(&priv->lock);
 	priv->transactions = NULL;

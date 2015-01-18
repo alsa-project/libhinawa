@@ -52,9 +52,9 @@ def handle_lock_status(snd_unit, status):
         print("streaming is unlocked.");
 try:
     path = "hw:{0}".format(index)
-    if iface == 18:
+    if unit_type == 1:
         snd_unit = Hinawa.SndDice.new(path)
-    elif iface == 19:
+    elif unit_type == 2:
         snd_unit = Hinawa.SndEfw.new(path)
     else:
         snd_unit = Hinawa.SndUnit.new(path)
@@ -89,14 +89,14 @@ except Exception as e:
     sys.exit()
 
 # create firewire responder
-def handle_request(resp, tcode, frame, private_data):
+def handle_request(resp, tcode, frame):
     print('Requested with tcode {0}:'.format(tcode))
     for i in range(len(frame)):
         print(' [{0:02d}]: 0x{1:08x}'.format(i, frame[i]))
     return True
 try:
     resp = Hinawa.FwResp.new(fw_unit)
-    resp.register(0xfffff0000d00, 0x100, 0)
+    resp.register(0xfffff0000d00, 0x100)
     resp.connect('requested', handle_request)
 except Exception as e:
     print(e)
