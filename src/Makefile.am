@@ -24,6 +24,8 @@ libhinawa_la_SOURCES =				\
 	hinawa_context.c			\
 	hinawa_sigs_marshal.h			\
 	hinawa_sigs_marshal.c			\
+	unit_query.h				\
+	unit_query.c				\
 	fw_req.h				\
 	fw_req.c				\
 	fw_resp.h				\
@@ -41,6 +43,7 @@ libhinawa_la_SOURCES =				\
 
 pkginclude_HEADERS =				\
 	hinawa_sigs_marshal.h			\
+	unit_query.h				\
 	fw_req.h				\
 	fw_resp.h				\
 	fw_unit.h				\
