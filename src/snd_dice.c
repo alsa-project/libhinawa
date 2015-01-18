@@ -3,14 +3,7 @@
 #include <alsa/asoundlib.h>
 #include "snd_dice.h"
 
-struct _HinawaSndDicePrivate {
-	void *not_yet_decided;
-};
-G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndDice, hinawa_snd_dice, HINAWA_TYPE_SND_UNIT)
-#define SND_DICE_GET_PRIVATE(obj)				\
-	(G_TYPE_INSTANCE_GET_PRIVATE((obj), 			\
-				     HINAWA_TYPE_SND_DICE,	\
-				     HinawaSndDicePrivate))
+G_DEFINE_TYPE(HinawaSndDice, hinawa_snd_dice, HINAWA_TYPE_SND_UNIT)
 
 /* This object has one signal. */
 enum dice_sig_type {
