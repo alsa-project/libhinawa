@@ -206,15 +206,17 @@ void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 }
 
 /**
- * hinawa_fw_req_compare_swap:
+ * hinawa_fw_req_lock:
  * @self: A #HinawaFwReq
  * @unit: A #HinawaFwUnit
  * @addr: A destination address of target device
- * @frame: (element-type guint32) (array) (inout): a byte frame
+ * @frame: (element-type guint32) (array) (inout): a quads frame
  * @exception: A #GError
+ *
+ * Execute lock transaction to the given unit.
  */
-void hinawa_fw_req_compare_swap(HinawaFwReq *self, HinawaFwUnit *unit,
-				guint64 addr, GArray *frame,  GError **exception)
+void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit,
+			guint64 addr, GArray *frame,  GError **exception)
 {
 	int err;
 
