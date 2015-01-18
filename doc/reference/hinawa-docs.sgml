@@ -44,10 +44,4 @@
     <index id="index-all">
         <title>Index of all symbols</title>
     </index>
-    <index id="index-deprecated" role="deprecated">
-        <title>Index of deprecated symbols</title>
-    </index>
-    <index id="index-0-2-0" role="0.2.0">
-        <title>Index of new symbols in 0.2.0</title>
-    </index>
 </book>
