@@ -13,7 +13,6 @@ enum fw_req_type {
 
 /* NOTE: This object has no properties and no signals. */
 struct _HinawaFwReqPrivate {
-	gint fd;
 	GArray *frame;
 
 	GCond cond;
@@ -68,7 +67,6 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 	HinawaFwReqPrivate *priv = FW_REQ_GET_PRIVATE(self);
 	int tcode;
 
-	int fd;
 	guint64 generation;
 
 	guint64 expiration;
@@ -110,7 +108,6 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 	}
 
 	/* Get unit properties. */
-	g_object_get(G_OBJECT(unit), "fd", &fd, NULL);
 	g_object_get(G_OBJECT(unit), "generation", &generation, NULL);
 
 	/* Setup a transaction structure. */
@@ -126,10 +123,9 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 	g_mutex_init(&lock);
 
 	/* Send this transaction. */
-	if (ioctl(fd, FW_CDEV_IOC_SEND_REQUEST, &req) < 0) {
-		*err = errno;
+	hinawa_fw_unit_ioctl(unit, FW_CDEV_IOC_SEND_REQUEST, &req, err);
 	/* Wait for a response with timeout, waken by a response handler. */
-	} else {
+	if (*err == 0) {
 		g_mutex_lock(&lock);
 		if (!g_cond_wait_until(&priv->cond, &lock, expiration))
 			*err = ETIMEDOUT;
@@ -250,14 +246,14 @@ void hinawa_fw_req_handle_response(int fd, union fw_cdev_event *ev)
 	priv = FW_REQ_GET_PRIVATE(req);
 
 	/* Copy transaction frame. */
-	if (req->priv->frame != NULL) {
+	if (priv->frame != NULL) {
 		priv->frame->len = 0;
 		g_array_append_vals(priv->frame, event->data,
 			event->length / g_array_get_element_size(priv->frame));
 	}
 
 	/* Waken a thread of an user application. */
-	g_cond_signal(&req->priv->cond);
+	g_cond_signal(&priv->cond);
 
 	return;
 }

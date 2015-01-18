@@ -8,11 +8,13 @@
 #include <linux/firewire-constants.h>
 
 #include "backport.h"
+#include "fw_unit.h"
 #include "snd_unit.h"
 
 typedef void (*HinawaFwUnitHandle)(int fd, union fw_cdev_event *ev);
 void hinawa_fw_resp_handle_request(int fd, union fw_cdev_event *ev);
 void hinawa_fw_req_handle_response(int fd, union fw_cdev_event *ev);
+void hinawa_fw_unit_ioctl(HinawaFwUnit *self, int req, void *args, int *err);
 
 typedef void (HinawaSndUnitHandle)(void *private_data,
 				   const void *buf, unsigned int len);

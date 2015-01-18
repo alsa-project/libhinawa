@@ -1,5 +1,6 @@
 #include <sys/ioctl.h>
 #include "fw_resp.h"
+#include "internal.h"
 #include "hinawa_sigs_marshal.h"
 
 #ifdef HAVE_CONFIG_H
@@ -7,7 +8,8 @@
 #endif
 
 struct _HinawaFwRespPrivate {
-	gint fd;
+	HinawaFwUnit *unit;
+
 	guchar *buf;
 	guint width;
 	guint64 addr_handle;
@@ -30,8 +32,11 @@ static guint fw_resp_sigs[FW_RESP_SIG_TYPE_COUNT] = { 0 };
 static void fw_resp_dispose(GObject *gobject)
 {
 	HinawaFwResp *self = HINAWA_FW_RESP(gobject);
+	HinawaFwRespPrivate *priv = FW_RESP_GET_PRIVATE(self);
 
 	hinawa_fw_resp_unregister(self);
+	g_object_unref(priv->unit);
+
 	G_OBJECT_CLASS(hinawa_fw_resp_parent_class)->dispose(gobject);
 }
 
@@ -77,6 +82,7 @@ static void hinawa_fw_resp_init(HinawaFwResp *self)
 HinawaFwResp *hinawa_fw_resp_new(HinawaFwUnit *unit, GError **exception)
 {
 	HinawaFwResp *self;
+	HinawaFwRespPrivate *priv;
 
 	self = g_object_new(HINAWA_TYPE_FW_RESP, NULL);
 	if (self == NULL) {
@@ -84,8 +90,10 @@ HinawaFwResp *hinawa_fw_resp_new(HinawaFwUnit *unit, GError **exception)
 			    ENOMEM, "%s", strerror(ENOMEM));
 		return NULL;
 	}
+	priv = FW_RESP_GET_PRIVATE(self);
 
-	g_object_get(G_OBJECT(unit), "fd", &self->priv->fd, NULL);
+	g_object_ref(unit);
+	priv->unit = unit;
 
 	return self;
 }
@@ -95,6 +103,7 @@ void hinawa_fw_resp_register(HinawaFwResp *self, guint64 addr, guint width,
 {
 	HinawaFwRespPrivate *priv;
 	struct fw_cdev_allocate allocate = {0};
+	int err;
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
 	priv = FW_RESP_GET_PRIVATE(self);
@@ -104,9 +113,10 @@ void hinawa_fw_resp_register(HinawaFwResp *self, guint64 addr, guint width,
 	allocate.length = width;
 	allocate.region_end = addr + width;
 
-	if (ioctl(self->priv->fd, FW_CDEV_IOC_ALLOCATE, &allocate) < 0) {
+	hinawa_fw_unit_ioctl(priv->unit, FW_CDEV_IOC_ALLOCATE, &allocate, &err);
+	if (err != 0) {
 		g_set_error(exception, g_quark_from_static_string(__func__),
-			    errno, "%s", strerror(errno));
+			    err, "%s", strerror(err));
 		return;
 	}
 
@@ -124,12 +134,16 @@ void hinawa_fw_resp_register(HinawaFwResp *self, guint64 addr, guint width,
 
 void hinawa_fw_resp_unregister(HinawaFwResp *self)
 {
+	HinawaFwRespPrivate *priv;
 	struct fw_cdev_deallocate deallocate = {0};
+	int err;
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
+	priv = FW_RESP_GET_PRIVATE(self);
 
-	deallocate.handle = self->priv->addr_handle;
-	ioctl(self->priv->fd, FW_CDEV_IOC_DEALLOCATE, &deallocate);
+	deallocate.handle = priv->addr_handle;
+	hinawa_fw_unit_ioctl(priv->unit, FW_CDEV_IOC_DEALLOCATE, &deallocate,
+			     &err);
 }
 
 /**
@@ -176,6 +190,7 @@ void hinawa_fw_resp_handle_request(int fd, union fw_cdev_event *ev)
 
 	struct fw_cdev_send_response resp = {0};
 	gboolean error;
+	int err;
 
 	if (event->length > priv->width) {
 		resp.rcode = RCODE_CONFLICT_ERROR;
@@ -209,7 +224,7 @@ void hinawa_fw_resp_handle_request(int fd, union fw_cdev_event *ev)
 respond:
 	resp.handle = event->handle;
 
-	ioctl(priv->fd, FW_CDEV_IOC_SEND_RESPONSE, &resp);
+	hinawa_fw_unit_ioctl(priv->unit, FW_CDEV_IOC_SEND_RESPONSE, &resp, &err);
 
 	priv->len = 0;
 	if (frame == NULL)

@@ -3,8 +3,8 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include "internal.h"
 #include "fw_unit.h"
+#include "internal.h"
 
 G_BEGIN_DECLS
 
