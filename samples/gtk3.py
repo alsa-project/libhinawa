@@ -70,7 +70,7 @@ try:
 except Exception as e:
     print(e)
     sys.exit()
-snd_unit.connect("lock-status", handle_lock_status)
+fw_unit.connect("bus-update", handle_bus_update)
 
 # start listening
 try:
