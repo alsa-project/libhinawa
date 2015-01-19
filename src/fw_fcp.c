@@ -62,10 +62,8 @@ G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwFcp, hinawa_fw_fcp, G_TYPE_OBJECT)
 static void hinawa_fw_fcp_dispose(GObject *obj)
 {
 	HinawaFwFcp *self = HINAWA_FW_FCP(obj);
-	HinawaFwFcpPrivate *priv = FW_FCP_GET_PRIVATE(self);
 
-	if (priv->resp != NULL)
-		hinawa_fw_fcp_unlisten(self);
+	hinawa_fw_fcp_unlisten(self);
 
 	G_OBJECT_CLASS(hinawa_fw_fcp_parent_class)->dispose(obj);
 }
@@ -273,6 +271,9 @@ void hinawa_fw_fcp_unlisten(HinawaFwFcp *self)
 
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
 	priv = FW_FCP_GET_PRIVATE(self);
+
+	if (priv->resp == NULL)
+		return;
 
 	hinawa_fw_resp_unregister(priv->resp);
 	priv->resp = NULL;

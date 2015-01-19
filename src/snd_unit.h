@@ -3,6 +3,7 @@
 
 #include <glib.h>
 #include <glib-object.h>
+#include "fw_unit.h"
 
 G_BEGIN_DECLS
 
@@ -34,14 +35,14 @@ typedef struct _HinawaSndUnitPrivate	HinawaSndUnitPrivate;
 
 struct _HinawaSndUnit
 {
-	GObject parent_instance;
+	HinawaFwUnit parent_instance;
 
 	HinawaSndUnitPrivate *priv;
 };
 
 struct _HinawaSndUnitClass
 {
-	GObjectClass parent_class;
+	HinawaFwUnitClass parent_class;
 };
 
 GType hinawa_snd_unit_get_type(void) G_GNUC_CONST;
@@ -50,6 +51,19 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception);
 
 void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception);
 void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception);
+
+void hinawa_snd_unit_read_transact(HinawaSndUnit *self,
+				   guint64 addr, GArray *frame, guint len,
+				   GError **exception);
+void hinawa_snd_unit_write_transact(HinawaSndUnit *self,
+				    guint64 addr, GArray *frame,
+				    GError **exception);
+void hinawa_snd_unit_lock_transact(HinawaSndUnit *self,
+				   guint64 addr, GArray *frame,
+				   GError **exception);
+void hinawa_snd_unit_fcp_transact(HinawaSndUnit *self,
+				  GArray *req_frame, GArray *resp_frame,
+				  GError **exception);
 
 void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception);
 void hinawa_snd_unit_unlisten(HinawaSndUnit *self);

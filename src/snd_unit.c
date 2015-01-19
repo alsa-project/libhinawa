@@ -6,6 +6,8 @@
 #include "snd_unit.h"
 #include "snd_efw.h"
 #include "snd_dice.h"
+#include "fw_req.h"
+#include "fw_fcp.h"
 #include "internal.h"
 
 #ifdef HAVE_CONFIG_H
@@ -37,8 +39,11 @@ struct _HinawaSndUnitPrivate {
 	void *buf;
 	unsigned int len;
 	SndUnitSource *src;
+
+	HinawaFwReq *req;
+	HinawaFwFcp *fcp;
 };
-G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndUnit, hinawa_snd_unit, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndUnit, hinawa_snd_unit, HINAWA_TYPE_FW_UNIT)
 #define SND_UNIT_GET_PRIVATE(obj)					\
 	(G_TYPE_INSTANCE_GET_PRIVATE((obj), 				\
 				HINAWA_TYPE_SND_UNIT, HinawaSndUnitPrivate))
@@ -194,6 +199,7 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 	snd_hwdep_t *hwdep = NULL;
 	snd_hwdep_info_t *hwdep_info;
 	char *name = NULL;
+	char fw_cdev[32];
 	int err;
 
 	snd_hwdep_info_alloca(&hwdep_info);
@@ -219,8 +225,15 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 	if (err < 0)
 		goto end;
 
+	snprintf(fw_cdev, sizeof(fw_cdev), "/dev/%s", priv->info.device_name);
+	hinawa_fw_unit_open(&self->parent_instance, fw_cdev, exception);
+	if (*exception != NULL)
+		goto end;
+
 	priv->hwdep = hwdep;
 	strncpy(priv->name, name, sizeof(priv->name));
+	priv->req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
+	priv->fcp = g_object_new(HINAWA_TYPE_FW_FCP, NULL);
 end:
 	if (err < 0) {
 		g_set_error(exception, g_quark_from_static_string(__func__),
@@ -269,6 +282,93 @@ void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
 	if (err < 0)
 		g_set_error(exception, g_quark_from_static_string(__func__),
 			    -err, "%s", snd_strerror(err));
+}
+
+/**
+ * hinawa_snd_unit_read_transact:
+ * @self: A #HinawaSndUnit
+ * @addr: A destination address of target device
+ * @frame: (element-type guint32) (array) (out caller-allocates): a 32bit array
+ * @len: the bytes to read
+ * @exception: A #GError
+ *
+ * Execute read transaction to the given unit.
+ */
+void hinawa_snd_unit_read_transact(HinawaSndUnit *self,
+				   guint64 addr, GArray *frame, guint len,
+				   GError **exception)
+{
+	HinawaSndUnitPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	priv = SND_UNIT_GET_PRIVATE(self);
+
+	hinawa_fw_req_read(priv->req, &self->parent_instance, addr, frame, len,
+			   exception);
+}
+
+/**
+ * hinawa_snd_unit_write_transact:
+ * @self: A #HinawaSndUnit
+ * @addr: A destination address of target device
+ * @frame: (element-type guint32) (array) (in): a 32bit array
+ * @exception: A #GError
+ *
+ * Execute write transactions to the given unit.
+ */
+void hinawa_snd_unit_write_transact(HinawaSndUnit *self,
+				    guint64 addr, GArray *frame,
+				    GError **exception)
+{
+	HinawaSndUnitPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	priv = SND_UNIT_GET_PRIVATE(self);
+
+	hinawa_fw_req_write(priv->req, &self->parent_instance, addr, frame,
+			    exception);
+}
+
+/**
+ * hinawa_snd_unit_lock_transact:
+ * @self: A #HinawaSndUnit
+ * @addr: A destination address of target device
+ * @frame: (element-type guint32) (array) (inout): a 32bit array
+ * @exception: A #GError
+ *
+ * Execute lock transaction to the given unit.
+ */
+void hinawa_snd_unit_lock_transact(HinawaSndUnit *self,
+				   guint64 addr, GArray *frame,
+				   GError **exception)
+{
+	HinawaSndUnitPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	priv = SND_UNIT_GET_PRIVATE(self);
+
+	hinawa_fw_req_lock(priv->req, &self->parent_instance, addr, frame,
+			   exception);
+}
+
+/**
+ * hinawa_snd_unit_fcp_transact:
+ * @self: A #HinawaSndUnit
+ * @req_frame:  (element-type guint8) (array) (in): a byte frame for request
+ * @resp_frame: (element-type guint8) (array) (out caller-allocates): a byte
+ *		frame for response
+ * @exception: A #GError
+ */
+void hinawa_snd_unit_fcp_transact(HinawaSndUnit *self,
+				  GArray *req_frame, GArray *resp_frame,
+				  GError **exception)
+{
+	HinawaSndUnitPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	priv = SND_UNIT_GET_PRIVATE(self);
+
+	hinawa_fw_fcp_transact(priv->fcp, req_frame, resp_frame, exception);
 }
 
 /* For internal use. */
@@ -429,6 +529,18 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 		return;
 	}
 
+	hinawa_fw_unit_listen(&self->parent_instance, exception);
+	if (*exception != NULL) {
+		hinawa_snd_unit_unlisten(self);
+		return;
+	}
+
+	hinawa_fw_fcp_listen(priv->fcp, &self->parent_instance, exception);
+	if (*exception != NULL) {
+		hinawa_snd_unit_unlisten(self);
+		hinawa_fw_unit_unlisten(&self->parent_instance);
+	}
+
 	/* Check locked or not. */
 	err = snd_hwdep_ioctl(priv->hwdep, SNDRV_FIREWIRE_IOCTL_LOCK,
 			      NULL);
@@ -461,4 +573,7 @@ void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 	g_free(priv->buf);
 	priv->buf = NULL;
 	priv->len = 0;
+
+	hinawa_fw_fcp_unlisten(priv->fcp);
+	hinawa_fw_unit_unlisten(&self->parent_instance);
 }

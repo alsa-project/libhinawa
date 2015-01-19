@@ -8,6 +8,8 @@ from gi.repository import Gtk
 # Hinawa-1.0 gir
 from gi.repository import Hinawa
 
+from array import array
+
 # helper function
 def get_array():
     # The width with 'L' parameter is depending on environment.
@@ -64,21 +66,13 @@ print(' GUID:\t{0:016x}'.format(snd_unit.get_property("guid")))
 snd_unit.connect("lock-status", handle_lock_status)
 
 # create FireWire unit
-fw_unit = Hinawa.FwUnit()
-def handle_bus_update(fw_unit):
-	print(fw_unit.get_property('generation'))
-path = "/dev/%s" % snd_unit.get_property("device")
-try:
-    fw_unit.open(path)
-except Exception as e:
-    print(e)
-    sys.exit()
-fw_unit.connect("bus-update", handle_bus_update)
+def handle_bus_update(snd_unit):
+	print(snd_unit.get_property('generation'))
+snd_unit.connect("bus-update", handle_bus_update)
 
 # start listening
 try:
     snd_unit.listen()
-    fw_unit.listen()
 except Exception as e:
     print(e)
     sys.exit()
@@ -91,7 +85,7 @@ def handle_request(resp, tcode, frame):
         print(' [{0:02d}]: 0x{1:08x}'.format(i, frame[i]))
     return True
 try:
-    resp.register(fw_unit, 0xfffff0000d00, 0x100)
+    resp.register(snd_unit, 0xfffff0000d00, 0x100)
     resp.connect('requested', handle_request)
 except Exception as e:
     print(e)
@@ -102,21 +96,17 @@ req = Hinawa.FwReq()
 
 # Fireworks/BeBoB/OXFW supports FCP and some AV/C commands
 if snd_unit.get_property('type') is not 1:
-    fcp = Hinawa.FwFcp()
     request = bytes([0x01, 0xff, 0x19, 0x00, 0xff, 0xff, 0xff, 0xff])
     try:
-        fcp.listen(fw_unit)
-        response = fcp.transact(request)
+        response = snd_unit.fcp_transact(request)
     except Exception as e:
         print(e)
         sys.exit()
     print('FCP Response:')
     for i in range(len(response)):
         print(' [{0:02d}]: 0x{1:02x}'.format(i, response[i]))
-    fcp.unlisten()
 
 # Echo Fireworks Transaction
-from array import array
 if snd_unit.get_property("type") is 2:
     args = get_array()
     args.append(5)
@@ -170,7 +160,7 @@ class Sample(Gtk.Window):
     def on_click_transact(self, button):
         try:
             addr = int(self.entry.get_text(), 16)
-            val = req.read(fw_unit, addr, 1)
+            val = snd_unit.read_transact(addr, 1)
         except Exception as e:
             print(e)
             return
