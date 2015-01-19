@@ -62,9 +62,11 @@ gint hinawa_unit_query_get_sibling(gint id, GError **exception)
 
 	hinawa_unit_query_get_unit_type(id, exception);
 end:
-	if (err < 0)
+	if (err < 0) {
+		id = -1;
 		g_set_error(exception, g_quark_from_static_string(__func__),
 			    -err, "%s", snd_strerror(err));
+	}
 	if (handle != NULL)
 		snd_ctl_close(handle);
 
@@ -88,7 +90,7 @@ gint hinawa_unit_query_get_unit_type(gint id, GError **exception)
 
 	/* Check id and make device string */
 	if (id < 0) {
-		err = EINVAL;
+		err = -EINVAL;
 		goto end;
 	}
 	snprintf(path, sizeof(path), "hw:%d", id);

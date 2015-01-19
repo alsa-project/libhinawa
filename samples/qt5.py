@@ -25,11 +25,12 @@ while True:
     try:
         index = Hinawa.UnitQuery.get_sibling(index)
     except Exception as e:
-        continue
+        break
     break
 
 # no fw sound devices are detected.
 if index == -1:
+    print('No sound FireWire devices found.')
     sys.exit()
 
 # get unit type
