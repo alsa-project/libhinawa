@@ -125,6 +125,14 @@ def handle_notification(self, message):
     print("Dice Notification: {0:08x}".format(message))
 if snd_unit.get_property('type') is 1:
     snd_unit.connect('notified', handle_notification)
+    args = get_array()
+    args.append(0x0000030c)
+    try:
+        # The address of clock in Impact Twin
+        snd_unit.transact(0xffffe0000074, args, 0x00000020)
+    except Exception as e:
+        print(e)
+        sys.exit()
 
 # GUI
 class Sample(QWidget):

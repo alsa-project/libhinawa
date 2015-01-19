@@ -17,7 +17,20 @@
  * received. This inherits #HinawaSndUnit.
  */
 
-G_DEFINE_TYPE(HinawaSndDice, hinawa_snd_dice, HINAWA_TYPE_SND_UNIT)
+struct notification_waiter {
+	guint32 bit_flag;
+	GCond cond;
+};
+
+struct _HinawaSndDicePrivate {
+	GList *waiters;
+	GMutex lock;
+};
+G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndDice, hinawa_snd_dice, HINAWA_TYPE_SND_UNIT)
+#define SND_DICE_GET_PRIVATE(obj)					\
+	(G_TYPE_INSTANCE_GET_PRIVATE((obj), 				\
+				     HINAWA_TYPE_SND_DICE,		\
+				     HinawaSndDicePrivate))
 
 /* This object has one signal. */
 enum dice_sig_type {
@@ -75,6 +88,7 @@ static void hinawa_snd_dice_init(HinawaSndDice *self)
  */
 void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
 {
+	HinawaSndDicePrivate *priv;
 	int type;
 
 	g_return_if_fail(HINAWA_IS_SND_DICE(self));
@@ -91,14 +105,91 @@ void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
 			    EINVAL, "%s", strerror(EINVAL));
 		g_clear_object(&self);
 	}
+	priv = SND_DICE_GET_PRIVATE(self);
+
+	priv->waiters = NULL;
+	g_mutex_init(&priv->lock);
+}
+
+/**
+ * hinawa_snd_dice_transact:
+ * @self: A #HinawaSndDice
+ * @addr: A destination address of target device
+ * @frame: (element-type guint32) (array) (in): a 32bit array
+ * @bit_flag: bit flag to wait
+ * @exception: A #GError
+ *
+ * Execute write transactions to the given address, then wait and check
+ * notification.
+ */
+void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr,
+			      GArray *frame, guint32 bit_flag,
+			      GError **exception)
+{
+	HinawaSndDicePrivate *priv;
+	struct notification_waiter waiter = {0};
+	gint64 expiration;
+
+	g_return_if_fail(HINAWA_IS_SND_DICE(self));
+	priv = SND_DICE_GET_PRIVATE(self);
+
+	/* Insert this entry to list and enter critical section. */
+	g_mutex_lock(&priv->lock);
+	priv->waiters = g_list_append(priv->waiters, &waiter);
+
+	/* NOTE: Timeout is 200 milli-seconds. */
+	expiration = g_get_monotonic_time() + 200 * G_TIME_SPAN_MILLISECOND;
+	g_cond_init(&waiter.cond);
+
+	waiter.bit_flag = bit_flag;
+	hinawa_snd_unit_write_transact(&self->parent_instance, addr, frame,
+				       exception);
+	if (*exception != NULL)
+		goto end;
+
+	/*
+	 * Wait notification till timeout and temporarily leave the critical
+	 * section.
+	 */
+	if (!g_cond_wait_until(&waiter.cond, &priv->lock, expiration))
+		g_set_error(exception, g_quark_from_static_string(__func__),
+			    ETIMEDOUT, "%s", strerror(ETIMEDOUT));
+end:
+	priv->waiters = g_list_remove(priv->waiters, (gpointer *)&waiter);
+
+	g_mutex_unlock(&priv->lock);
 }
 
 void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 					 const void *buf, unsigned int len)
 {
+	HinawaSndDicePrivate *priv;
+
+	GList *entry;
+	struct notification_waiter *waiter;
+
 	struct snd_firewire_event_dice_notification *event =
 			(struct snd_firewire_event_dice_notification *)buf;
 
+	g_return_if_fail(HINAWA_IS_SND_DICE(self));
+	priv = SND_DICE_GET_PRIVATE(self);
+
 	g_signal_emit(self, dice_sigs[DICE_SIG_TYPE_NOTIFIED],
 		      0, event->notification);
+
+	g_mutex_lock(&priv->lock);
+
+	for (entry = priv->waiters; entry != NULL; entry = entry->next) {
+		waiter = (struct notification_waiter *)entry->data;
+
+		if (waiter->bit_flag & event->notification)
+			break;
+	}
+
+	g_mutex_unlock(&priv->lock);
+
+	if (entry == NULL)
+		return;
+
+	g_cond_signal(&waiter->cond);
 }
