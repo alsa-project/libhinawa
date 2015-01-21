@@ -4,7 +4,13 @@
 
 #include "hinawa_context.h"
 #include "snd_unit.h"
+#include "snd_efw.h"
+#include "snd_dice.h"
 #include "internal.h"
+
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
 
 /**
  * SECTION:snd_unit
@@ -29,9 +35,6 @@ struct _HinawaSndUnitPrivate {
 	gchar device[16];
 	guint64 guid;
 	gboolean streaming;
-
-	HinawaSndUnitHandle *handle;
-	void *private_data;
 
 	void *buf;
 	unsigned int len;
@@ -294,20 +297,6 @@ HinawaSndUnit *hinawa_snd_unit_new(gchar *path, GError **exception)
 	return self;
 }
 
-/* For internal use only. */
-void hinawa_snd_unit_add_handle(HinawaSndUnit *self,
-				HinawaSndUnitHandle *handle, void *private_data)
-{
-	HinawaSndUnitPrivate *priv;
-
-	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
-	priv = SND_UNIT_GET_PRIVATE(self);
-
-	priv->handle = handle;
-	priv->private_data = private_data;
-}
-
-
 /**
  * hinawa_snd_unit_lock:
  * @self: A #HinawaSndUnit
@@ -411,9 +400,14 @@ static gboolean check_src(GSource *gsrc)
 
 	if (common->type == SNDRV_FIREWIRE_EVENT_LOCK_STATUS)
 		handle_lock_event(unit, priv->buf, len);
-	else if (priv->handle != NULL) {
-		priv->handle(priv->private_data, priv->buf, len);
-	}
+	else if (HINAWA_IS_SND_DICE(unit) &&
+		 common->type == SNDRV_FIREWIRE_EVENT_DICE_NOTIFICATION)
+		hinawa_snd_dice_handle_notification(HINAWA_SND_DICE(unit),
+						    priv->buf, len);
+	else if (HINAWA_IS_SND_EFW(unit) &&
+		 common->type == SNDRV_FIREWIRE_EVENT_EFW_RESPONSE)
+		hinawa_snd_efw_handle_response(HINAWA_SND_EFW(unit),
+					       priv->buf, len);
 end:
 	/* Don't go to dispatch, then continue to process this source. */
 	return FALSE;

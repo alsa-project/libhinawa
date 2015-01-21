@@ -3,7 +3,6 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include "internal.h"
 #include "snd_unit.h"
 
 G_BEGIN_DECLS

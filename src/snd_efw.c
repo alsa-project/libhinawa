@@ -2,6 +2,11 @@
 #include <sound/firewire.h>
 #include <alsa/asoundlib.h>
 #include "snd_efw.h"
+#include "internal.h"
+
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
 
 /**
  * SECTION:snd_efw
@@ -70,9 +75,6 @@ G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndEfw, hinawa_snd_efw, HINAWA_TYPE_SND_UNIT)
 	(G_TYPE_INSTANCE_GET_PRIVATE((obj), 				\
 				     HINAWA_TYPE_SND_EFW, HinawaSndEfwPrivate))
 
-static void handle_response(void *private_data,
-			    const void *buf, unsigned int len);
-
 static void snd_efw_dispose(GObject *obj)
 {
 	G_OBJECT_CLASS(hinawa_snd_efw_parent_class)->dispose(obj);
@@ -129,9 +131,6 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
 	priv->seqnum = 0;
 	priv->transactions = NULL;
 	g_mutex_init(&priv->lock);
-
-	hinawa_snd_unit_add_handle(&self->parent_instance, handle_response,
-				   self);
 }
 
 /**
@@ -270,10 +269,10 @@ end:
 	g_free(trans.frame);
 }
 
-static void handle_response(void *private_data,
-			    const void *buf, unsigned int len)
+void hinawa_snd_efw_handle_response(HinawaSndEfw *self,
+				    const void *buf, unsigned int len)
 {
-	HinawaSndEfwPrivate *priv = SND_EFW_GET_PRIVATE(private_data);
+	HinawaSndEfwPrivate *priv = SND_EFW_GET_PRIVATE(self);
 	struct snd_firewire_event_efw_response *event =
 				(struct snd_firewire_event_efw_response *)buf;
 	guint *responses = event->response;

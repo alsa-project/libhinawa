@@ -2,6 +2,11 @@
 #include <sound/firewire.h>
 #include <alsa/asoundlib.h>
 #include "snd_dice.h"
+#include "internal.h"
+
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
 
 /**
  * SECTION:snd_dice
@@ -20,9 +25,6 @@ enum dice_sig_type {
 	DICE_SIG_TYPE_COUNT,
 };
 static guint dice_sigs[DICE_SIG_TYPE_COUNT] = { 0 };
-
-static void handle_notification(void *private_data,
-				const void *buf, unsigned int len);
 
 static void snd_dice_dispose(GObject *obj)
 {
@@ -89,16 +91,11 @@ void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
 			    EINVAL, "%s", strerror(EINVAL));
 		g_clear_object(&self);
 	}
-
-	hinawa_snd_unit_add_handle(&self->parent_instance, handle_notification,
-				   self);
 }
 
-static void handle_notification(void *private_data,
-				const void *buf, unsigned int len)
+void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
+					 const void *buf, unsigned int len)
 {
-	HinawaSndDice *self = (HinawaSndDice *)private_data;
-
 	struct snd_firewire_event_dice_notification *event =
 			(struct snd_firewire_event_dice_notification *)buf;
 

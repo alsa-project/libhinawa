@@ -1,5 +1,6 @@
 #include <sys/ioctl.h>
 #include "fw_req.h"
+#include "internal.h"
 
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
@@ -262,15 +263,13 @@ void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit,
 }
 
 /* NOTE: For HinawaFwUnit, internal. */
-void hinawa_fw_req_handle_response(int fd, union fw_cdev_event *ev)
+void hinawa_fw_req_handle_response(HinawaFwReq *self,
+				   struct fw_cdev_event_response *event)
 {
-	struct fw_cdev_event_response *event = &ev->response;
-	HinawaFwReq *req = (HinawaFwReq *)event->closure;
 	HinawaFwReqPrivate *priv;
 
-	if (!req)
-		return;
-	priv = FW_REQ_GET_PRIVATE(req);
+	g_return_if_fail(HINAWA_IS_FW_REQ(self));
+	priv = FW_REQ_GET_PRIVATE(self);
 
 	/* Copy transaction frame. */
 	if (priv->frame != NULL) {

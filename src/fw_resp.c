@@ -214,11 +214,13 @@ void hinawa_fw_resp_set_frame(HinawaFwResp *self, GArray *frame,
 }
 
 /* NOTE: For HinawaFwUnit, internal. */
-void hinawa_fw_resp_handle_request(int fd, union fw_cdev_event *ev)
+void hinawa_fw_resp_handle_request(HinawaFwResp *self,
+				   struct fw_cdev_event_request2 *event)
 {
-	struct fw_cdev_event_request2 *event = &ev->request2;
-	HinawaFwResp *self = (HinawaFwResp *)event->closure;
-	HinawaFwRespPrivate *priv = FW_RESP_GET_PRIVATE(self);
+	HinawaFwRespPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_FW_RESP(self));
+	priv = FW_RESP_GET_PRIVATE(self);
 
 	GArray *frame = NULL;
 	guint i, quads;

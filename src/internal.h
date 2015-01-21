@@ -9,19 +9,23 @@
 
 #include "backport.h"
 #include "fw_unit.h"
+#include "fw_req.h"
+#include "fw_resp.h"
 #include "snd_unit.h"
+#include "snd_efw.h"
+#include "snd_dice.h"
 
-typedef void (*HinawaFwUnitHandle)(int fd, union fw_cdev_event *ev);
-void hinawa_fw_resp_handle_request(int fd, union fw_cdev_event *ev);
-void hinawa_fw_req_handle_response(int fd, union fw_cdev_event *ev);
 void hinawa_fw_unit_ioctl(HinawaFwUnit *self, int req, void *args, int *err);
+void hinawa_fw_resp_handle_request(HinawaFwResp *self,
+				   struct fw_cdev_event_request2 *event);
+void hinawa_fw_req_handle_response(HinawaFwReq *self,
+				   struct fw_cdev_event_response *event);
 
-typedef void (HinawaSndUnitHandle)(void *private_data,
-				   const void *buf, unsigned int len);
-void hinawa_snd_unit_add_handle(HinawaSndUnit *unit,
-				HinawaSndUnitHandle *handle,
-				void *private_data);
 void hinawa_snd_unit_write(HinawaSndUnit *unit,
 			   const void *buf, unsigned int length,
 			   GError **exception);
+void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
+					 const void *buf, unsigned int len);
+void hinawa_snd_efw_handle_response(HinawaSndEfw *self,
+				    const void *buf, unsigned int len);
 #endif

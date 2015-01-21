@@ -205,15 +205,15 @@ void hinawa_fw_unit_ioctl(HinawaFwUnit *self, int req, void *args, int *err)
 		*err = errno;
 }
 
-static void handle_update(int fd, union fw_cdev_event *ev)
+static void handle_update(HinawaFwUnit *self,
+			  struct fw_cdev_event_bus_reset *event)
 {
-	struct fw_cdev_event_bus_reset *event = &ev->bus_reset;
-	HinawaFwUnit *self = (HinawaFwUnit *)event->closure;
+	HinawaFwUnitPrivate *priv;
 
-	if (self == NULL)
-		return;
+	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
+	priv = FW_UNIT_GET_PRIVATE(self);
 
-	self->priv->generation = event->generation;
+	priv->generation = event->generation;
 
 	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE], 0,
 		      NULL);
@@ -237,12 +237,6 @@ static gboolean check_src(GSource *gsrc)
 	int len;
 	GIOCondition condition;
 
-	HinawaFwUnitHandle handles[] = {
-		[FW_CDEV_EVENT_BUS_RESET] = handle_update,
-		[FW_CDEV_EVENT_RESPONSE]  = hinawa_fw_req_handle_response,
-		[FW_CDEV_EVENT_REQUEST2]  = hinawa_fw_resp_handle_request
-	};
-
 	if (unit == NULL)
 		goto end;
 
@@ -257,12 +251,18 @@ static gboolean check_src(GSource *gsrc)
 
 	common = (struct fw_cdev_event_common *)priv->buf;
 
-	if (common->type != FW_CDEV_EVENT_BUS_RESET &&
-	    common->type != FW_CDEV_EVENT_RESPONSE &&
-	    common->type != FW_CDEV_EVENT_REQUEST2)
-		goto end;
-
-	handles[common->type](priv->fd, (union fw_cdev_event *)priv->buf);
+	if (HINAWA_IS_FW_UNIT(common->closure) &&
+	    common->type == FW_CDEV_EVENT_BUS_RESET)
+		handle_update(HINAWA_FW_UNIT(common->closure),
+				(struct fw_cdev_event_bus_reset *)common);
+	else if (HINAWA_IS_FW_REQ(common->closure) &&
+		 common->type == FW_CDEV_EVENT_RESPONSE)
+		hinawa_fw_req_handle_response(HINAWA_FW_REQ(common->closure),
+				(struct fw_cdev_event_response *)common);
+	else if (HINAWA_IS_FW_RESP(common->closure) &&
+		 common->type == FW_CDEV_EVENT_REQUEST2)
+		hinawa_fw_resp_handle_request(HINAWA_FW_RESP(common->closure),
+				(struct fw_cdev_event_request2 *)common);
 end:
 	/* Don't go to dispatch, then continue to process this source. */
 	return FALSE;
