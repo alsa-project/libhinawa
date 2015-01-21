@@ -48,5 +48,5 @@ struct _HinawaSndDiceClass
 
 GType hinawa_snd_dice_get_type(void) G_GNUC_CONST;
 
-HinawaSndDice *hinawa_snd_dice_new(gchar *path, GError **exception);
+void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception);
 #endif

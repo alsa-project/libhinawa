@@ -103,31 +103,26 @@ static void hinawa_snd_efw_init(HinawaSndEfw *self)
  *
  * Returns: A #HinawaSndEfw
  */
-HinawaSndEfw *hinawa_snd_efw_new(gchar *path, GError **exception)
+void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
 {
-	HinawaSndEfw *self;
 	HinawaSndEfwPrivate *priv;
 	int type;
 
-	self = g_object_new(HINAWA_TYPE_SND_EFW, NULL);
-	if (self == NULL) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    ENOMEM, "%s", strerror(ENOMEM));
-		return NULL;
-	}
+	g_return_if_fail(HINAWA_IS_SND_EFW(self));
 	priv = SND_EFW_GET_PRIVATE(self);
 
-	hinawa_snd_unit_new_with_instance(&self->parent_instance, path,
-					  handle_response, self, exception);
+	hinawa_snd_unit_open(&self->parent_instance, path, exception);
 	if (*exception != NULL) {
 		g_clear_object(&self);
-		return NULL;
+		return;
 	}
 
 	g_object_get(G_OBJECT(self), "type", &type, NULL);
 	if (type != SNDRV_FIREWIRE_TYPE_FIREWORKS) {
+		g_set_error(exception, g_quark_from_static_string(__func__),
+			    EINVAL, "%s", strerror(EINVAL));
 		g_clear_object(&self);
-		return NULL;
+		return;
 	}
 
 	priv = SND_EFW_GET_PRIVATE(self);
@@ -135,7 +130,8 @@ HinawaSndEfw *hinawa_snd_efw_new(gchar *path, GError **exception)
 	priv->transactions = NULL;
 	g_mutex_init(&priv->lock);
 
-	return self;
+	hinawa_snd_unit_add_handle(&self->parent_instance, handle_response,
+				   self);
 }
 
 /**

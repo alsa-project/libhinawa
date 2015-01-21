@@ -18,9 +18,9 @@ void hinawa_fw_unit_ioctl(HinawaFwUnit *self, int req, void *args, int *err);
 
 typedef void (HinawaSndUnitHandle)(void *private_data,
 				   const void *buf, unsigned int len);
-void hinawa_snd_unit_new_with_instance(HinawaSndUnit *self, gchar *path,
-				       HinawaSndUnitHandle *handle,
-				       void *private_data, GError **exception);
+void hinawa_snd_unit_add_handle(HinawaSndUnit *unit,
+				HinawaSndUnitHandle *handle,
+				void *private_data);
 void hinawa_snd_unit_write(HinawaSndUnit *unit,
 			   const void *buf, unsigned int length,
 			   GError **exception);

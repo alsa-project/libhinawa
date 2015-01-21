@@ -51,14 +51,15 @@ def handle_lock_status(snd_unit, status):
         print("streaming is locked.");
     else:
         print("streaming is unlocked.");
+if unit_type == 1:
+    snd_unit = Hinawa.SndDice()
+elif unit_type == 2:
+    snd_unit = Hinawa.SndEfw()
+elif unit_type == 3 or unit_type == 4:
+    snd_unit = Hinawa.SndUnit()
+path = "hw:{0}".format(index)
 try:
-    path = "hw:{0}".format(index)
-    if unit_type == 1:
-        snd_unit = Hinawa.SndDice.new(path)
-    elif unit_type == 2:
-        snd_unit = Hinawa.SndEfw.new(path)
-    else:
-        snd_unit = Hinawa.SndUnit.new(path)
+    snd_unit.open(path)
 except Exception as e:
     print(e)
     sys.exit()

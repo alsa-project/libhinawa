@@ -155,7 +155,7 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 		g_param_spec_string("name", "name",
 				    "A name of this sound device.",
 				    NULL,
-				    G_PARAM_READABLE);
+				    G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
 	snd_unit_props[SND_UNIT_PROP_TYPE_FW_TYPE] =
 		g_param_spec_int("type", "type",
 				 "The value of SNDRV_FIREWIRE_TYPE_XXX",
@@ -213,9 +213,7 @@ static void hinawa_snd_unit_init(HinawaSndUnit *self)
 }
 
 /* For internal use. */
-void hinawa_snd_unit_new_with_instance(HinawaSndUnit *self, gchar *path,
-				       HinawaSndUnitHandle *handle,
-				       void *private_data, GError **exception)
+void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
 	snd_hwdep_t *hwdep;
@@ -262,8 +260,6 @@ void hinawa_snd_unit_new_with_instance(HinawaSndUnit *self, gchar *path,
 	priv->card = fw_info.card;
 	priv->guid = GUINT64_FROM_BE(*((guint64 *)fw_info.guid));
 	strcpy(priv->device, fw_info.device_name);
-	priv->handle = handle;
-	priv->private_data = private_data;
 
 	return;
 exception:
@@ -289,7 +285,7 @@ HinawaSndUnit *hinawa_snd_unit_new(gchar *path, GError **exception)
 		return NULL;
 	}
 
-	hinawa_snd_unit_new_with_instance(self, path, NULL, NULL, exception);
+	hinawa_snd_unit_open(self, path, exception);
 	if (*exception != NULL) {
 		g_clear_object(&self);
 		return NULL;
@@ -297,6 +293,20 @@ HinawaSndUnit *hinawa_snd_unit_new(gchar *path, GError **exception)
 
 	return self;
 }
+
+/* For internal use only. */
+void hinawa_snd_unit_add_handle(HinawaSndUnit *self,
+				HinawaSndUnitHandle *handle, void *private_data)
+{
+	HinawaSndUnitPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	priv = SND_UNIT_GET_PRIVATE(self);
+
+	priv->handle = handle;
+	priv->private_data = private_data;
+}
+
 
 /**
  * hinawa_snd_unit_lock:
@@ -401,8 +411,9 @@ static gboolean check_src(GSource *gsrc)
 
 	if (common->type == SNDRV_FIREWIRE_EVENT_LOCK_STATUS)
 		handle_lock_event(unit, priv->buf, len);
-	else if (priv->handle != NULL)
+	else if (priv->handle != NULL) {
 		priv->handle(priv->private_data, priv->buf, len);
+	}
 end:
 	/* Don't go to dispatch, then continue to process this source. */
 	return FALSE;

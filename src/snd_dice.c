@@ -71,32 +71,27 @@ static void hinawa_snd_dice_init(HinawaSndDice *self)
  *
  * Returns: An instance of #HinawaSndDice
  */
-HinawaSndDice *hinawa_snd_dice_new(gchar *path, GError **exception)
+void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
 {
-	HinawaSndDice *self;
 	int type;
 
-	self = g_object_new(HINAWA_TYPE_SND_DICE, NULL);
-	if (self == NULL) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    ENOMEM, "%s", strerror(ENOMEM));
-		return NULL;
-	}
+	g_return_if_fail(HINAWA_IS_SND_DICE(self));
 
-	hinawa_snd_unit_new_with_instance(&self->parent_instance, path,
-					  handle_notification, self, exception);
+	hinawa_snd_unit_open(&self->parent_instance, path, exception);
 	if (*exception != NULL) {
 		g_clear_object(&self);
-		return NULL;
+		return;
 	}
 
 	g_object_get(G_OBJECT(self), "type", &type, NULL);
 	if (type != SNDRV_FIREWIRE_TYPE_DICE) {
+		g_set_error(exception, g_quark_from_static_string(__func__),
+			    EINVAL, "%s", strerror(EINVAL));
 		g_clear_object(&self);
-		return NULL;
 	}
 
-	return self;
+	hinawa_snd_unit_add_handle(&self->parent_instance, handle_notification,
+				   self);
 }
 
 static void handle_notification(void *private_data,
