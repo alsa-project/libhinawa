@@ -28,12 +28,10 @@ typedef struct {
 } SndUnitSource;
 
 struct _HinawaSndUnitPrivate {
-	snd_hwdep_t *hwdep;
 	gchar name[32];
-	gint type;
-	gint card;
-	gchar device[16];
-	guint64 guid;
+	snd_hwdep_t *hwdep;
+	struct snd_firewire_get_info info;
+
 	gboolean streaming;
 
 	void *buf;
@@ -67,25 +65,27 @@ static void snd_unit_get_property(GObject *obj, guint id,
 				  GValue *val, GParamSpec *spec)
 {
 	HinawaSndUnit *self = HINAWA_SND_UNIT(obj);
+	HinawaSndUnitPrivate *priv = SND_UNIT_GET_PRIVATE(self);
 
 	switch (id) {
 	case SND_UNIT_PROP_TYPE_NAME:
-		g_value_set_string(val, (const gchar *)self->priv->name);
+		g_value_set_string(val, (const gchar *)priv->name);
 		break;
 	case SND_UNIT_PROP_TYPE_FW_TYPE:
-		g_value_set_int(val, self->priv->type);
+		g_value_set_int(val, priv->info.type);
 		break;
 	case SND_UNIT_PROP_TYPE_CARD:
-		g_value_set_int(val, self->priv->card);
+		g_value_set_int(val, priv->info.card);
 		break;
 	case SND_UNIT_PROP_TYPE_DEVICE:
-		g_value_set_string(val, (const gchar *)self->priv->device);
+		g_value_set_string(val, (const gchar *)priv->info.device_name);
 		break;
 	case SND_UNIT_PROP_TYPE_GUID:
-		g_value_set_uint64(val, self->priv->guid);
+		g_value_set_uint64(val,
+				GUINT64_FROM_BE(*((guint64 *)priv->info.guid)));
 		break;
 	case SND_UNIT_PROP_TYPE_STREAMING:
-		g_value_set_boolean(val, self->priv->streaming);
+		g_value_set_boolean(val, priv->streaming);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
@@ -96,35 +96,7 @@ static void snd_unit_get_property(GObject *obj, guint id,
 static void snd_unit_set_property(GObject *obj, guint id,
 				  const GValue *val, GParamSpec *spec)
 {
-	HinawaSndUnit *self = HINAWA_SND_UNIT(obj);
-
-	switch (id) {
-	case SND_UNIT_PROP_TYPE_NAME:
-		if (g_value_get_string(val) != NULL)
-			strncpy(self->priv->name, g_value_get_string(val),
-			        sizeof(self->priv->name));
-		break;
-	case SND_UNIT_PROP_TYPE_FW_TYPE:
-		self->priv->type = g_value_get_int(val);
-		break;
-	case SND_UNIT_PROP_TYPE_CARD:
-		self->priv->card = g_value_get_int(val);
-		break;
-	case SND_UNIT_PROP_TYPE_DEVICE:
-		if (g_value_get_string(val) != NULL)
-			strncpy(self->priv->device, g_value_get_string(val),
-			        sizeof(self->priv->device));
-		break;
-	case SND_UNIT_PROP_TYPE_GUID:
-		self->priv->guid = g_value_get_uint64(val);
-		break;
-	case SND_UNIT_PROP_TYPE_STREAMING:
-		self->priv->streaming = g_value_get_boolean(val);
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
-		break;
-	}
+	G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
 }
 
 static void snd_unit_dispose(GObject *obj)
@@ -158,7 +130,7 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 		g_param_spec_string("name", "name",
 				    "A name of this sound device.",
 				    NULL,
-				    G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
+				    G_PARAM_READABLE);
 	snd_unit_props[SND_UNIT_PROP_TYPE_FW_TYPE] =
 		g_param_spec_int("type", "type",
 				 "The value of SNDRV_FIREWIRE_TYPE_XXX",
@@ -219,55 +191,44 @@ static void hinawa_snd_unit_init(HinawaSndUnit *self)
 void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
-	snd_hwdep_t *hwdep;
+	snd_hwdep_t *hwdep = NULL;
 	snd_hwdep_info_t *hwdep_info;
-	struct snd_firewire_get_info fw_info;
-	char *name;
+	char *name = NULL;
 	int err;
+
+	snd_hwdep_info_alloca(&hwdep_info);
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = SND_UNIT_GET_PRIVATE(self);
 
 	err = snd_hwdep_open(&hwdep, path, SND_HWDEP_OPEN_DUPLEX);
 	if (err < 0)
-		goto exception;
-
-	/* Get HwDep device information. */
-	err = snd_hwdep_info_malloc(&hwdep_info);
-	if (err < 0) {
-		snd_hwdep_close(hwdep);
-		goto exception;
-	}
+		goto end;
 
 	err = snd_hwdep_info(hwdep, hwdep_info);
-	if (err == 0)
-		err = snd_card_get_name(snd_hwdep_info_get_card(hwdep_info),
-					&name);
-	snd_hwdep_info_free(hwdep_info);
-	if (err < 0) {
-		snd_hwdep_close(hwdep);
-		goto exception;
-	}
-	strncpy(priv->name, name, sizeof(priv->name));
-	free(name);
+	if (err < 0)
+		goto end;
+
+	err = snd_card_get_name(snd_hwdep_info_get_card(hwdep_info), &name);
+	if (err < 0)
+		goto end;
 
 	/* Get FireWire sound device information. */
-	err = snd_hwdep_ioctl(hwdep, SNDRV_FIREWIRE_IOCTL_GET_INFO, &fw_info);
-	if (err < 0) {
-		snd_hwdep_close(hwdep);
-		goto exception;
-	}
+	err = snd_hwdep_ioctl(hwdep, SNDRV_FIREWIRE_IOCTL_GET_INFO,
+			      &priv->info);
+	if (err < 0)
+		goto end;
 
 	priv->hwdep = hwdep;
-	priv->type = fw_info.type;
-	priv->card = fw_info.card;
-	priv->guid = GUINT64_FROM_BE(*((guint64 *)fw_info.guid));
-	strcpy(priv->device, fw_info.device_name);
-
-	return;
-exception:
-	g_set_error(exception, g_quark_from_static_string(__func__),
-		    -err, "%s", snd_strerror(err));
+	strncpy(priv->name, name, sizeof(priv->name));
+end:
+	if (err < 0) {
+		g_set_error(exception, g_quark_from_static_string(__func__),
+			    -err, "%s", snd_strerror(err));
+		snd_hwdep_close(hwdep);
+	}
+	if (name != NULL)
+		free(name);
 }
 
 /**

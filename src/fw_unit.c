@@ -73,17 +73,7 @@ static void fw_unit_get_property(GObject *obj, guint id,
 static void fw_unit_set_property(GObject *obj, guint id,
 				 const GValue *val, GParamSpec *spec)
 {
-	HinawaFwUnit *self = HINAWA_FW_UNIT(obj);
-	HinawaFwUnitPrivate *priv = FW_UNIT_GET_PRIVATE(self);
-
-	switch (id) {
-	case FW_UNIT_PROP_TYPE_GENERATION:
-		priv->generation = g_value_get_uint64(val);
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
-		break;
-	}
+	G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
 }
 
 static void fw_unit_dispose(GObject *obj)
