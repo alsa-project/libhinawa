@@ -63,24 +63,6 @@ static void hinawa_fw_req_init(HinawaFwReq *self)
 	self->priv = hinawa_fw_req_get_instance_private(self);
 }
 
-/**
- * hinawa_fw_req_new:
- * @exception: A #GError
- *
- * Returns: An instance of #HinawaFwReq
- */
-HinawaFwReq *hinawa_fw_req_new(GError **exception)
-{
-	HinawaFwReq *self;
-
-	self = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
-	if (self == NULL)
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    ENOMEM, "%s", strerror(ENOMEM));
-
-	return self;
-}
-
 static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 			    enum fw_req_type type, guint64 addr, GArray *frame,
 			    gint *err)

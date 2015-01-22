@@ -89,17 +89,6 @@ static void hinawa_fw_fcp_init(HinawaFwFcp *self)
 }
 
 /**
- * hinawa_fw_fcp_new:
- * @exception: #GError
- *
- * Returns: An instance of #HinawaFwFcp
- */
-HinawaFwFcp *hinawa_fw_fcp_new(GError **exception)
-{
-	return g_object_new(HINAWA_TYPE_FW_FCP, NULL);
-}
-
-/**
  * hinawa_fw_fcp_transact:
  * @self: A #HinawaFwFcp
  * @req_frame:  (element-type guint8) (array) (in): a byte frame for request
@@ -130,9 +119,7 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 		return;
 	}
 
-	req = hinawa_fw_req_new(exception);
-	if (*exception != NULL)
-		return;
+	req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
 
 	/* Copy guint8 array to guint32 array. */
 	quads = (req_frame->len + sizeof(guint32) - 1) / sizeof(guint32);
@@ -256,14 +243,14 @@ void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
 	priv = FW_FCP_GET_PRIVATE(self);
 
-	resp = hinawa_fw_resp_new(unit, exception);
-	if (*exception != NULL)
-		return;
-
-	hinawa_fw_resp_register(resp, FCP_RESPOND_ADDR, FCP_MAXIMUM_FRAME_BYTES,
+	resp = g_object_new(HINAWA_TYPE_FW_RESP, NULL);
+	hinawa_fw_resp_register(resp, unit,
+				FCP_RESPOND_ADDR, FCP_MAXIMUM_FRAME_BYTES,
 				exception);
-	if (*exception != NULL)
+	if (*exception != NULL) {
+		g_clear_object(&resp);
 		return;
+	}
 
 	g_signal_connect(resp, "requested", G_CALLBACK(handle_response), self);
 

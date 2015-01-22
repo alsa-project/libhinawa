@@ -48,6 +48,8 @@ GType hinawa_fw_unit_get_type(void) G_GNUC_CONST;
 
 HinawaFwUnit *hinawa_fw_unit_new(gchar *path, GError **exception);
 
+void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception);
+
 void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception);
 void hinawa_fw_unit_unlisten(HinawaFwUnit *self);
 

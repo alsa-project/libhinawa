@@ -42,10 +42,8 @@ static guint fw_resp_sigs[FW_RESP_SIG_TYPE_COUNT] = { 0 };
 static void fw_resp_dispose(GObject *gobject)
 {
 	HinawaFwResp *self = HINAWA_FW_RESP(gobject);
-	HinawaFwRespPrivate *priv = FW_RESP_GET_PRIVATE(self);
 
 	hinawa_fw_resp_unregister(self);
-	g_object_unref(priv->unit);
 
 	G_OBJECT_CLASS(hinawa_fw_resp_parent_class)->dispose(gobject);
 }
@@ -92,42 +90,17 @@ static void hinawa_fw_resp_init(HinawaFwResp *self)
 }
 
 /**
- * hinawa_fw_resp_new:
- * @unit: A #HinawaFwUnit
- * @exception: A #GError
- *
- * Returns: An instance of #HinawaFwResp
- */
-HinawaFwResp *hinawa_fw_resp_new(HinawaFwUnit *unit, GError **exception)
-{
-	HinawaFwResp *self;
-	HinawaFwRespPrivate *priv;
-
-	self = g_object_new(HINAWA_TYPE_FW_RESP, NULL);
-	if (self == NULL) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    ENOMEM, "%s", strerror(ENOMEM));
-		return NULL;
-	}
-	priv = FW_RESP_GET_PRIVATE(self);
-
-	g_object_ref(unit);
-	priv->unit = unit;
-
-	return self;
-}
-
-/**
  * hinawa_fw_resp_register:
  * @self: A #HinawaFwResp
+ * @unit: A #HinawaFwUnit
  * @addr: A start address to listen to in host controller
  * @width: The byte width of address to listen to host controller
  * @exception: A #GError
  *
  * Start to listen to a range of address in host controller
  */
-void hinawa_fw_resp_register(HinawaFwResp *self, guint64 addr, guint width,
-			     GError **exception)
+void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
+			     guint64 addr, guint width, GError **exception)
 {
 	HinawaFwRespPrivate *priv;
 	struct fw_cdev_allocate allocate = {0};
@@ -135,6 +108,14 @@ void hinawa_fw_resp_register(HinawaFwResp *self, guint64 addr, guint width,
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
 	priv = FW_RESP_GET_PRIVATE(self);
+
+	if (priv->unit != NULL) {
+		g_set_error(exception, g_quark_from_static_string(__func__),
+			    EINVAL, "%s", strerror(EINVAL));
+		return;
+	}
+	g_object_ref(unit);
+	priv->unit = unit;
 
 	allocate.offset = addr;
 	allocate.closure = (guint64)self;
@@ -145,6 +126,8 @@ void hinawa_fw_resp_register(HinawaFwResp *self, guint64 addr, guint width,
 	if (err != 0) {
 		g_set_error(exception, g_quark_from_static_string(__func__),
 			    err, "%s", strerror(err));
+		g_object_unref(priv->unit);
+		priv->unit = NULL;
 		return;
 	}
 
@@ -174,9 +157,14 @@ void hinawa_fw_resp_unregister(HinawaFwResp *self)
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
 	priv = FW_RESP_GET_PRIVATE(self);
 
+	if (priv->unit == NULL)
+		return;
+
 	deallocate.handle = priv->addr_handle;
 	hinawa_fw_unit_ioctl(priv->unit, FW_CDEV_IOC_DEALLOCATE, &deallocate,
 			     &err);
+	g_object_unref(priv->unit);
+	priv->unit = NULL;
 }
 
 /**

@@ -136,34 +136,29 @@ static void hinawa_fw_unit_init(HinawaFwUnit *self)
 }
 
 /**
- * hinawa_fw_unit_new:
+ * hinawa_fw_unit_open:
+ * @self: A #HinawaFwUnit
  * @path: A path to Linux FireWire charactor device
  * @exception: A #GError
  * 
  * Returns: An instance of #HinawaFwUnit
  */
-HinawaFwUnit *hinawa_fw_unit_new(gchar *path, GError **exception)
+void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 {
-	HinawaFwUnit *self;
 	HinawaFwUnitPrivate *priv;
 	int fd;
 	struct fw_cdev_get_info info = {0};
 	struct fw_cdev_event_bus_reset br = {0};
 
-	fd = open(path, O_RDWR);
+	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
+	priv = FW_UNIT_GET_PRIVATE(self);
+
+	fd = open(path, O_RDONLY);
 	if (fd < 0) {
 		g_set_error(exception, g_quark_from_static_string(__func__),
 			    errno, "%s", strerror(errno));
-		return NULL;
+		return;
 	}
-
-	self = g_object_new(HINAWA_TYPE_FW_UNIT, NULL);
-	if (self == NULL) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    ENOMEM, "%s", strerror(ENOMEM));
-		return NULL;
-	}
-	priv = FW_UNIT_GET_PRIVATE(self);
 
 	info.version = 4;
 	info.bus_reset = (guint64)&br;
@@ -171,15 +166,12 @@ HinawaFwUnit *hinawa_fw_unit_new(gchar *path, GError **exception)
 	if (ioctl(fd, FW_CDEV_IOC_GET_INFO, &info) < 0) {
 		g_set_error(exception, g_quark_from_static_string(__func__),
 			    errno, "%s", strerror(errno));
-		g_clear_object(&self);
 		close(fd);
-		return NULL;
+		return;
 	}
 
 	priv->fd = fd;
 	priv->generation = br.generation;
-
-	return self;
 }
 
 /* Internal use only. */

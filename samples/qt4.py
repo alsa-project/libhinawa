@@ -72,11 +72,12 @@ print(' GUID:\t{0:016x}'.format(snd_unit.get_property("guid")))
 snd_unit.connect("lock-status", handle_lock_status)
 
 # create FireWire unit
+fw_unit = Hinawa.FwUnit()
 def handle_bus_update(fw_unit):
 	print(fw_unit.get_property('generation'))
 path = "/dev/%s" % snd_unit.get_property("device")
 try:
-    fw_unit = Hinawa.FwUnit.new(path)
+    fw_unit.open(path)
 except Exception as e:
     print(e)
     sys.exit()
@@ -91,28 +92,26 @@ except Exception as e:
     sys.exit()
 
 # create firewire responder
+resp = Hinawa.FwResp()
 def handle_request(resp, tcode, frame):
     print('Requested with tcode {0}:'.format(tcode))
     for i in range(len(frame)):
         print(' [{0:02d}]: 0x{1:08x}'.format(i, frame[i]))
     return True
 try:
-    resp = Hinawa.FwResp.new(fw_unit)
-    resp.register(0xfffff0000d00, 0x100)
+    resp.register(fw_unit, 0xfffff0000d00, 0x100)
     resp.connect('requested', handle_request)
 except Exception as e:
     print(e)
     sys.exit()
 
 # create firewire requester
-try:
-    req = Hinawa.FwReq.new()
-except Exception as e:
-    print(e)
-    sys.exit()
+req = Hinawa.FwReq()
 
 # Fireworks/BeBoB/OXFW supports FCP and some AV/C commands
 if snd_unit.get_property('type') is not 1:
+    fcp = Hinawa.FwFcp()
+
     request = bytearray(8)
     request[0] = 0x01
     request[1] = 0xff
@@ -122,8 +121,8 @@ if snd_unit.get_property('type') is not 1:
     request[5] = 0xff
     request[6] = 0xff
     request[7] = 0xff
+
     try:
-        fcp = Hinawa.FwFcp.new()
         fcp.listen(fw_unit)
         response = fcp.transact(request)
     except Exception as e:
