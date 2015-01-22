@@ -114,8 +114,7 @@ void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
 			    EINVAL, "%s", strerror(EINVAL));
 		return;
 	}
-	g_object_ref(unit);
-	priv->unit = unit;
+	priv->unit = g_object_ref(unit);
 
 	allocate.offset = addr;
 	allocate.closure = (guint64)self;

@@ -113,6 +113,8 @@ static void snd_unit_dispose(GObject *obj)
 		hinawa_snd_unit_unlisten(self);
 
 	snd_hwdep_close(priv->hwdep);
+	g_clear_object(&priv->req);
+	g_clear_object(&priv->fcp);
 
 	G_OBJECT_CLASS(hinawa_snd_unit_parent_class)->dispose(obj);
 }

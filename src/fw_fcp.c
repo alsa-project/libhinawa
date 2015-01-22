@@ -235,28 +235,30 @@ static gboolean handle_response(HinawaFwResp *self, gint tcode,
 void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
 			  GError **exception)
 {
-	HinawaFwResp *resp;
 	HinawaFwFcpPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
 	priv = FW_FCP_GET_PRIVATE(self);
 
-	resp = g_object_new(HINAWA_TYPE_FW_RESP, NULL);
-	hinawa_fw_resp_register(resp, unit,
+	priv->resp = g_object_new(HINAWA_TYPE_FW_RESP, NULL);
+	priv->unit = g_object_ref(unit);
+
+	hinawa_fw_resp_register(priv->resp, priv->unit,
 				FCP_RESPOND_ADDR, FCP_MAXIMUM_FRAME_BYTES,
 				exception);
 	if (*exception != NULL) {
-		g_clear_object(&resp);
+		g_clear_object(&priv->resp);
+		priv->resp = NULL;
+		g_object_unref(priv->unit);
+		priv->unit = NULL;
 		return;
 	}
 
-	g_signal_connect(resp, "requested", G_CALLBACK(handle_response), self);
+	g_signal_connect(priv->resp, "requested",
+			 G_CALLBACK(handle_response), self);
 
 	g_mutex_init(&priv->lock);
 	priv->transactions = NULL;
-
-	priv->resp = resp;
-	priv->unit = unit;
 }
 
 /**
@@ -277,4 +279,6 @@ void hinawa_fw_fcp_unlisten(HinawaFwFcp *self)
 
 	hinawa_fw_resp_unregister(priv->resp);
 	priv->resp = NULL;
+	g_object_unref(priv->unit);
+	priv->unit = NULL;
 }
