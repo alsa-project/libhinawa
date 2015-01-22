@@ -272,7 +272,7 @@ end:
 void hinawa_snd_efw_handle_response(HinawaSndEfw *self,
 				    const void *buf, unsigned int len)
 {
-	HinawaSndEfwPrivate *priv = SND_EFW_GET_PRIVATE(self);
+	HinawaSndEfwPrivate *priv;
 	struct snd_firewire_event_efw_response *event =
 				(struct snd_firewire_event_efw_response *)buf;
 	guint *responses = event->response;
@@ -282,6 +282,9 @@ void hinawa_snd_efw_handle_response(HinawaSndEfw *self,
 
 	unsigned int quadlets;
 	GList *entry;
+
+	g_return_if_fail(HINAWA_IS_SND_EFW(self));
+	priv = SND_EFW_GET_PRIVATE(self);
 
 	while (len > 0) {
  		resp_frame =  (struct snd_efw_transaction *)responses;
