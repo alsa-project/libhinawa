@@ -232,33 +232,6 @@ end:
 }
 
 /**
- * hinawa_snd_unit_new:
- * @path: A path to ALSA hwdep device (i.e. hw:0)
- * @exception: A #GError
- *
- * Returns: An instance of #HinawaSndUnit
- */
-HinawaSndUnit *hinawa_snd_unit_new(gchar *path, GError **exception)
-{
-	HinawaSndUnit *self;
-
-	self = g_object_new(HINAWA_TYPE_SND_UNIT, NULL);
-	if (self == NULL) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    ENOMEM, "%s", strerror(ENOMEM));
-		return NULL;
-	}
-
-	hinawa_snd_unit_open(self, path, exception);
-	if (*exception != NULL) {
-		g_clear_object(&self);
-		return NULL;
-	}
-
-	return self;
-}
-
-/**
  * hinawa_snd_unit_lock:
  * @self: A #HinawaSndUnit
  * @exception: A #GError
