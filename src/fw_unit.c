@@ -140,8 +140,6 @@ static void hinawa_fw_unit_init(HinawaFwUnit *self)
  * @self: A #HinawaFwUnit
  * @path: A path to Linux FireWire charactor device
  * @exception: A #GError
- * 
- * Returns: An instance of #HinawaFwUnit
  */
 void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 {

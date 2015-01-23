@@ -47,8 +47,6 @@ struct _HinawaFwReqClass
 
 GType hinawa_fw_req_get_type(void) G_GNUC_CONST;
 
-HinawaFwReq *hinawa_fw_req_new(GError **exception);
-
 void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 			 GArray *frame, GError **exception);
 
