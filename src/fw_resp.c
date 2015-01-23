@@ -239,7 +239,7 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 
 	g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ], 0,
 		      event->tcode, frame, &error);
-	if (!error) {
+	if (error) {
 		resp.rcode = RCODE_DATA_ERROR;
 		goto respond;
 	}
