@@ -30,7 +30,6 @@ typedef struct {
 } SndUnitSource;
 
 struct _HinawaSndUnitPrivate {
-	gchar name[32];
 	snd_hwdep_t *hwdep;
 	struct snd_firewire_get_info info;
 
@@ -49,8 +48,7 @@ G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndUnit, hinawa_snd_unit, HINAWA_TYPE_FW_UNIT)
 				HINAWA_TYPE_SND_UNIT, HinawaSndUnitPrivate))
 
 enum snd_unit_prop_type {
-	SND_UNIT_PROP_TYPE_NAME = 1,
-	SND_UNIT_PROP_TYPE_FW_TYPE,
+	SND_UNIT_PROP_TYPE_FW_TYPE = 1,
 	SND_UNIT_PROP_TYPE_CARD,
 	SND_UNIT_PROP_TYPE_DEVICE,
 	SND_UNIT_PROP_TYPE_GUID,
@@ -73,9 +71,6 @@ static void snd_unit_get_property(GObject *obj, guint id,
 	HinawaSndUnitPrivate *priv = SND_UNIT_GET_PRIVATE(self);
 
 	switch (id) {
-	case SND_UNIT_PROP_TYPE_NAME:
-		g_value_set_string(val, (const gchar *)priv->name);
-		break;
 	case SND_UNIT_PROP_TYPE_FW_TYPE:
 		g_value_set_int(val, priv->info.type);
 		break;
@@ -133,11 +128,6 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 	gobject_class->dispose = snd_unit_dispose;
 	gobject_class->finalize = snd_unit_finalize;
 
-	snd_unit_props[SND_UNIT_PROP_TYPE_NAME] =
-		g_param_spec_string("name", "name",
-				    "A name of this sound device.",
-				    NULL,
-				    G_PARAM_READABLE);
 	snd_unit_props[SND_UNIT_PROP_TYPE_FW_TYPE] =
 		g_param_spec_int("type", "type",
 				 "The value of SNDRV_FIREWIRE_TYPE_XXX",
@@ -199,25 +189,13 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
 	snd_hwdep_t *hwdep = NULL;
-	snd_hwdep_info_t *hwdep_info;
-	char *name = NULL;
 	char fw_cdev[32];
 	int err;
-
-	snd_hwdep_info_alloca(&hwdep_info);
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = SND_UNIT_GET_PRIVATE(self);
 
 	err = snd_hwdep_open(&hwdep, path, SND_HWDEP_OPEN_DUPLEX);
-	if (err < 0)
-		goto end;
-
-	err = snd_hwdep_info(hwdep, hwdep_info);
-	if (err < 0)
-		goto end;
-
-	err = snd_card_get_name(snd_hwdep_info_get_card(hwdep_info), &name);
 	if (err < 0)
 		goto end;
 
@@ -233,7 +211,6 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 		goto end;
 
 	priv->hwdep = hwdep;
-	strncpy(priv->name, name, sizeof(priv->name));
 	priv->req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
 	priv->fcp = g_object_new(HINAWA_TYPE_FW_FCP, NULL);
 end:
@@ -242,8 +219,6 @@ end:
 			    -err, "%s", snd_strerror(err));
 		snd_hwdep_close(hwdep);
 	}
-	if (name != NULL)
-		free(name);
 }
 
 /**

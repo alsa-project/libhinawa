@@ -64,7 +64,6 @@ except Exception as e:
     print(e)
     sys.exit()
 print('Sound device info:')
-print(' name:\t{0}'.format(snd_unit.get_property("name")))
 print(' type:\t{0}'.format(snd_unit.get_property("type")))
 print(' card:\t{0}'.format(snd_unit.get_property("card")))
 print(' device:\t{0}'.format(snd_unit.get_property("device")))
