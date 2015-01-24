@@ -214,11 +214,11 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 	priv->req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
 	priv->fcp = g_object_new(HINAWA_TYPE_FW_FCP, NULL);
 end:
-	if (err < 0) {
+	if (err < 0)
 		g_set_error(exception, g_quark_from_static_string(__func__),
 			    -err, "%s", snd_strerror(err));
+	if (*exception != NULL)
 		snd_hwdep_close(hwdep);
-	}
 }
 
 /**
@@ -402,12 +402,11 @@ static gboolean check_src(GSource *gsrc)
 	if (!(condition & G_IO_IN))
 		goto end;
 
-	len = snd_hwdep_read(unit->priv->hwdep, unit->priv->buf,
-			     unit->priv->len);
+	len = snd_hwdep_read(priv->hwdep, priv->buf, priv->len);
 	if (len < 0)
 		goto end;
 
-	common = (struct snd_firewire_event_common *)unit->priv->buf;
+	common = (struct snd_firewire_event_common *)priv->buf;
 
 	if (common->type == SNDRV_FIREWIRE_EVENT_LOCK_STATUS)
 		handle_lock_event(unit, priv->buf, len);
