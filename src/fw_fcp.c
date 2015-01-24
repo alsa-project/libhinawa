@@ -109,7 +109,7 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
 	priv = FW_FCP_GET_PRIVATE(self);
 
-	if (req_frame == NULL  || g_array_get_element_size(req_frame)  != 1 ||
+	if (req_frame  == NULL || g_array_get_element_size(req_frame)  != 1 ||
 	    resp_frame == NULL || g_array_get_element_size(resp_frame) != 1 ||
 	    req_frame->len > FCP_MAXIMUM_FRAME_BYTES) {
 		g_set_error(exception, g_quark_from_static_string(__func__),
@@ -131,7 +131,7 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 
 	/* Prepare response buffer. */
 	trans.resp_frame = g_array_sized_new(FALSE, TRUE,
-					    sizeof(guint32), quads);
+					     sizeof(guint32), quads);
 
 	/* Insert this entry. */
 	g_mutex_lock(&priv->lock);
@@ -189,13 +189,12 @@ end:
 	g_clear_object(&req);
 }
 
-static gboolean handle_response(HinawaFwResp *self, gint tcode,
-				GArray *resp_frame, gpointer user_data)
+static GArray *handle_response(HinawaFwResp *self, gint tcode,
+			       GArray *req_frame, gpointer user_data)
 {
 	HinawaFwFcp *fcp = (HinawaFwFcp *)user_data;
 	HinawaFwFcpPrivate *priv = FW_FCP_GET_PRIVATE(fcp);
 	struct fcp_transaction *trans;
-	gboolean error;
 	GList *entry;
 
 	g_mutex_lock(&priv->lock);
@@ -204,24 +203,23 @@ static gboolean handle_response(HinawaFwResp *self, gint tcode,
 	for (entry = priv->transactions; entry != NULL; entry = entry->next) {
 		trans = (struct fcp_transaction *)entry->data;
 
-		if ((trans->req_frame->data[1] == resp_frame->data[1]) &&
-		    (trans->req_frame->data[2] == resp_frame->data[2]))
+		if ((trans->req_frame->data[1] == req_frame->data[1]) &&
+		    (trans->req_frame->data[2] == req_frame->data[2]))
 			break;
-
 	}
 
 	/* No requests corresponding to this response. */
-	if (entry == NULL) {
-		error = TRUE;
-	} else {
-		g_array_insert_vals(trans->resp_frame, 0,
-				    resp_frame->data, resp_frame->len);
-		g_cond_signal(&trans->cond);
-		error = FALSE;
-	}
+	if (entry == NULL)
+		goto end;
 
+	g_array_insert_vals(trans->resp_frame, 0,
+			    req_frame->data, req_frame->len);
+	g_cond_signal(&trans->cond);
+end:
 	g_mutex_unlock(&priv->lock);
-	return error;
+
+	/* Transfer no data in the response frame. */
+	return NULL;
 }
 
 /**

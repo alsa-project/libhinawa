@@ -79,11 +79,12 @@ except Exception as e:
 
 # create firewire responder
 resp = Hinawa.FwResp()
-def handle_request(resp, tcode, frame):
+def handle_request(resp, tcode, req_frame):
     print('Requested with tcode {0}:'.format(tcode))
-    for i in range(len(frame)):
-        print(' [{0:02d}]: 0x{1:08x}'.format(i, frame[i]))
-    return True
+    for i in range(len(req_frame)):
+        print(' [{0:02d}]: 0x{1:08x}'.format(i, req_frame[i]))
+    # Return no data for the response frame
+    return None
 try:
     resp.register(snd_unit, 0xfffff0000d00, 0x100)
     resp.connect('requested', handle_request)
