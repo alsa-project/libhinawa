@@ -30,14 +30,14 @@
             functionality in ALSA firewire stack, the others are abstractions
             of the transaction functionality in Linux firewire stack.
             </para>
-            <xi:include href="xml/unit_query.xml"/>
-            <xi:include href="xml/snd_unit.xml"/>
-            <xi:include href="xml/snd_efw.xml"/>
-            <xi:include href="xml/snd_dice.xml"/>
             <xi:include href="xml/fw_unit.xml"/>
-            <xi:include href="xml/fw_req.xml"/>
             <xi:include href="xml/fw_resp.xml"/>
+            <xi:include href="xml/fw_req.xml"/>
             <xi:include href="xml/fw_fcp.xml"/>
+            <xi:include href="xml/snd_unit.xml"/>
+            <xi:include href="xml/snd_dice.xml"/>
+            <xi:include href="xml/snd_efw.xml"/>
+            <xi:include href="xml/unit_query.xml"/>
         </chapter>
     </part>
 

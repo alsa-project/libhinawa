@@ -24,7 +24,7 @@ G_BEGIN_DECLS
 #define HINAWA_IS_SND_UNIT_CLASS(klass)				\
 	(G_TYPE_CHECK_CLASS_TYPE((klass),			\
 				 HINAWA_TYPE_SND_UNIT))
-#define HINAWA_SND_UNIT_GET_CLASS(obj) 				\
+#define HINAWA_SND_UNIT_GET_CLASS(obj)				\
 	(G_TYPE_INSTANCE_GET_CLASS((obj),			\
 				   HINAWA_TYPE_SND_UNIT,	\
 				   HinawaSndUnitClass))
@@ -33,15 +33,13 @@ typedef struct _HinawaSndUnit		HinawaSndUnit;
 typedef struct _HinawaSndUnitClass	HinawaSndUnitClass;
 typedef struct _HinawaSndUnitPrivate	HinawaSndUnitPrivate;
 
-struct _HinawaSndUnit
-{
+struct _HinawaSndUnit {
 	HinawaFwUnit parent_instance;
 
 	HinawaSndUnitPrivate *priv;
 };
 
-struct _HinawaSndUnitClass
-{
+struct _HinawaSndUnitClass {
 	HinawaFwUnitClass parent_class;
 };
 

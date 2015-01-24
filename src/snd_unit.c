@@ -4,10 +4,10 @@
 
 #include "hinawa_context.h"
 #include "snd_unit.h"
-#include "snd_efw.h"
-#include "snd_dice.h"
 #include "fw_req.h"
 #include "fw_fcp.h"
+#include "snd_dice.h"
+#include "snd_efw.h"
 #include "internal.h"
 
 #ifdef HAVE_CONFIG_H
@@ -17,7 +17,7 @@
 /**
  * SECTION:snd_unit
  * @Title: HinawaSndUnit
- * @Short_description: An event listener for ALSA FireWire sound devices 
+ * @Short_description: An event listener for ALSA FireWire sound devices
  *
  * This class is an application of ALSA FireWire stack. Any functionality which
  * ALSA drivers in the stack can be available.
@@ -44,7 +44,7 @@ struct _HinawaSndUnitPrivate {
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndUnit, hinawa_snd_unit, HINAWA_TYPE_FW_UNIT)
 #define SND_UNIT_GET_PRIVATE(obj)					\
-	(G_TYPE_INSTANCE_GET_PRIVATE((obj), 				\
+	(G_TYPE_INSTANCE_GET_PRIVATE((obj),				\
 				HINAWA_TYPE_SND_UNIT, HinawaSndUnitPrivate))
 
 enum snd_unit_prop_type {
@@ -142,8 +142,7 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 				 G_PARAM_READABLE);
 	snd_unit_props[SND_UNIT_PROP_TYPE_DEVICE] =
 		g_param_spec_string("device", "device",
-				    "A name of special file for this firewire "
-				    "unit.",
+				    "A name of special file as FireWire unit.",
 				    NULL,
 				    G_PARAM_READABLE);
 	snd_unit_props[SND_UNIT_PROP_TYPE_STREAMING] =
@@ -430,12 +429,6 @@ static gboolean dispatch_src(GSource *src, GSourceFunc callback,
 	return TRUE;
 }
 
-static void finalize_src(GSource *src)
-{
-	/* Do nothing paticular. */
-	return;
-}
-
 /**
  * hinawa_snd_unit_listen:
  * @self: A #HinawaSndUnit
@@ -449,7 +442,7 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 		.prepare	= prepare_src,
 		.check		= check_src,
 		.dispatch	= dispatch_src,
-		.finalize	= finalize_src,
+		.finalize	= NULL,
 	};
 	HinawaSndUnitPrivate *priv;
 	void *buf;

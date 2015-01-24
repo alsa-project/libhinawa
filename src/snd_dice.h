@@ -24,7 +24,7 @@ G_BEGIN_DECLS
 #define HINAWA_IS_SND_DICE_CLASS(klass)				\
 	(G_TYPE_CHECK_CLASS_TYPE((klass),			\
 				 HINAWA_TYPE_SND_DICE))
-#define HINAWA_SND_DICE_GET_CLASS(obj) 				\
+#define HINAWA_SND_DICE_GET_CLASS(obj)				\
 	(G_TYPE_INSTANCE_GET_CLASS((obj),			\
 				   HINAWA_TYPE_SND_DICE,	\
 				   HinawaSndDiceClass))
@@ -33,15 +33,13 @@ typedef struct _HinawaSndDice		HinawaSndDice;
 typedef struct _HinawaSndDiceClass	HinawaSndDiceClass;
 typedef struct _HinawaSndDicePrivate	HinawaSndDicePrivate;
 
-struct _HinawaSndDice
-{
+struct _HinawaSndDice {
 	HinawaSndUnit parent_instance;
 
 	HinawaSndDicePrivate *priv;
 };
 
-struct _HinawaSndDiceClass
-{
+struct _HinawaSndDiceClass {
 	HinawaSndUnitClass parent_class;
 };
 

@@ -28,7 +28,7 @@ AC_CONFIG_HEADERS([config.h])
 
 # Automake 1.13 or later
 AM_INIT_AUTOMAKE([1.13 foreign])
-# Don't output comand lines
+# Don't output command lines
 AM_SILENT_RULES([yes])
 
 # Detect C language compiler
@@ -43,6 +43,9 @@ LT_INIT
 # Define library release
 LT_IFACE="my_iface"
 AC_SUBST(LT_IFACE)
+
+# alsa-lib 1.0.28 or later
+AM_PATH_ALSA(1.0.28)
 
 # Glib 2.32 or later
 AM_PATH_GLIB_2_0([2.32.4], [], [], [gobject])

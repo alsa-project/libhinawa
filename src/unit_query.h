@@ -23,7 +23,7 @@ G_BEGIN_DECLS
 #define HINAWA_IS_UNIT_QUERY_CLASS(klass)			\
 	(G_TYPE_CHECK_CLASS_TYPE((klass),			\
 				 HINAWA_TYPE_UNIT_QUERY))
-#define HINAWA_UNIT_QUERY_GET_CLASS(obj) 			\
+#define HINAWA_UNIT_QUERY_GET_CLASS(obj)			\
 	(G_TYPE_INSTANCE_GET_CLASS((obj),			\
 				   HINAWA_TYPE_UNIT_QUERY,	\
 				   HinawaUnitQueryClass))
@@ -31,13 +31,11 @@ G_BEGIN_DECLS
 typedef struct _HinawaUnitQuery		HinawaUnitQuery;
 typedef struct _HinawaUnitQueryClass	HinawaUnitQueryClass;
 
-struct _HinawaUnitQuery
-{
+struct _HinawaUnitQuery {
 	GObject parent_instance;
 };
 
-struct _HinawaUnitQueryClass
-{
+struct _HinawaUnitQueryClass {
 	GObjectClass parent_class;
 };
 

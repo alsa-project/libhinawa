@@ -56,7 +56,7 @@ struct _HinawaFwFcpPrivate {
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwFcp, hinawa_fw_fcp, G_TYPE_OBJECT)
 #define FW_FCP_GET_PRIVATE(obj)						\
-	(G_TYPE_INSTANCE_GET_PRIVATE((obj), 				\
+	(G_TYPE_INSTANCE_GET_PRIVATE((obj),				\
 				     HINAWA_TYPE_FW_FCP, HinawaFwFcpPrivate))
 
 static void hinawa_fw_fcp_dispose(GObject *obj)

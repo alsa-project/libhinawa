@@ -23,7 +23,7 @@ G_BEGIN_DECLS
 #define HINAWA_IS_FW_UNIT_CLASS(klass)				\
 	(G_TYPE_CHECK_CLASS_TYPE((klass),			\
 				 HINAWA_TYPE_FW_UNIT))
-#define HINAWA_FW_UNIT_GET_CLASS(obj) 				\
+#define HINAWA_FW_UNIT_GET_CLASS(obj)				\
 	(G_TYPE_INSTANCE_GET_CLASS((obj),			\
 				   HINAWA_TYPE_FW_UNIT,		\
 				   HinawaFwUnitClass))
@@ -32,16 +32,14 @@ typedef struct _HinawaFwUnit		HinawaFwUnit;
 typedef struct _HinawaFwUnitClass	HinawaFwUnitClass;
 typedef struct _HinawaFwUnitPrivate	HinawaFwUnitPrivate;
 
-struct _HinawaFwUnit
-{
+struct _HinawaFwUnit {
 	GObject parent_instance;
 
 	HinawaFwUnitPrivate *priv;
 };
 
-struct _HinawaFwUnitClass
-{
-    GObjectClass parent_class;
+struct _HinawaFwUnitClass {
+	GObjectClass parent_class;
 };
 
 GType hinawa_fw_unit_get_type(void) G_GNUC_CONST;

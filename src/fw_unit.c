@@ -37,7 +37,7 @@ struct _HinawaFwUnitPrivate {
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwUnit, hinawa_fw_unit, G_TYPE_OBJECT)
 #define FW_UNIT_GET_PRIVATE(obj)					\
-	(G_TYPE_INSTANCE_GET_PRIVATE((obj), 				\
+	(G_TYPE_INSTANCE_GET_PRIVATE((obj),				\
 				     HINAWA_TYPE_FW_UNIT, HinawaFwUnitPrivate))
 
 /* This object has properties. */
@@ -138,7 +138,7 @@ static void hinawa_fw_unit_init(HinawaFwUnit *self)
 /**
  * hinawa_fw_unit_open:
  * @self: A #HinawaFwUnit
- * @path: A path to Linux FireWire charactor device
+ * @path: A path to Linux FireWire character device
  * @exception: A #GError
  */
 void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
@@ -235,14 +235,14 @@ static gboolean check_src(GSource *gsrc)
 	    common->type == FW_CDEV_EVENT_BUS_RESET)
 		handle_update(HINAWA_FW_UNIT(common->closure),
 				(struct fw_cdev_event_bus_reset *)common);
-	else if (HINAWA_IS_FW_REQ(common->closure) &&
-		 common->type == FW_CDEV_EVENT_RESPONSE)
-		hinawa_fw_req_handle_response(HINAWA_FW_REQ(common->closure),
-				(struct fw_cdev_event_response *)common);
 	else if (HINAWA_IS_FW_RESP(common->closure) &&
 		 common->type == FW_CDEV_EVENT_REQUEST2)
 		hinawa_fw_resp_handle_request(HINAWA_FW_RESP(common->closure),
 				(struct fw_cdev_event_request2 *)common);
+	else if (HINAWA_IS_FW_REQ(common->closure) &&
+		 common->type == FW_CDEV_EVENT_RESPONSE)
+		hinawa_fw_req_handle_response(HINAWA_FW_REQ(common->closure),
+				(struct fw_cdev_event_response *)common);
 end:
 	/* Don't go to dispatch, then continue to process this source. */
 	return FALSE;
@@ -253,12 +253,6 @@ static gboolean dispatch_src(GSource *src, GSourceFunc callback,
 {
 	/* Just be sure to continue to process this source. */
 	return TRUE;
-}
-
-static void finalize_src(GSource *src)
-{
-	/* Do nothing paticular. */
-	return;
 }
 
 /**
@@ -274,7 +268,7 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 		.prepare	= prepare_src,
 		.check		= check_src,
 		.dispatch	= dispatch_src,
-		.finalize	= finalize_src,
+		.finalize	= NULL,
 	};
 	HinawaFwUnitPrivate *priv;
 	void *buf;

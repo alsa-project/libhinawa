@@ -72,7 +72,7 @@ struct _HinawaSndEfwPrivate {
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndEfw, hinawa_snd_efw, HINAWA_TYPE_SND_UNIT)
 #define SND_EFW_GET_PRIVATE(obj)					\
-	(G_TYPE_INSTANCE_GET_PRIVATE((obj), 				\
+	(G_TYPE_INSTANCE_GET_PRIVATE((obj),				\
 				     HINAWA_TYPE_SND_EFW, HinawaSndEfwPrivate))
 
 static void snd_efw_dispose(GObject *obj)
@@ -80,7 +80,7 @@ static void snd_efw_dispose(GObject *obj)
 	G_OBJECT_CLASS(hinawa_snd_efw_parent_class)->dispose(obj);
 }
 
-static void snd_efw_finalize (GObject *gobject)
+static void snd_efw_finalize(GObject *gobject)
 {
 	G_OBJECT_CLASS(hinawa_snd_efw_parent_class)->finalize(gobject);
 }
@@ -192,7 +192,7 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 	trans.frame->version	= MINIMUM_SUPPORTED_VERSION;
 	trans.frame->category	= category;
 	trans.frame->command	= command;
-	trans.frame->status   	= 0xff;
+	trans.frame->status	= 0xff;
 	if (args)
 		memcpy(trans.frame->params,
 		       args->data, args->len * sizeof(guint32));
@@ -287,7 +287,7 @@ void hinawa_snd_efw_handle_response(HinawaSndEfw *self,
 	priv = SND_EFW_GET_PRIVATE(self);
 
 	while (len > 0) {
- 		resp_frame =  (struct snd_efw_transaction *)responses;
+		resp_frame =  (struct snd_efw_transaction *)responses;
 
 		g_mutex_lock(&priv->lock);
 

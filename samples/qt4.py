@@ -193,7 +193,7 @@ class Sample(QWidget):
         except Exception as e:
             print(e)
             return
-            
+
         self.value.setText('0x{0:08x}'.format(val[0]))
         print(self.value.text())
 

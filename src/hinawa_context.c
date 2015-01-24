@@ -1,10 +1,10 @@
 #include "hinawa_context.h"
 
-static GMainContext *ctx = NULL;
-static GThread *thread = NULL;
+static GMainContext *ctx;
+static GThread *thread;
 
-static gboolean running = FALSE;
-static gint counter = 0;
+static gboolean running;
+static gint counter;
 
 static gpointer run_main_loop(gpointer data)
 {
@@ -37,7 +37,7 @@ gpointer hinawa_context_add_src(GSource *src, gint fd, GIOCondition event,
 				GError **exception)
 {
 	GMainContext *ctx;
-	
+
 	ctx = get_my_context(exception);
 	if (*exception != NULL)
 		return NULL;

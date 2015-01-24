@@ -24,7 +24,7 @@ G_BEGIN_DECLS
 #define HINAWA_IS_FW_RESP_CLASS(klass)				\
 	(G_TYPE_CHECK_CLASS_TYPE((klass),			\
 				 HINAWA_TYPE_Seq))
-#define HINAWA_FW_RESP_GET_CLASS(obj) 				\
+#define HINAWA_FW_RESP_GET_CLASS(obj)				\
 	(G_TYPE_INSTANCE_GET_CLASS((obj),			\
 				   HINAWA_TYPE_FW_RESP,		\
 				   HinawaFwResp))
@@ -33,16 +33,14 @@ typedef struct _HinawaFwResp		HinawaFwResp;
 typedef struct _HinawaFwRespClass	HinawaFwRespClass;
 typedef struct _HinawaFwRespPrivate	HinawaFwRespPrivate;
 
-struct _HinawaFwResp
-{
+struct _HinawaFwResp {
 	GObject parent_instance;
 
 	HinawaFwRespPrivate *priv;
 };
 
-struct _HinawaFwRespClass
-{
-    GObjectClass parent_class;
+struct _HinawaFwRespClass {
+	GObjectClass parent_class;
 };
 
 GType hinawa_fw_resp_get_type(void) G_GNUC_CONST;

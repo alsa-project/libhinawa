@@ -28,7 +28,7 @@ struct _HinawaSndDicePrivate {
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndDice, hinawa_snd_dice, HINAWA_TYPE_SND_UNIT)
 #define SND_DICE_GET_PRIVATE(obj)					\
-	(G_TYPE_INSTANCE_GET_PRIVATE((obj), 				\
+	(G_TYPE_INSTANCE_GET_PRIVATE((obj),				\
 				     HINAWA_TYPE_SND_DICE,		\
 				     HinawaSndDicePrivate))
 
@@ -60,7 +60,7 @@ static void hinawa_snd_dice_class_init(HinawaSndDiceClass *klass)
 	 * HinawaSndDice::notified:
 	 * @self: A #HinawaSndDice
 	 * @message: A notification message
-	 * 
+	 *
 	 * When Dice models transfer notification, the ::notified signal is
 	 * generated.
 	 */

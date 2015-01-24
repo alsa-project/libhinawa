@@ -9,11 +9,11 @@
 
 #include "backport.h"
 #include "fw_unit.h"
-#include "fw_req.h"
 #include "fw_resp.h"
+#include "fw_req.h"
 #include "snd_unit.h"
-#include "snd_efw.h"
 #include "snd_dice.h"
+#include "snd_efw.h"
 
 void hinawa_fw_unit_ioctl(HinawaFwUnit *self, int req, void *args, int *err);
 void hinawa_fw_resp_handle_request(HinawaFwResp *self,

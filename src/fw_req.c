@@ -35,7 +35,7 @@ struct _HinawaFwReqPrivate {
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwReq, hinawa_fw_req, G_TYPE_OBJECT)
 #define FW_REQ_GET_PRIVATE(obj)						\
-	(G_TYPE_INSTANCE_GET_PRIVATE((obj), 				\
+	(G_TYPE_INSTANCE_GET_PRIVATE((obj),				\
 				     HINAWA_TYPE_FW_REQ, HinawaFwReqPrivate))
 
 static void fw_req_dispose(GObject *gobject)
@@ -262,6 +262,4 @@ void hinawa_fw_req_handle_response(HinawaFwReq *self,
 
 	/* Waken a thread of an user application. */
 	g_cond_signal(&priv->cond);
-
-	return;
 }

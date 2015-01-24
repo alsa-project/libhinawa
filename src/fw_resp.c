@@ -29,7 +29,7 @@ struct _HinawaFwRespPrivate {
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwResp, hinawa_fw_resp, G_TYPE_OBJECT)
 #define FW_RESP_GET_PRIVATE(obj)					\
-	(G_TYPE_INSTANCE_GET_PRIVATE((obj), 				\
+	(G_TYPE_INSTANCE_GET_PRIVATE((obj),				\
 				     HINAWA_TYPE_FW_RESP, HinawaFwRespPrivate))
 
 /* This object has one signal. */

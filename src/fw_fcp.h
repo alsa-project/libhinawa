@@ -25,7 +25,7 @@ G_BEGIN_DECLS
 #define HINAWA_IS_FW_FCP_CLASS(klass)				\
 	(G_TYPE_CHECK_CLASS_TYPE((klass),			\
 				 HINAWA_TYPE_FW_FCP))
-#define HINAWA_FW_FCP_GET_CLASS(obj) 				\
+#define HINAWA_FW_FCP_GET_CLASS(obj)				\
 	(G_TYPE_INSTANCE_GET_CLASS((obj),			\
 				   HINAWA_TYPE_FW_FCP,		\
 				   HinawaFwFcpClass))
@@ -34,16 +34,14 @@ typedef struct _HinawaFwFcp		HinawaFwFcp;
 typedef struct _HinawaFwFcpClass	HinawaFwFcpClass;
 typedef struct _HinawaFwFcpPrivate	HinawaFwFcpPrivate;
 
-struct _HinawaFwFcp
-{
+struct _HinawaFwFcp {
 	GObject parent_instance;
 
 	HinawaFwFcpPrivate *priv;
 };
 
-struct _HinawaFwFcpClass
-{
-    GObjectClass parent_class;
+struct _HinawaFwFcpClass {
+	GObjectClass parent_class;
 };
 
 GType hinawa_fw_fcp_get_type(void) G_GNUC_CONST;
