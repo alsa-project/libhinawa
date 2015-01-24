@@ -5,7 +5,7 @@ AC_PREREQ(2.65)
 # See:
 # http://www.gnu.org/software/libtool/manual/html_node/Release-numbers.html
 m4_define([my_major], [0])
-m4_define([my_minor], [3])
+m4_define([my_minor], [4])
 m4_define([my_micro], [0])
 m4_define([my_version],	[my_major.my_minor.my_revision])
 

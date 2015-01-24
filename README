@@ -26,7 +26,7 @@ How to test
  $ ./autogen.sh
  $ ./configure
  $ make
- $ ./test/run.sh [gtk|qt4|qt5]
+ $ ./samples/run.sh [gtk|qt4|qt5]
 gtk - PyGObject is required.
 qt4 - PyQt4 is required (also test python2).
 qt5 - PyQt5 is required.
