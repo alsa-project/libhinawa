@@ -139,7 +139,7 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	g_mutex_unlock(&priv->lock);
 
 	/* NOTE: Timeout is 200 milli-seconds. */
-	expiration = g_get_monotonic_time() + 2000 * G_TIME_SPAN_MILLISECOND;
+	expiration = g_get_monotonic_time() + 200 * G_TIME_SPAN_MILLISECOND;
 	g_cond_init(&trans.cond);
 	g_mutex_init(&local_lock);
 
@@ -166,7 +166,7 @@ deferred:
 	/* It's a deffered transaction, wait 200 milli-seconds again. */
 	if (trans.resp_frame->data[0] >> 24 == AVC_STATUS_INTERIM) {
 		expiration = g_get_monotonic_time() +
-			     2 * G_TIME_SPAN_MILLISECOND;
+			     200 * G_TIME_SPAN_MILLISECOND;
 		goto deferred;
 	}
 
