@@ -92,20 +92,18 @@ void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
 	int type;
 
 	g_return_if_fail(HINAWA_IS_SND_DICE(self));
+	priv = SND_DICE_GET_PRIVATE(self);
 
 	hinawa_snd_unit_open(&self->parent_instance, path, exception);
-	if (*exception != NULL) {
-		g_clear_object(&self);
+	if (*exception != NULL)
 		return;
-	}
 
 	g_object_get(G_OBJECT(self), "type", &type, NULL);
 	if (type != SNDRV_FIREWIRE_TYPE_DICE) {
 		g_set_error(exception, g_quark_from_static_string(__func__),
 			    EINVAL, "%s", strerror(EINVAL));
-		g_clear_object(&self);
+		return;
 	}
-	priv = SND_DICE_GET_PRIVATE(self);
 
 	priv->waiters = NULL;
 	g_mutex_init(&priv->lock);

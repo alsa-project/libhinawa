@@ -114,16 +114,13 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
 	priv = SND_EFW_GET_PRIVATE(self);
 
 	hinawa_snd_unit_open(&self->parent_instance, path, exception);
-	if (*exception != NULL) {
-		g_clear_object(&self);
+	if (*exception != NULL)
 		return;
-	}
 
 	g_object_get(G_OBJECT(self), "type", &type, NULL);
 	if (type != SNDRV_FIREWIRE_TYPE_FIREWORKS) {
 		g_set_error(exception, g_quark_from_static_string(__func__),
 			    EINVAL, "%s", strerror(EINVAL));
-		g_clear_object(&self);
 		return;
 	}
 
