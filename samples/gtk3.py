@@ -8,6 +8,10 @@ from gi.repository import Gtk
 # Hinawa-1.0 gir
 from gi.repository import Hinawa
 
+# to handle UNIX signal
+from gi.repository import GLib
+import signal
+
 from array import array
 
 import glob
@@ -157,6 +161,13 @@ class Sample(Gtk.Window):
         self.label = Gtk.Label("result")
         self.label.set_text("0x00000000")
         bottombox.pack_start(self.label, True, True, 0)
+
+        # handle unix signal
+        GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGINT, \
+                             self.handle_unix_signal, None)
+
+    def handle_unix_signal(self, user_data):
+        self.on_click_close( None)
 
     def on_click_transact(self, button):
         try:
