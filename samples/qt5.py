@@ -73,6 +73,7 @@ try:
 except Exception as e:
     print(e)
     sys.exit()
+print(" listening:\t{0}".format(snd_unit.get_property('listening')))
 
 # create firewire responder
 resp = Hinawa.FwResp()

@@ -43,6 +43,7 @@ G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwUnit, hinawa_fw_unit, G_TYPE_OBJECT)
 /* This object has properties. */
 enum fw_unit_prop_type {
 	FW_UNIT_PROP_TYPE_GENERATION = 1,
+	FW_UNIT_PROP_TYPE_LISTENING,
 	FW_UNIT_PROP_TYPE_COUNT,
 };
 static GParamSpec *fw_unit_props[FW_UNIT_PROP_TYPE_COUNT] = { NULL, };
@@ -63,6 +64,9 @@ static void fw_unit_get_property(GObject *obj, guint id,
 	switch (id) {
 	case FW_UNIT_PROP_TYPE_GENERATION:
 		g_value_set_uint64(val, priv->generation);
+		break;
+	case FW_UNIT_PROP_TYPE_LISTENING:
+		g_value_set_boolean(val, priv->src != NULL);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
@@ -107,6 +111,11 @@ static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 				    "current level of generation on this bus.",
 				    0, ULONG_MAX, 0,
 				    G_PARAM_READABLE);
+	fw_unit_props[FW_UNIT_PROP_TYPE_LISTENING] =
+		g_param_spec_boolean("listening", "listening",
+				     "Whether this device is under listening.",
+				     FALSE,
+				     G_PARAM_READABLE);
 
 	g_object_class_install_properties(gobject_class,
 					  FW_UNIT_PROP_TYPE_COUNT,

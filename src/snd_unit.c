@@ -59,6 +59,7 @@ enum snd_unit_prop_type {
 	SND_UNIT_PROP_TYPE_DEVICE,
 	SND_UNIT_PROP_TYPE_GUID,
 	SND_UNIT_PROP_TYPE_STREAMING,
+	SND_UNIT_PROP_TYPE_LISTENING,
 	SND_UNIT_PROP_TYPE_COUNT,
 };
 static GParamSpec *snd_unit_props[SND_UNIT_PROP_TYPE_COUNT] = { NULL, };
@@ -92,6 +93,9 @@ static void snd_unit_get_property(GObject *obj, guint id,
 		break;
 	case SND_UNIT_PROP_TYPE_STREAMING:
 		g_value_set_boolean(val, priv->streaming);
+		break;
+	case SND_UNIT_PROP_TYPE_LISTENING:
+		g_value_set_boolean(val, priv->src != NULL);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
@@ -160,6 +164,11 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 				    "Global unique ID for this firewire unit.",
 				    0, ULONG_MAX, 0,
 				    G_PARAM_READABLE);
+	snd_unit_props[SND_UNIT_PROP_TYPE_LISTENING] =
+		g_param_spec_boolean("listening", "listening",
+				     "Whether this device is under listening.",
+				     FALSE,
+				     G_PARAM_READABLE);
 
 	g_object_class_install_properties(gobject_class,
 					  SND_UNIT_PROP_TYPE_COUNT,
