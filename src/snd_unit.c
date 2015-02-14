@@ -416,6 +416,7 @@ static gboolean check_src(GSource *gsrc)
 	HinawaSndUnit *unit = src->unit;
 	HinawaSndUnitPrivate *priv = SND_UNIT_GET_PRIVATE(unit);
 	GIOCondition condition;
+	GValue val = G_VALUE_INIT;
 
 	struct snd_firewire_event_common *common;
 	int len;
@@ -423,10 +424,21 @@ static gboolean check_src(GSource *gsrc)
 	if (unit == NULL)
 		goto end;
 
-	/* Let's process this source if any inputs are available. */
 	condition = g_source_query_unix_fd((GSource *)src, src->tag);
-	if (!(condition & G_IO_IN))
+	if (condition & G_IO_ERR) {
+		/* For emitting one signal. */
+		g_value_init(&val, G_TYPE_BOOLEAN);
+		g_object_get_property(G_OBJECT(&unit->parent_instance),
+				      "listening", &val);
+		hinawa_snd_unit_unlisten(unit);
+		if (g_value_get_boolean(&val))
+			g_signal_emit_by_name(&unit->parent_instance,
+					      "disconnected", NULL);
 		goto end;
+	/* The other events never occur. */
+	} else if (!(condition & G_IO_IN)) {
+		goto end;
+	}
 
 	len = read(priv->fd, priv->buf, priv->len);
 	if (len <= 0)

@@ -51,6 +51,7 @@ static GParamSpec *fw_unit_props[FW_UNIT_PROP_TYPE_COUNT] = { NULL, };
 /* This object has one signal. */
 enum fw_unit_sig_type {
 	FW_UNIT_SIG_TYPE_BUS_UPDATE = 0,
+	FW_UNIT_SIG_TYPE_DISCONNECTED,
 	FW_UNIT_SIG_TYPE_COUNT,
 };
 static guint fw_unit_sigs[FW_UNIT_SIG_TYPE_COUNT] = { 0 };
@@ -131,6 +132,22 @@ static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 	 */
 	fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE] =
 		g_signal_new("bus-update",
+			     G_OBJECT_CLASS_TYPE(klass),
+			     G_SIGNAL_RUN_LAST,
+			     0,
+			     NULL, NULL,
+			     g_cclosure_marshal_VOID__VOID,
+			     G_TYPE_NONE, 0, G_TYPE_NONE);
+
+	/**
+	 * HinawaFwUnit::disconnected:
+	 * @self: A #HinawaFwUnit
+	 *
+	 * When phicical FireWire devices are disconnected from IEEE 1394 bus,
+	 * the #HinawaFwUnit becomes unlostening and emits this signal.
+	 */
+	fw_unit_sigs[FW_UNIT_SIG_TYPE_DISCONNECTED] =
+		g_signal_new("disconnected",
 			     G_OBJECT_CLASS_TYPE(klass),
 			     G_SIGNAL_RUN_LAST,
 			     0,
@@ -229,10 +246,15 @@ static gboolean check_src(GSource *gsrc)
 	if (unit == NULL)
 		goto end;
 
-	/* Let's process this source if any inputs are available. */
 	condition = g_source_query_unix_fd((GSource *)src, src->tag);
-	if (!(condition & G_IO_IN))
+	if (condition & G_IO_ERR) {
+		hinawa_fw_unit_unlisten(unit);
+		g_signal_emit(unit,
+			      fw_unit_sigs[FW_UNIT_SIG_TYPE_DISCONNECTED], 0);
 		goto end;
+	} else if (!(condition & G_IO_IN)) {
+		goto end;
+	}
 
 	len = read(priv->fd, priv->buf, priv->len);
 	if (len <= 0)

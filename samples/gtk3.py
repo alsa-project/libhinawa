@@ -54,12 +54,16 @@ def handle_lock_status(snd_unit, status):
         print("streaming is locked.");
     else:
         print("streaming is unlocked.");
+def handle_disconnected(snd_unit):
+    print('disconnected')
+    Gtk.main_quit()
 print('Sound device info:')
 print(' type:\t{0}'.format(snd_unit.get_property("type")))
 print(' card:\t{0}'.format(snd_unit.get_property("card")))
 print(' device:\t{0}'.format(snd_unit.get_property("device")))
 print(' GUID:\t{0:016x}'.format(snd_unit.get_property("guid")))
 snd_unit.connect("lock-status", handle_lock_status)
+snd_unit.connect("disconnected", handle_disconnected)
 
 # create FireWire unit
 def handle_bus_update(snd_unit):
