@@ -18,8 +18,7 @@ libhinawa_la_LDFLAGS =				\
 	-version-info $(LT_IFACE)
 
 libhinawa_la_LIBADD =				\
-	$(GLIB_LIBS)				\
-	-lasound
+	$(GLIB_LIBS)
 
 libhinawa_la_SOURCES =				\
 	hinawa_context.c			\
@@ -38,9 +37,7 @@ libhinawa_la_SOURCES =				\
 	snd_dice.h				\
 	snd_dice.c				\
 	snd_efw.h				\
-	snd_efw.c				\
-	unit_query.h				\
-	unit_query.c
+	snd_efw.c
 
 pkginclude_HEADERS =				\
 	hinawa_sigs_marshal.h			\
@@ -50,8 +47,7 @@ pkginclude_HEADERS =				\
 	fw_fcp.h				\
 	snd_unit.h				\
 	snd_dice.h				\
-	snd_efw.h				\
-	unit_query.h
+	snd_efw.h
 
 hinawa_sigs_marshal.list:
 	$(AM_V_GEN)( find | grep \.c$$ | xargs cat | 			\
@@ -81,8 +77,7 @@ Hinawa_1_0_gir_LIBS = libhinawa.la
 Hinawa_1_0_gir_FILES = $(libhinawa_la_SOURCES)
 Hinawa_1_0_gir_SCANNERFLAGS =			\
 	--identifier-prefix=Hinawa		\
-	--symbol-prefix=hinawa			\
-	-lasound
+	--symbol-prefix=hinawa
 INTROSPECTION_GIRS += Hinawa-1.0.gir
 
 girdir = $(datadir)/gir-1.0

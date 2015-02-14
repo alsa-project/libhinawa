@@ -1,5 +1,11 @@
+#include <stdio.h>
+#include <stdbool.h>
 #include <unistd.h>
-#include <alsa/asoundlib.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+
 #include <sound/firewire.h>
 
 #include "hinawa_context.h"
@@ -30,7 +36,7 @@ typedef struct {
 } SndUnitSource;
 
 struct _HinawaSndUnitPrivate {
-	snd_hwdep_t *hwdep;
+	int fd;
 	struct snd_firewire_get_info info;
 
 	gboolean streaming;
@@ -107,7 +113,7 @@ static void snd_unit_dispose(GObject *obj)
 	if (priv->src != NULL)
 		hinawa_snd_unit_unlisten(self);
 
-	snd_hwdep_close(priv->hwdep);
+	close(priv->fd);
 	g_clear_object(&priv->req);
 	g_clear_object(&priv->fcp);
 
@@ -183,41 +189,47 @@ static void hinawa_snd_unit_init(HinawaSndUnit *self)
 	self->priv = hinawa_snd_unit_get_instance_private(self);
 }
 
-/* For internal use. */
+/**
+ * hinawa_snd_unit_open:
+ * @path: A full path of a special file for ALSA hwdep character device
+ * @exception: A #GError
+ *
+ * Returns: A #HinawaSndEfw
+ */
 void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
-	snd_hwdep_t *hwdep = NULL;
 	char fw_cdev[32];
-	int err;
+	int err = 0;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = SND_UNIT_GET_PRIVATE(self);
 
-	err = snd_hwdep_open(&hwdep, path, SND_HWDEP_OPEN_DUPLEX);
-	if (err < 0)
+	priv->fd = open(path, O_RDWR);
+	if (priv->fd < 0) {
+		err = errno;
 		goto end;
+	}
 
 	/* Get FireWire sound device information. */
-	err = snd_hwdep_ioctl(hwdep, SNDRV_FIREWIRE_IOCTL_GET_INFO,
-			      &priv->info);
-	if (err < 0)
+	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_GET_INFO, &priv->info) < 0) {
+		err = errno;
 		goto end;
+	}
 
 	snprintf(fw_cdev, sizeof(fw_cdev), "/dev/%s", priv->info.device_name);
 	hinawa_fw_unit_open(&self->parent_instance, fw_cdev, exception);
 	if (*exception != NULL)
 		goto end;
 
-	priv->hwdep = hwdep;
 	priv->req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
 	priv->fcp = g_object_new(HINAWA_TYPE_FW_FCP, NULL);
 end:
-	if (err < 0)
+	if (err > 0)
 		g_set_error(exception, g_quark_from_static_string(__func__),
-			    -err, "%s", snd_strerror(err));
+			    err, "%s", strerror(err));
 	if (*exception != NULL)
-		snd_hwdep_close(hwdep);
+		close(priv->fd);
 }
 
 /**
@@ -229,15 +241,17 @@ end:
  */
 void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception)
 {
+	HinawaSndUnitPrivate *priv;
 	int err;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	priv = SND_UNIT_GET_PRIVATE(self);
 
-	err = snd_hwdep_ioctl(self->priv->hwdep, SNDRV_FIREWIRE_IOCTL_LOCK,
-			      NULL);
-	if (err < 0)
+	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_LOCK, NULL) < 0) {
+		err = errno;
 		g_set_error(exception, g_quark_from_static_string(__func__),
-			    -err, "%s", snd_strerror(err));
+			    err, "%s", strerror(err));
+	}
 }
 
 /**
@@ -249,15 +263,17 @@ void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception)
  */
 void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
 {
+	HinawaSndUnitPrivate *priv;
 	int err;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	priv = SND_UNIT_GET_PRIVATE(self);
 
-	err = snd_hwdep_ioctl(self->priv->hwdep, SNDRV_FIREWIRE_IOCTL_UNLOCK,
-			      NULL);
-	if (err < 0)
+	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL) < 0) {
+		err = errno;
 		g_set_error(exception, g_quark_from_static_string(__func__),
-			    -err, "%s", snd_strerror(err));
+			    err, "%s", strerror(err));
+	}
 }
 
 /**
@@ -352,14 +368,17 @@ void hinawa_snd_unit_write(HinawaSndUnit *self,
 			   const void *buf, unsigned int length,
 			   GError **exception)
 {
+	HinawaSndUnitPrivate *priv;
 	int err;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	priv = SND_UNIT_GET_PRIVATE(self);
 
-	err = snd_hwdep_write(self->priv->hwdep, buf, length);
-	if (err < 0)
+	if (write(priv->fd, buf, length) != length) {
+		err = errno;
 		g_set_error(exception, g_quark_from_static_string(__func__),
-			    -err, "%s", snd_strerror(err));
+			    err, "%s", strerror(err));
+	}
 }
 
 static void handle_lock_event(HinawaSndUnit *self,
@@ -401,8 +420,8 @@ static gboolean check_src(GSource *gsrc)
 	if (!(condition & G_IO_IN))
 		goto end;
 
-	len = snd_hwdep_read(priv->hwdep, priv->buf, priv->len);
-	if (len < 0)
+	len = read(priv->fd, priv->buf, priv->len);
+	if (len <= 0)
 		goto end;
 
 	common = (struct snd_firewire_event_common *)priv->buf;
@@ -446,9 +465,7 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 	};
 	HinawaSndUnitPrivate *priv;
 	void *buf;
-	struct pollfd pfds;
 	GSource *src;
-	int err;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = SND_UNIT_GET_PRIVATE(self);
@@ -461,12 +478,6 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 	if (buf == NULL) {
 		g_set_error(exception, g_quark_from_static_string(__func__),
 			    ENOMEM, "%s", strerror(ENOMEM));
-		return;
-	}
-
-	if (snd_hwdep_poll_descriptors(priv->hwdep, &pfds, 1) != 1) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    EINVAL, "%s", strerror(EINVAL));
 		return;
 	}
 
@@ -488,7 +499,7 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 	priv->len = getpagesize();
 
 	((SndUnitSource *)src)->tag =
-		hinawa_context_add_src(src, pfds.fd, G_IO_IN, exception);
+		hinawa_context_add_src(src, priv->fd, G_IO_IN, exception);
 	if (*exception != NULL) {
 		g_free(buf);
 		g_source_destroy(src);
@@ -511,12 +522,12 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 	}
 
 	/* Check locked or not. */
-	err = snd_hwdep_ioctl(priv->hwdep, SNDRV_FIREWIRE_IOCTL_LOCK,
-			      NULL);
-	priv->streaming = (err == -EBUSY);
-	if (err == -EBUSY)
+	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_LOCK, NULL) < 0) {
+		if (errno == EBUSY)
+			priv->streaming = true;
 		return;
-	snd_hwdep_ioctl(priv->hwdep, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
+	}
+	ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
 }
 
 /**
@@ -533,7 +544,7 @@ void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 	priv = SND_UNIT_GET_PRIVATE(self);
 
 	if (priv->streaming)
-		snd_hwdep_ioctl(priv->hwdep, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
+		ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
 
 	g_source_destroy((GSource *)priv->src);
 	g_free(priv->src);

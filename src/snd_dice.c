@@ -1,6 +1,5 @@
 #include <linux/types.h>
 #include <sound/firewire.h>
-#include <alsa/asoundlib.h>
 #include "snd_dice.h"
 #include "internal.h"
 
@@ -28,8 +27,7 @@ struct _HinawaSndDicePrivate {
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndDice, hinawa_snd_dice, HINAWA_TYPE_SND_UNIT)
 #define SND_DICE_GET_PRIVATE(obj)					\
-	(G_TYPE_INSTANCE_GET_PRIVATE((obj),				\
-				     HINAWA_TYPE_SND_DICE,		\
+	(G_TYPE_INSTANCE_GET_PRIVATE((obj), HINAWA_TYPE_SND_DICE,	\
 				     HinawaSndDicePrivate))
 
 /* This object has one signal. */
@@ -80,8 +78,8 @@ static void hinawa_snd_dice_init(HinawaSndDice *self)
 }
 
 /**
- * hinawa_snd_dice_new:
- * @path: A path to ALSA hwdep device for Dice models (i.e. hw:0)
+ * hinawa_snd_dice_open:
+ * @path: A full path of a special file for ALSA hwdep character device
  * @exception: A #GError
  *
  * Returns: An instance of #HinawaSndDice

@@ -1,6 +1,5 @@
 #include <linux/types.h>
 #include <sound/firewire.h>
-#include <alsa/asoundlib.h>
 #include "snd_efw.h"
 #include "internal.h"
 
@@ -99,8 +98,8 @@ static void hinawa_snd_efw_init(HinawaSndEfw *self)
 }
 
 /**
- * hinawa_snd_efw_new:
- * @path: A path to ALSA hwdep device for Fireworks models (i.e. hw:0)
+ * hinawa_snd_efw_open:
+ * @path: A full path of a special file for ALSA hwdep character device
  * @exception: A #GError
  *
  * Returns: A #HinawaSndEfw

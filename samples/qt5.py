@@ -11,6 +11,8 @@ from gi.repository import Hinawa
 
 from array import array
 
+import glob
+
 # helper function
 def get_array():
     # The width with 'L' parameter is depending on environment.
@@ -19,25 +21,28 @@ def get_array():
         arr = array('I')
     return arr
 
-# query sound devices
-index = -1
-while True:
+# query sound devices and get FireWire sound unit
+for fullpath in glob.glob('/dev/snd/hw*'):
     try:
-        index = Hinawa.UnitQuery.get_sibling(index)
-    except Exception as e:
-        break
+        snd_unit = Hinawa.SndDice()
+        snd_unit.open(fullpath)
+    except:
+        del snd_unit
+        try:
+            snd_unit = Hinawa.SndEfw()
+            snd_unit.open(fullpath)
+        except:
+            del snd_unit
+            try:
+                snd_unit = Hinawa.SndUnit()
+                snd_unit.open(fullpath)
+            except:
+                del snd_unit
+                continue
     break
 
-# no fw sound devices are detected.
-if index == -1:
+if 'snd_unit' not in locals():
     print('No sound FireWire devices found.')
-    sys.exit()
-
-# get unit type
-try:
-    unit_type = Hinawa.UnitQuery.get_unit_type(index)
-except Exception as e:
-    print(e)
     sys.exit()
 
 # create sound unit
@@ -46,18 +51,6 @@ def handle_lock_status(snd_unit, status):
         print("streaming is locked.");
     else:
         print("streaming is unlocked.");
-if unit_type == 1:
-    snd_unit = Hinawa.SndDice()
-elif unit_type == 2:
-    snd_unit = Hinawa.SndEfw()
-elif unit_type == 3 or unit_type == 4:
-    snd_unit = Hinawa.SndUnit()
-path = "hw:{0}".format(index)
-try:
-    snd_unit.open(path)
-except Exception as e:
-    print(e)
-    sys.exit()
 print('Sound device info:')
 print(' type:\t{0}'.format(snd_unit.get_property("type")))
 print(' card:\t{0}'.format(snd_unit.get_property("card")))
