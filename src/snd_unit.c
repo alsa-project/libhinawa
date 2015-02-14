@@ -110,8 +110,7 @@ static void snd_unit_dispose(GObject *obj)
 	HinawaSndUnit *self = HINAWA_SND_UNIT(obj);
 	HinawaSndUnitPrivate *priv = SND_UNIT_GET_PRIVATE(self);
 
-	if (priv->src != NULL)
-		hinawa_snd_unit_unlisten(self);
+	hinawa_snd_unit_unlisten(self);
 
 	close(priv->fd);
 	g_clear_object(&priv->req);
@@ -542,6 +541,9 @@ void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = SND_UNIT_GET_PRIVATE(self);
+
+	if (priv->src == NULL)
+		return;
 
 	if (priv->streaming)
 		ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
