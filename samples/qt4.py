@@ -196,4 +196,19 @@ sample = Sample()
 sample.show()
 app.exec_()
 
+del app
+del sample
+print('delete window object')
+
+snd_unit.unlisten()
+del snd_unit
+print('delete snd_unit object')
+
+resp.unregister()
+del resp
+print('delete fw_resp object')
+
+del req
+print('delete fw_req object')
+
 sys.exit()

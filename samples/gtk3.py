@@ -170,7 +170,6 @@ class Sample(Gtk.Window):
         print(self.label.get_text())
 
     def on_click_close(self, button):
-        print("Closing application")
         Gtk.main_quit()
 
 # Main logic
@@ -179,5 +178,19 @@ win.connect("delete-event", Gtk.main_quit)
 win.show_all()
 
 Gtk.main()
+
+del win
+print('delete window object')
+
+snd_unit.unlisten()
+del snd_unit
+print('delete snd_unit object')
+
+resp.unregister()
+del resp
+print('delete fw_resp object')
+
+del req
+print('delete fw_req object')
 
 sys.exit()
