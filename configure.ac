@@ -52,9 +52,6 @@ GTK_DOC_CHECK([1.18-2])
 # GObject introspection 1.32.1 or later
 GOBJECT_INTROSPECTION_REQUIRE([1.32.1])
 
-# alsa-lib 1.0.28 or later
-AM_PATH_ALSA(1.0.28)
-
 # The files generated from *.in
 AC_CONFIG_FILES([
   Makefile
