@@ -99,10 +99,11 @@ static void hinawa_snd_efw_init(HinawaSndEfw *self)
 
 /**
  * hinawa_snd_efw_open:
+ * @self: A #HinawaSndUnit
  * @path: A full path of a special file for ALSA hwdep character device
  * @exception: A #GError
  *
- * Returns: A #HinawaSndEfw
+ * Open ALSA hwdep character device and check it for Fireworks devices.
  */
 void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
 {

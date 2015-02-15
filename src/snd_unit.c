@@ -199,10 +199,11 @@ static void hinawa_snd_unit_init(HinawaSndUnit *self)
 
 /**
  * hinawa_snd_unit_open:
+ * @self: A #HinawaSndUnit
  * @path: A full path of a special file for ALSA hwdep character device
  * @exception: A #GError
  *
- * Returns: A #HinawaSndEfw
+ * Open ALSA hwdep character device and check it for FireWire sound devices.
  */
 void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 {

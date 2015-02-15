@@ -79,10 +79,11 @@ static void hinawa_snd_dice_init(HinawaSndDice *self)
 
 /**
  * hinawa_snd_dice_open:
+ * @self: A #HinawaSndUnit
  * @path: A full path of a special file for ALSA hwdep character device
  * @exception: A #GError
  *
- * Returns: An instance of #HinawaSndDice
+ * Open ALSA hwdep character device and check it for Dice  devices.
  */
 void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
 {
