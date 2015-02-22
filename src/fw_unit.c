@@ -227,8 +227,8 @@ static void handle_update(HinawaFwUnit *self,
 
 static gboolean prepare_src(GSource *src, gint *timeout)
 {
-	/* Set 2msec for poll(2) timeout. */
-	*timeout = 2;
+	/* Use blocking poll(2) to save CPU usage. */
+	*timeout = -1;
 
 	/* This source is not ready, let's poll(2) */
 	return FALSE;
