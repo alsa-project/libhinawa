@@ -10,9 +10,9 @@ Source:			%{name}-%{version}.tar.gz
 BuildRequires:  automake >= 1.10
 BuildRequires:  autoconf >= 2.62
 BuildRequires:  libtool >= 2.2.6
-BuildRequires:  glib2 >= 2.32
+BuildRequires:  glib2 >= 2.32, glib2-devel >= 2.32
 BuildRequires:  gtk-doc >= 1.18-2
-BuildRequires:  gobject-introspection >= 1.32.1
+BuildRequires:  gobject-introspection >= 1.32.1, gobject-introspection-devel >= 1.32.1
 
 
 %description
@@ -55,10 +55,13 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 %files
 %{_libdir}/libhinawa.*
 %{_libdir}/girepository-1.0/*
+
+%files devel
 /usr/include/hinawa/*
 /usr/share/gir-1.0/*
 /usr/share/gtk-doc/html/hinawa/*
 %{_docdir}/hinawa/*
+
 
 %changelog
 * Tue Mar  3 2015 Yoshihiro Okada
