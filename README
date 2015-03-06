@@ -5,6 +5,7 @@ Requirements
 - Glib 2.32.4 or later
 - GTK-Doc 1.18-2
 - GObject Introspection 1.32.1 or later
+- Linux kernel 3.12 or later
 
 How to build
  $ ./autogen.sh
