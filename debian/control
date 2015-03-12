@@ -40,10 +40,6 @@ Description: libhinawa development package
 
 Package: libhinawa-dbg
 Section: debug
-<<<<<<< HEAD
-=======
-Priority: extra
->>>>>>> 4de5b585307aaf52f3178682e2297b409579a9e2
 Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Multi-Arch: same
