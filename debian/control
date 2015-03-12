@@ -1,0 +1,49 @@
+Source: libhinawa
+Section: libs
+Priority: optional
+Maintainer: Takashi Sakamoto <o-takashi@sakamocchi.jp>
+Build-Depends: debhelper (>= 8.0.0), autotools-dev,
+    automake (>= 1.10), autoconf (>= 2.62), libtool (>= 2.2.6), 
+    libglib2.0-dev (>= 2.32.0),
+    gtk-doc-tools (>= 1.18-2), 
+    gobject-introspection (>= 1.32.1), 
+    libgirepository1.0-dev
+Standards-Version: 3.9.4
+Homepage: https://github.com/takaswie/libhinawa
+#Vcs-Git: git://git.debian.org/collab-maint/libhinawa.git
+Vcs-Browser: https://github.com/takaswie/libhinawa.git
+
+Package: libhinawa
+Section: libs
+Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
+Multi-Arch: same
+Depends: ${shlibs:Depends}, ${misc:Depends}, libglib2.0-0 (>= 2.32.0)
+Description: Hinawa is an gobject introspection library.
+ Hinawa is an gobject introspection library for devices connected to
+ IEEE 1394 bus. This library supports any types of transactions over
+ IEEE 1394 bus.  This library also supports some functionality which
+ ALSA firewire stack produces.
+
+Package: libhinawa-dev
+Section: libdevel
+Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
+Multi-Arch: same
+Depends: libhinawa (= ${binary:Version}),
+    libglib2.0-dev (>= 2.32.0),
+    libgirepository1.0-dev,
+    ${shlibs:Depends}
+Description: libhinawa development package
+ This package contains libraries and header files for
+ developing applications that use libhinawa.
+
+Package: libhinawa-dbg
+Section: debug
+Priority: extra
+Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
+Multi-Arch: same
+Depends: libhinawa (= ${binary:Version})
+Description: libhinawa debugging symbols
+ This package contains libhinawa debugging symbols.
