@@ -12,7 +12,7 @@ Standards-Version: 3.9.4
 Homepage: https://github.com/takaswie/libhinawa
 Vcs-Browser: https://github.com/takaswie/libhinawa.git
 
-Package: libhinawa
+Package: libhinawa0
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
@@ -28,7 +28,7 @@ Section: introspection
 Priority: optional
 Architecture: linux-any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${gir:Depends},
-    libhinawa (= ${binary:Version}),
+    libhinawa0 (= ${binary:Version}),
 Description: libhinawa-1.0 introspection data
  This package contains the GObject-introspection data of libhinawa-1.0 in
  binary typelib format.
@@ -37,7 +37,7 @@ Package: libhinawa-dev
 Section: libdevel
 Architecture: any
 Depends: ${shlibs:Depends}
-    libhinawa (= ${binary:Version}),
+    libhinawa0 (= ${binary:Version}),
     libglib2.0-dev (>= 2.32.0),
     libgirepository1.0-dev (>= 1.32.1),
 Description: libhinawa development package
@@ -48,6 +48,6 @@ Package: libhinawa-dbg
 Section: debug
 Priority: extra
 Architecture: any
-Depends: libhinawa (= ${binary:Version})
+Depends: libhinawa0 (= ${binary:Version})
 Description: libhinawa debugging symbols
  This package contains libhinawa debugging symbols.
