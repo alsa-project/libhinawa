@@ -16,7 +16,6 @@ Vcs-Browser: https://github.com/takaswie/libhinawa.git
 Package: libhinawa
 Section: libs
 Architecture: any
-#Pre-Depends: ${misc:Pre-Depends}
 #Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}, libglib2.0-0 (>= 2.32.0)
 Description: Hinawa is an gobject introspection library.
@@ -28,7 +27,6 @@ Description: Hinawa is an gobject introspection library.
 Package: libhinawa-dev
 Section: libdevel
 Architecture: any
-#Pre-Depends: ${misc:Pre-Depends}
 #Multi-Arch: same
 Depends: libhinawa (= ${binary:Version}),
     libglib2.0-dev (>= 2.32.0),
@@ -41,7 +39,6 @@ Description: libhinawa development package
 Package: libhinawa-dbg
 Section: debug
 Architecture: any
-#Pre-Depends: ${misc:Pre-Depends}
 #Multi-Arch: same
 Depends: libhinawa (= ${binary:Version})
 Description: libhinawa debugging symbols
