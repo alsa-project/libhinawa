@@ -46,6 +46,7 @@ Description: libhinawa development package
 
 Package: libhinawa-dbg
 Section: debug
+Priority: extra
 Architecture: any
 Depends: libhinawa (= ${binary:Version})
 Description: libhinawa debugging symbols
