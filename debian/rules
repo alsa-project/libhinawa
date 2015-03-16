@@ -1,0 +1,62 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+clean:
+	dh_prep
+	dh_clean
+	rm -f build
+	-$(MAKE) -i distclean
+	rm -f config.h config.log config.status config.sub
+	rm -f aclocal.m4
+	rm -fR m4
+	rm -f configure-stamp build-stamp
+
+configure: configure-stamp
+configure-stamp:
+	# Add here commands to configure the package.
+	./autogen.sh
+	dh_auto_configure -- --prefix=/usr --enable-gtk-doc --docdir=/usr/share/doc/hinawa --enable-static=no
+
+	touch configure-stamp
+
+build: build-stamp
+build-stamp: configure-stamp
+	dh_testdir
+	# Add here commands to compile the package.
+	$(MAKE)
+
+	touch $@
+
+install: build
+	dh_testdir
+	dh_prep
+	dh_clean
+	dh_installdirs
+	# Add here commands to install the package into debian/tmp
+	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
+
+binary: binary-indep binary-arch
+
+binary-arch: build install
+	dh_testdir
+	dh_install
+	dh_installdocs
+	dh_installchangelogs -a ChangeLog
+	dh_installman
+	dh_link
+	dh_compress
+	dh_fixperms
+	dh_strip --dbg-package=libhinawa-dbg
+	dh_makeshlibs
+	dh_shlibdeps -- --ignore-missing-info
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary-indep: build install
+
+.PHONY: clean configure build install binary binary-arch binary-indep

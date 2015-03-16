@@ -28,3 +28,9 @@ How to test
 gtk - PyGObject is required.
 qt4 - PyQt4 is required (also test python2).
 qt5 - PyQt5 is required.
+
+How to make RPM package
+1. archive all source code into libhinawa-0.5.0.tar.gz
+   Note that all source code shuld be located under libhinawa-0.5.0
+   directory.
+2. rpmbuild -bb libhinawa.spec

@@ -1,0 +1,12 @@
+libhinawa (0.5.0-2) unstable; urgency=low
+
+  * Separate gir typelib to a new package.
+  * fix minor issues.
+
+ -- Takashi Sakamoto <o-takashi@sakamocchi.jp>  Mon, 16 Mar 2015 15:29:30 +0900
+
+libhinawa (0.5.0-1) unstable; urgency=low
+
+  * add package management files for ubuntu.
+
+ -- Yoshihiro Okada <yoshihiro.okada@nifty.ne.jp>  Tue, 10 Mar 2015 16:45:32 +0900
