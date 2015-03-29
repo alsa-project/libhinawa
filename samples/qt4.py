@@ -43,11 +43,16 @@ for fullpath in glob.glob('/dev/snd/hw*'):
         except:
             del snd_unit
             try:
-                snd_unit = Hinawa.SndUnit()
+                snd_unit = Hinawa.SndDg00x()
                 snd_unit.open(fullpath)
             except:
                 del snd_unit
-                continue
+                try:
+                    snd_unit = Hinawa.SndUnit()
+                    snd_unit.open(fullpath)
+                except:
+                    del snd_unit
+                    continue
     break
 
 if 'snd_unit' not in locals():
@@ -103,7 +108,7 @@ except Exception as e:
 req = Hinawa.FwReq()
 
 # Fireworks/BeBoB/OXFW supports FCP and some AV/C commands
-if snd_unit.get_property('type') is not 1:
+if snd_unit.get_property('type') is not 1 and not 5:
     request = bytearray(8)
     request[0] = 0x01
     request[1] = 0xff
@@ -149,6 +154,13 @@ if snd_unit.get_property('type') is 1:
     except Exception as e:
         print(e)
         sys.exit()
+
+# Dg00x message
+def handle_message(self, message):
+    print("Dg00x Messaging {0:08x}".format(message));
+if snd_unit.get_property('type') is 5:
+    print('hear message')
+    snd_unit.connect('message', handle_message)
 
 # GUI
 class Sample(QWidget):

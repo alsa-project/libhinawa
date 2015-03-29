@@ -14,6 +14,7 @@
 #include "snd_unit.h"
 #include "snd_dice.h"
 #include "snd_efw.h"
+#include "snd_dg00x.h"
 
 void hinawa_fw_unit_ioctl(HinawaFwUnit *self, int req, void *args, int *err);
 void hinawa_fw_resp_handle_request(HinawaFwResp *self,
@@ -28,4 +29,6 @@ void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 					 const void *buf, unsigned int len);
 void hinawa_snd_efw_handle_response(HinawaSndEfw *self,
 				    const void *buf, unsigned int len);
+void hinawa_snd_dg00x_handle_msg(HinawaSndDg00x *self, const void *buf,
+				 unsigned int len);
 #endif

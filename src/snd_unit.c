@@ -14,6 +14,7 @@
 #include "fw_fcp.h"
 #include "snd_dice.h"
 #include "snd_efw.h"
+#include "snd_dg00x.h"
 #include "internal.h"
 
 #ifdef HAVE_CONFIG_H
@@ -456,6 +457,10 @@ static gboolean check_src(GSource *gsrc)
 	else if (HINAWA_IS_SND_EFW(unit) &&
 		 common->type == SNDRV_FIREWIRE_EVENT_EFW_RESPONSE)
 		hinawa_snd_efw_handle_response(HINAWA_SND_EFW(unit),
+					       priv->buf, len);
+	else if (HINAWA_IS_SND_DG00X(unit) &&
+		 common->type == SNDRV_FIREWIRE_EVENT_DIGI00x_MESSAGE)
+		hinawa_snd_dg00x_handle_msg(HINAWA_SND_DG00X(unit),
 					       priv->buf, len);
 end:
 	/* Don't go to dispatch, then continue to process this source. */
