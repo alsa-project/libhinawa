@@ -1,3 +1,15 @@
+libhinawa (0.6.0) unstable; urgency=medium
+
+  * New upstream release 0.6.0
+   * Use blocking I/O to save CPU usage
+   * Purge alsa-lib dependency
+   * Add 'disconnect' gobject signal
+   * Add 'listening' property
+   * Debian packaging (Thanks to Yoshihiro Okada)
+   * Add spec file (Thanks to Yoshihiro Okada)
+
+ -- Takashi Sakamoto <o-takashi@sakamocchi.jp>  Sun, 29 Mar 2015 11:38:43 +0900
+
 libhinawa (0.5.0-2) unstable; urgency=low
 
   * Separate gir typelib to a new package.

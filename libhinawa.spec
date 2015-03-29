@@ -1,5 +1,5 @@
 Name:			libhinawa
-Version:		0.5.0
+Version:		0.6.0
 Release:		1%{?dist}
 Summary:		Hinawa is an gobject introspection library for devices connected to IEEE 1394 bus.
 
