@@ -65,4 +65,4 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
 %changelog
 * Tue Mar  3 2015 Yoshihiro Okada
-- 
+-

@@ -3,10 +3,10 @@ Section: libs
 Priority: optional
 Maintainer: Takashi Sakamoto <o-takashi@sakamocchi.jp>
 Build-Depends: debhelper (>= 8.0.0), autotools-dev,
-    automake (>= 1.10), autoconf (>= 2.62), libtool (>= 2.2.6), 
+    automake (>= 1.10), autoconf (>= 2.62), libtool (>= 2.2.6),
     libglib2.0-dev (>= 2.32.0),
-    gtk-doc-tools (>= 1.18-2), 
-    gobject-introspection (>= 1.32.1), 
+    gtk-doc-tools (>= 1.18-2),
+    gobject-introspection (>= 1.32.1),
     libgirepository1.0-dev (>= 1.32.1)
 Standards-Version: 3.9.4
 Homepage: https://github.com/takaswie/libhinawa
