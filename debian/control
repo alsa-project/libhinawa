@@ -15,8 +15,10 @@ Vcs-Browser: https://github.com/takaswie/libhinawa.git
 Package: libhinawa0
 Section: libs
 Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends}, ${misc:Depends},
     libglib2.0-0 (>= 2.32.0)
+Multi-Arch: same
 Description: Hinawa is an userspace library for IEEE 1394 transactions.
  Hinawa is an gobject introspection library for devices connected to
  IEEE 1394 bus. This library supports any types of transactions over
@@ -27,7 +29,7 @@ Package: gir1.2-hinawa-1.0
 Section: introspection
 Priority: optional
 Architecture: linux-any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${gir:Depends},
+Depends: ${misc:Depends}, ${gir:Depends},
     libhinawa0 (= ${binary:Version}),
 Description: libhinawa-1.0 introspection data
  This package contains the GObject-introspection data of libhinawa-1.0 in
@@ -36,7 +38,7 @@ Description: libhinawa-1.0 introspection data
 Package: libhinawa-dev
 Section: libdevel
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${misc:Depends},
     libhinawa0 (= ${binary:Version}),
     libglib2.0-dev (>= 2.32.0),
     libgirepository1.0-dev (>= 1.32.1),

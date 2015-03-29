@@ -52,6 +52,7 @@ binary-arch: build install
 	dh_strip --dbg-package=libhinawa-dbg
 	dh_makeshlibs
 	dh_shlibdeps -- --ignore-missing-info
+	dh_girepository -l src:debian/libhinawa-dev/usr/share/gir-1.0
 	dh_installdeb
 	dh_gencontrol
 	dh_md5sums
