@@ -299,12 +299,11 @@ void hinawa_snd_efw_handle_response(HinawaSndEfw *self,
 
 		g_mutex_unlock(&priv->lock);
 
-		if (trans == NULL)
-			continue;
-
 		quadlets = be32toh(resp_frame->length);
-		memcpy(trans->frame, resp_frame, quadlets * 4);
-		g_cond_signal(&trans->cond);
+		if (trans != NULL) {
+			memcpy(trans->frame, resp_frame, quadlets * 4);
+			g_cond_signal(&trans->cond);
+		}
 
 		responses += quadlets;
 		len -= quadlets * sizeof(guint);
