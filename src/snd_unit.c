@@ -30,6 +30,12 @@
  * ALSA drivers in the stack can be available.
  */
 
+/* For error handling. */
+G_DEFINE_QUARK("HinawaSndUnit", hinawa_snd_unit)
+#define raise(exception, errno)						\
+	g_set_error(exception, hinawa_snd_unit_quark(), errno,		\
+		    "%d: %s", __LINE__, strerror(errno))
+
 typedef struct {
 	GSource src;
 	HinawaSndUnit *unit;
@@ -210,20 +216,19 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
 	char fw_cdev[32];
-	int err = 0;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = SND_UNIT_GET_PRIVATE(self);
 
 	priv->fd = open(path, O_RDWR);
 	if (priv->fd < 0) {
-		err = errno;
+		raise(exception, errno);
 		goto end;
 	}
 
 	/* Get FireWire sound device information. */
 	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_GET_INFO, &priv->info) < 0) {
-		err = errno;
+		raise(exception, errno);
 		goto end;
 	}
 
@@ -235,9 +240,6 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 	priv->req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
 	priv->fcp = g_object_new(HINAWA_TYPE_FW_FCP, NULL);
 end:
-	if (err > 0)
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    err, "%s", strerror(err));
 	if (*exception != NULL)
 		close(priv->fd);
 }
@@ -252,16 +254,12 @@ end:
 void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
-	int err;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = SND_UNIT_GET_PRIVATE(self);
 
-	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_LOCK, NULL) < 0) {
-		err = errno;
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    err, "%s", strerror(err));
-	}
+	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_LOCK, NULL) < 0)
+		raise(exception, errno);
 }
 
 /**
@@ -274,16 +272,12 @@ void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception)
 void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
-	int err;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = SND_UNIT_GET_PRIVATE(self);
 
-	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL) < 0) {
-		err = errno;
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    err, "%s", strerror(err));
-	}
+	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL) < 0)
+		raise(exception, errno);
 }
 
 /**
@@ -379,16 +373,12 @@ void hinawa_snd_unit_write(HinawaSndUnit *self,
 			   GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
-	int err;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = SND_UNIT_GET_PRIVATE(self);
 
-	if (write(priv->fd, buf, length) != length) {
-		err = errno;
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    err, "%s", strerror(err));
-	}
+	if (write(priv->fd, buf, length) != length)
+		raise(exception, errno);
 }
 
 static void handle_lock_event(HinawaSndUnit *self,
@@ -502,15 +492,13 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 	 */
 	buf = g_malloc(getpagesize());
 	if (buf == NULL) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    ENOMEM, "%s", strerror(ENOMEM));
+		raise(exception, ENOMEM);
 		return;
 	}
 
 	src = g_source_new(&funcs, sizeof(SndUnitSource));
 	if (src == NULL) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    ENOMEM, "%s", strerror(ENOMEM));
+		raise(exception, ENOMEM);
 		g_free(buf);
 		return;
 	}

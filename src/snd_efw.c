@@ -15,6 +15,13 @@
  * A #HinawaSndEfw is an application of Echo Fireworks Transaction (EFT).
  * This inherits #HinawaSndUnit.
  */
+
+/* For error handling. */
+G_DEFINE_QUARK("HinawaSndEfw", hinawa_snd_efw)
+#define raise(exception, errno)						\
+	g_set_error(exception, hinawa_snd_efw_quark(), errno,		\
+		    "%d: %s", __LINE__, strerror(errno))
+
 #define MINIMUM_SUPPORTED_VERSION	1
 #define MAXIMUM_FRAME_BYTES		0x200U
 
@@ -119,8 +126,7 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
 
 	g_object_get(G_OBJECT(self), "type", &type, NULL);
 	if (type != SNDRV_FIREWIRE_TYPE_FIREWORKS) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    EINVAL, "%s", strerror(EINVAL));
+		raise(exception, EINVAL);
 		return;
 	}
 
@@ -163,15 +169,13 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 	if ((type != SNDRV_FIREWIRE_TYPE_FIREWORKS) ||
 	    (args && g_array_get_element_size(args) != sizeof(guint32)) ||
 	    (params && g_array_get_element_size(params) != sizeof(guint32))) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    EINVAL, "%s", strerror(EINVAL));
+		raise(exception, EINVAL);
 		return;
 	}
 
 	trans.frame = g_malloc0(MAXIMUM_FRAME_BYTES);
 	if (trans.frame == NULL) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    ENOMEM, "%s", strerror(ENOMEM));
+		raise(exception, ENOMEM);
 		return;
 	}
 
@@ -218,8 +222,7 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 	 * critical section.
 	 */
 	if (!g_cond_wait_until(&trans.cond, &priv->lock, expiration)) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    ETIMEDOUT, "%s", strerror(ETIMEDOUT));
+		raise(exception, ETIMEDOUT);
 		goto end;
 	}
 
@@ -232,7 +235,7 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 
 	/* Check transaction status. */
 	if (trans.frame->status != EFT_STATUS_OK) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
+		g_set_error(exception, hinawa_snd_efw_quark(),
 			    EPROTO, "%s",
 			    efw_status_names[trans.frame->status]);
 		goto end;
@@ -242,16 +245,14 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 	if ((trans.frame->version  <  MINIMUM_SUPPORTED_VERSION) ||
 	    (trans.frame->category != category) ||
 	    (trans.frame->command  != command)) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    EIO, "%s", strerror(EIO));
+		raise(exception, EIO);
 		goto end;
 	}
 
 	/* Check returned parameters. */
 	count = quads - sizeof(struct snd_efw_transaction) / 4;
 	if (count > 0 && params == NULL) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    EINVAL, "%s", strerror(EINVAL));
+		raise(exception, EINVAL);
 		goto end;
 	}
 

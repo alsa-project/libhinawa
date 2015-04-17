@@ -44,7 +44,7 @@ AC_SUBST(LT_IFACE)
 AC_PROG_CC
 
 # Glib 2.32 or later
-AM_PATH_GLIB_2_0([2.32.4], [], [], [gobject])
+AM_PATH_GLIB_2_0([2.34.0], [], [], [gobject])
 
 # GTK-Doc 1.18-2 or later
 GTK_DOC_CHECK([1.18-2])

@@ -16,6 +16,12 @@
  * This class is an application of #HinawaFwReq / #HinawaFwResp.
  */
 
+/* For error handling. */
+G_DEFINE_QUARK("HinawaFwFcp", hinawa_fw_fcp)
+#define raise(exception, errno)						\
+	g_set_error(exception, hinawa_fw_fcp_quark(), errno,		\
+		    "%d: %s", __LINE__, strerror(errno))
+
 #define FCP_MAXIMUM_FRAME_BYTES	0x200U
 #define FCP_REQUEST_ADDR	0xfffff0000b00
 #define FCP_RESPOND_ADDR	0xfffff0000d00
@@ -112,8 +118,7 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	if (req_frame  == NULL || g_array_get_element_size(req_frame)  != 1 ||
 	    resp_frame == NULL || g_array_get_element_size(resp_frame) != 1 ||
 	    req_frame->len > FCP_MAXIMUM_FRAME_BYTES) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    EINVAL, "%s", strerror(EINVAL));
+		raise(exception, EINVAL);
 		return;
 	}
 
@@ -155,8 +160,7 @@ deferred:
 	 */
 	g_mutex_lock(&local_lock);
 	if (!g_cond_wait_until(&trans.cond, &local_lock, expiration))
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    ETIMEDOUT, "%s", strerror(ETIMEDOUT));
+		raise(exception, ETIMEDOUT);
 	g_mutex_unlock(&local_lock);
 
 	/* Error happened. */

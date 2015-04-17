@@ -21,6 +21,12 @@
  * utilize ioctl(2) with subsystem specific request commands.
  */
 
+/* For error handling. */
+G_DEFINE_QUARK("HinawaFwReq", hinawa_fw_req)
+#define raise(exception, errno)						\
+	g_set_error(exception, hinawa_fw_req_quark(), errno,		\
+		    "%d: %s", __LINE__, strerror(errno))
+
 enum fw_req_type {
 	FW_REQ_TYPE_WRITE = 0,
 	FW_REQ_TYPE_READ,
@@ -176,8 +182,7 @@ void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 	}
 
 	if (err != 0)
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    err, "%s", strerror(err));
+		raise(exception, err);
 }
 
 /**
@@ -209,8 +214,7 @@ void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 	}
 
 	if (err != 0)
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    err, "%s", strerror(err));
+		raise(exception, err);
 }
 
 /**
@@ -240,8 +244,7 @@ void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit,
 	}
 
 	if (err != 0)
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    err, "%s", strerror(err));
+		raise(exception, err);
 }
 
 /* NOTE: For HinawaFwUnit, internal. */

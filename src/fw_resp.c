@@ -18,6 +18,13 @@
  * This class is an application of Linux FireWire subsystem. All of operations
  * utilize ioctl(2) with subsystem specific request commands.
  */
+
+/* For error handling. */
+G_DEFINE_QUARK("HinawaFwResp", hinawa_fw_resp)
+#define raise(exception, errno)						\
+	g_set_error(exception, hinawa_fw_resp_quark(), errno,		\
+		    "%d: %s", __LINE__, strerror(errno))
+
 struct _HinawaFwRespPrivate {
 	HinawaFwUnit *unit;
 
@@ -112,8 +119,7 @@ void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
 	priv = FW_RESP_GET_PRIVATE(self);
 
 	if (priv->unit != NULL) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    EINVAL, "%s", strerror(EINVAL));
+		raise(exception, EINVAL);
 		return;
 	}
 	priv->unit = g_object_ref(unit);
@@ -125,8 +131,7 @@ void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
 
 	hinawa_fw_unit_ioctl(priv->unit, FW_CDEV_IOC_ALLOCATE, &allocate, &err);
 	if (err != 0) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    err, "%s", strerror(err));
+		raise(exception, err);
 		g_object_unref(priv->unit);
 		priv->unit = NULL;
 		return;
@@ -134,16 +139,14 @@ void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
 
 	priv->buf = g_malloc0(allocate.length);
 	if (priv->buf == NULL) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    ENOMEM, "%s", strerror(ENOMEM));
+		raise(exception, ENOMEM);
 		hinawa_fw_resp_unregister(self);
 		return;
 	}
 
 	priv->req_frame  = g_array_new(FALSE, TRUE, sizeof(guint32));
 	if (priv->req_frame == NULL) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    ENOMEM, "%s", strerror(ENOMEM));
+		raise(exception, ENOMEM);
 		hinawa_fw_resp_unregister(self);
 		return;
 	}

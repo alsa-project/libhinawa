@@ -16,6 +16,12 @@
  * received. This inherits #HinawaSndUnit.
  */
 
+/* For error handling. */
+G_DEFINE_QUARK("HinawaSndDice", hinawa_snd_dice)
+#define raise(exception, errno)						\
+	g_set_error(exception, hinawa_snd_dice_quark(), errno,		\
+		    "%d: %s", __LINE__, strerror(errno))
+
 struct notification_waiter {
 	guint32 bit_flag;
 	GCond cond;
@@ -99,8 +105,7 @@ void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
 
 	g_object_get(G_OBJECT(self), "type", &type, NULL);
 	if (type != SNDRV_FIREWIRE_TYPE_DICE) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    EINVAL, "%s", strerror(EINVAL));
+		raise(exception, EINVAL);
 		return;
 	}
 
@@ -149,8 +154,7 @@ void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr,
 	 * section.
 	 */
 	if (!g_cond_wait_until(&waiter.cond, &priv->lock, expiration))
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    ETIMEDOUT, "%s", strerror(ETIMEDOUT));
+		raise(exception, ETIMEDOUT);
 end:
 	priv->waiters = g_list_remove(priv->waiters, (gpointer *)&waiter);
 

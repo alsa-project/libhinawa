@@ -18,6 +18,12 @@
 
 G_DEFINE_TYPE(HinawaSndDg00x, hinawa_snd_dg00x, HINAWA_TYPE_SND_UNIT)
 
+/* For error handling. */
+G_DEFINE_QUARK("HinawaSndDg00x", hinawa_snd_dg00x)
+#define raise(exception, errno)						\
+	g_set_error(exception, hinawa_snd_dg00x_quark(), errno,		\
+		    "%d: %s", __LINE__, strerror(errno))
+
 /* This object has one signal. */
 enum dg00x_sig_type {
 	DG00X_SIG_TYPE_MESSAGE,
@@ -85,8 +91,7 @@ void hinawa_snd_dg00x_open(HinawaSndDg00x *self, gchar *path, GError **exception
 
 	g_object_get(G_OBJECT(self), "type", &type, NULL);
 	if (type != SNDRV_FIREWIRE_TYPE_DIGI00X) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    EINVAL, "%s", strerror(EINVAL));
+		raise(exception, EINVAL);
 		return;
 	}
 }

@@ -12,6 +12,12 @@
 #  include <config.h>
 #endif
 
+/* For error handling. */
+G_DEFINE_QUARK("HinawaFwUnit", hinawa_fw_unit)
+#define raise(exception, errno)						\
+	g_set_error(exception, hinawa_fw_unit_quark(), errno,		\
+		    "%d: %s", __LINE__, strerror(errno))
+
 /**
  * SECTION:fw_unit
  * @Title: HinawaFwUnit
@@ -179,8 +185,7 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 
 	fd = open(path, O_RDONLY);
 	if (fd < 0) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    errno, "%s", strerror(errno));
+		raise(exception, errno);
 		return;
 	}
 
@@ -188,8 +193,7 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 	info.bus_reset = (guint64)&br;
 	info.bus_reset_closure = (guint64)self;
 	if (ioctl(fd, FW_CDEV_IOC_GET_INFO, &info) < 0) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    errno, "%s", strerror(errno));
+		raise(exception, errno);
 		close(fd);
 		return;
 	}
@@ -314,15 +318,13 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 	 */
 	buf = g_malloc0(getpagesize());
 	if (buf == NULL) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    ENOMEM, "%s", strerror(ENOMEM));
+		raise(exception, ENOMEM);
 		return;
 	}
 
 	src = g_source_new(&funcs, sizeof(FwUnitSource));
 	if (src == NULL) {
-		g_set_error(exception, g_quark_from_static_string(__func__),
-			    ENOMEM, "%s", strerror(ENOMEM));
+		raise(exception, ENOMEM);
 		g_free(buf);
 		return;
 	}
