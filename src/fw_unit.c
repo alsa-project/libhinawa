@@ -35,7 +35,7 @@ typedef struct {
 
 struct _HinawaFwUnitPrivate {
 	int fd;
-	guint64 generation;
+	guint32 generation;
 
 	unsigned int len;
 	void *buf;
@@ -70,7 +70,7 @@ static void fw_unit_get_property(GObject *obj, guint id,
 
 	switch (id) {
 	case FW_UNIT_PROP_TYPE_GENERATION:
-		g_value_set_uint64(val, priv->generation);
+		g_value_set_uint(val, priv->generation);
 		break;
 	case FW_UNIT_PROP_TYPE_LISTENING:
 		g_value_set_boolean(val, priv->src != NULL);
@@ -114,10 +114,10 @@ static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 	gobject_class->finalize = fw_unit_finalize;
 
 	fw_unit_props[FW_UNIT_PROP_TYPE_GENERATION] =
-		g_param_spec_uint64("generation", "generation",
-				    "current level of generation on this bus.",
-				    0, ULONG_MAX, 0,
-				    G_PARAM_READABLE);
+		g_param_spec_uint("generation", "generation",
+				  "current level of generation on this bus.",
+				  0, UINT_MAX, 0,
+				  G_PARAM_READABLE);
 	fw_unit_props[FW_UNIT_PROP_TYPE_LISTENING] =
 		g_param_spec_boolean("listening", "listening",
 				     "Whether this device is under listening.",
