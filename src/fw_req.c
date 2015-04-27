@@ -40,9 +40,6 @@ struct _HinawaFwReqPrivate {
 	GCond cond;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwReq, hinawa_fw_req, G_TYPE_OBJECT)
-#define FW_REQ_GET_PRIVATE(obj)						\
-	(G_TYPE_INSTANCE_GET_PRIVATE((obj),				\
-				     HINAWA_TYPE_FW_REQ, HinawaFwReqPrivate))
 
 static void fw_req_dispose(GObject *gobject)
 {
@@ -66,7 +63,7 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 
 static void hinawa_fw_req_init(HinawaFwReq *self)
 {
-	self->priv = hinawa_fw_req_get_instance_private(self);
+	return;
 }
 
 static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
@@ -74,7 +71,7 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 			    gint *err)
 {
 	struct fw_cdev_send_request req = {0};
-	HinawaFwReqPrivate *priv = FW_REQ_GET_PRIVATE(self);
+	HinawaFwReqPrivate *priv = hinawa_fw_req_get_instance_private(self);
 	int tcode;
 
 	guint64 generation;
@@ -254,7 +251,7 @@ void hinawa_fw_req_handle_response(HinawaFwReq *self,
 	HinawaFwReqPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
-	priv = FW_REQ_GET_PRIVATE(self);
+	priv = hinawa_fw_req_get_instance_private(self);
 
 	/* Copy transaction frame. */
 	if (priv->frame != NULL) {

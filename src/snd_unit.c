@@ -56,9 +56,6 @@ struct _HinawaSndUnitPrivate {
 	HinawaFwFcp *fcp;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndUnit, hinawa_snd_unit, HINAWA_TYPE_FW_UNIT)
-#define SND_UNIT_GET_PRIVATE(obj)					\
-	(G_TYPE_INSTANCE_GET_PRIVATE((obj),				\
-				HINAWA_TYPE_SND_UNIT, HinawaSndUnitPrivate))
 
 enum snd_unit_prop_type {
 	SND_UNIT_PROP_TYPE_FW_TYPE = 1,
@@ -82,7 +79,7 @@ static void snd_unit_get_property(GObject *obj, guint id,
 				  GValue *val, GParamSpec *spec)
 {
 	HinawaSndUnit *self = HINAWA_SND_UNIT(obj);
-	HinawaSndUnitPrivate *priv = SND_UNIT_GET_PRIVATE(self);
+	HinawaSndUnitPrivate *priv = hinawa_snd_unit_get_instance_private(self);
 
 	switch (id) {
 	case SND_UNIT_PROP_TYPE_FW_TYPE:
@@ -119,7 +116,7 @@ static void snd_unit_set_property(GObject *obj, guint id,
 static void snd_unit_dispose(GObject *obj)
 {
 	HinawaSndUnit *self = HINAWA_SND_UNIT(obj);
-	HinawaSndUnitPrivate *priv = SND_UNIT_GET_PRIVATE(self);
+	HinawaSndUnitPrivate *priv = hinawa_snd_unit_get_instance_private(self);
 
 	hinawa_snd_unit_unlisten(self);
 
@@ -201,7 +198,7 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 
 static void hinawa_snd_unit_init(HinawaSndUnit *self)
 {
-	self->priv = hinawa_snd_unit_get_instance_private(self);
+	return;
 }
 
 /**
@@ -218,7 +215,7 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 	char fw_cdev[32];
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
-	priv = SND_UNIT_GET_PRIVATE(self);
+	priv = hinawa_snd_unit_get_instance_private(self);
 
 	priv->fd = open(path, O_RDWR);
 	if (priv->fd < 0) {
@@ -256,7 +253,7 @@ void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception)
 	HinawaSndUnitPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
-	priv = SND_UNIT_GET_PRIVATE(self);
+	priv = hinawa_snd_unit_get_instance_private(self);
 
 	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_LOCK, NULL) < 0)
 		raise(exception, errno);
@@ -274,7 +271,7 @@ void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
 	HinawaSndUnitPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
-	priv = SND_UNIT_GET_PRIVATE(self);
+	priv = hinawa_snd_unit_get_instance_private(self);
 
 	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL) < 0)
 		raise(exception, errno);
@@ -297,7 +294,7 @@ void hinawa_snd_unit_read_transact(HinawaSndUnit *self,
 	HinawaSndUnitPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
-	priv = SND_UNIT_GET_PRIVATE(self);
+	priv = hinawa_snd_unit_get_instance_private(self);
 
 	hinawa_fw_req_read(priv->req, &self->parent_instance, addr, frame, len,
 			   exception);
@@ -319,7 +316,7 @@ void hinawa_snd_unit_write_transact(HinawaSndUnit *self,
 	HinawaSndUnitPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
-	priv = SND_UNIT_GET_PRIVATE(self);
+	priv = hinawa_snd_unit_get_instance_private(self);
 
 	hinawa_fw_req_write(priv->req, &self->parent_instance, addr, frame,
 			    exception);
@@ -341,7 +338,7 @@ void hinawa_snd_unit_lock_transact(HinawaSndUnit *self,
 	HinawaSndUnitPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
-	priv = SND_UNIT_GET_PRIVATE(self);
+	priv = hinawa_snd_unit_get_instance_private(self);
 
 	hinawa_fw_req_lock(priv->req, &self->parent_instance, addr, frame,
 			   exception);
@@ -362,7 +359,7 @@ void hinawa_snd_unit_fcp_transact(HinawaSndUnit *self,
 	HinawaSndUnitPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
-	priv = SND_UNIT_GET_PRIVATE(self);
+	priv = hinawa_snd_unit_get_instance_private(self);
 
 	hinawa_fw_fcp_transact(priv->fcp, req_frame, resp_frame, exception);
 }
@@ -375,7 +372,7 @@ void hinawa_snd_unit_write(HinawaSndUnit *self,
 	HinawaSndUnitPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
-	priv = SND_UNIT_GET_PRIVATE(self);
+	priv = hinawa_snd_unit_get_instance_private(self);
 
 	if (write(priv->fd, buf, length) != length)
 		raise(exception, errno);
@@ -406,7 +403,7 @@ static gboolean check_src(GSource *gsrc)
 {
 	SndUnitSource *src = (SndUnitSource *)gsrc;
 	HinawaSndUnit *unit = src->unit;
-	HinawaSndUnitPrivate *priv = SND_UNIT_GET_PRIVATE(unit);
+	HinawaSndUnitPrivate *priv = hinawa_snd_unit_get_instance_private(unit);
 	GIOCondition condition;
 	GValue val = G_VALUE_INIT;
 
@@ -484,7 +481,7 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 	GSource *src;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
-	priv = SND_UNIT_GET_PRIVATE(self);
+	priv = hinawa_snd_unit_get_instance_private(self);
 
 	/*
 	 * MEMO: allocate one page because we cannot assume the size of
@@ -555,7 +552,7 @@ void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 	HinawaSndUnitPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
-	priv = SND_UNIT_GET_PRIVATE(self);
+	priv = hinawa_snd_unit_get_instance_private(self);
 
 	if (priv->src == NULL)
 		return;

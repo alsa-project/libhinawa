@@ -61,9 +61,6 @@ struct _HinawaFwFcpPrivate {
 	GMutex lock;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwFcp, hinawa_fw_fcp, G_TYPE_OBJECT)
-#define FW_FCP_GET_PRIVATE(obj)						\
-	(G_TYPE_INSTANCE_GET_PRIVATE((obj),				\
-				     HINAWA_TYPE_FW_FCP, HinawaFwFcpPrivate))
 
 static void hinawa_fw_fcp_dispose(GObject *obj)
 {
@@ -89,7 +86,7 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 
 static void hinawa_fw_fcp_init(HinawaFwFcp *self)
 {
-	self->priv = hinawa_fw_fcp_get_instance_private(self);
+	return;
 }
 
 /**
@@ -113,7 +110,7 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	guint i, quads, bytes;
 
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
-	priv = FW_FCP_GET_PRIVATE(self);
+	priv = hinawa_fw_fcp_get_instance_private(self);
 
 	if (req_frame  == NULL || g_array_get_element_size(req_frame)  != 1 ||
 	    resp_frame == NULL || g_array_get_element_size(resp_frame) != 1 ||
@@ -197,7 +194,7 @@ static GArray *handle_response(HinawaFwResp *self, gint tcode,
 			       GArray *req_frame, gpointer user_data)
 {
 	HinawaFwFcp *fcp = (HinawaFwFcp *)user_data;
-	HinawaFwFcpPrivate *priv = FW_FCP_GET_PRIVATE(fcp);
+	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(fcp);
 	struct fcp_transaction *trans;
 	GList *entry;
 
@@ -240,7 +237,7 @@ void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
 	HinawaFwFcpPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
-	priv = FW_FCP_GET_PRIVATE(self);
+	priv = hinawa_fw_fcp_get_instance_private(self);
 
 	priv->resp = g_object_new(HINAWA_TYPE_FW_RESP, NULL);
 	priv->unit = g_object_ref(unit);
@@ -274,7 +271,7 @@ void hinawa_fw_fcp_unlisten(HinawaFwFcp *self)
 	HinawaFwFcpPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
-	priv = FW_FCP_GET_PRIVATE(self);
+	priv = hinawa_fw_fcp_get_instance_private(self);
 
 	if (priv->resp == NULL)
 		return;

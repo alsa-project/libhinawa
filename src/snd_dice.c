@@ -32,9 +32,6 @@ struct _HinawaSndDicePrivate {
 	GMutex lock;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndDice, hinawa_snd_dice, HINAWA_TYPE_SND_UNIT)
-#define SND_DICE_GET_PRIVATE(obj)					\
-	(G_TYPE_INSTANCE_GET_PRIVATE((obj), HINAWA_TYPE_SND_DICE,	\
-				     HinawaSndDicePrivate))
 
 /* This object has one signal. */
 enum dice_sig_type {
@@ -80,7 +77,7 @@ static void hinawa_snd_dice_class_init(HinawaSndDiceClass *klass)
 
 static void hinawa_snd_dice_init(HinawaSndDice *self)
 {
-	self->priv = hinawa_snd_dice_get_instance_private(self);
+	return;
 }
 
 /**
@@ -97,7 +94,7 @@ void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
 	int type;
 
 	g_return_if_fail(HINAWA_IS_SND_DICE(self));
-	priv = SND_DICE_GET_PRIVATE(self);
+	priv = hinawa_snd_dice_get_instance_private(self);
 
 	hinawa_snd_unit_open(&self->parent_instance, path, exception);
 	if (*exception != NULL)
@@ -133,7 +130,7 @@ void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr,
 	gint64 expiration;
 
 	g_return_if_fail(HINAWA_IS_SND_DICE(self));
-	priv = SND_DICE_GET_PRIVATE(self);
+	priv = hinawa_snd_dice_get_instance_private(self);
 
 	/* Insert this entry to list and enter critical section. */
 	g_mutex_lock(&priv->lock);
@@ -173,7 +170,7 @@ void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 			(struct snd_firewire_event_dice_notification *)buf;
 
 	g_return_if_fail(HINAWA_IS_SND_DICE(self));
-	priv = SND_DICE_GET_PRIVATE(self);
+	priv = hinawa_snd_dice_get_instance_private(self);
 
 	g_signal_emit(self, dice_sigs[DICE_SIG_TYPE_NOTIFIED],
 		      0, event->notification);

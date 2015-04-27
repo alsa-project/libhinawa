@@ -27,6 +27,7 @@ G_DEFINE_QUARK("HinawaFwUnit", hinawa_fw_unit)
  * This class is an application of Linux FireWire subsystem.
  * All of operations utilize ioctl(2) with subsystem specific request commands.
  */
+
 typedef struct {
 	GSource src;
 	HinawaFwUnit *unit;
@@ -42,9 +43,6 @@ struct _HinawaFwUnitPrivate {
 	FwUnitSource *src;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwUnit, hinawa_fw_unit, G_TYPE_OBJECT)
-#define FW_UNIT_GET_PRIVATE(obj)					\
-	(G_TYPE_INSTANCE_GET_PRIVATE((obj),				\
-				     HINAWA_TYPE_FW_UNIT, HinawaFwUnitPrivate))
 
 /* This object has properties. */
 enum fw_unit_prop_type {
@@ -66,7 +64,7 @@ static void fw_unit_get_property(GObject *obj, guint id,
 				 GValue *val, GParamSpec *spec)
 {
 	HinawaFwUnit *self = HINAWA_FW_UNIT(obj);
-	HinawaFwUnitPrivate *priv = FW_UNIT_GET_PRIVATE(self);
+	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(self);
 
 	switch (id) {
 	case FW_UNIT_PROP_TYPE_GENERATION:
@@ -90,7 +88,7 @@ static void fw_unit_set_property(GObject *obj, guint id,
 static void fw_unit_dispose(GObject *obj)
 {
 	HinawaFwUnit *self = HINAWA_FW_UNIT(obj);
-	HinawaFwUnitPrivate *priv = FW_UNIT_GET_PRIVATE(self);
+	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(self);
 
 	hinawa_fw_unit_unlisten(self);
 
@@ -164,7 +162,7 @@ static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 
 static void hinawa_fw_unit_init(HinawaFwUnit *self)
 {
-	self->priv = hinawa_fw_unit_get_instance_private(self);
+	return;
 }
 
 /**
@@ -181,7 +179,7 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 	struct fw_cdev_event_bus_reset br = {0};
 
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
-	priv = FW_UNIT_GET_PRIVATE(self);
+	priv = hinawa_fw_unit_get_instance_private(self);
 
 	fd = open(path, O_RDONLY);
 	if (fd < 0) {
@@ -208,7 +206,7 @@ void hinawa_fw_unit_ioctl(HinawaFwUnit *self, int req, void *args, int *err)
 	HinawaFwUnitPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
-	priv = FW_UNIT_GET_PRIVATE(self);
+	priv = hinawa_fw_unit_get_instance_private(self);
 
 	*err = 0;
 	if (ioctl(priv->fd, req, args) < 0)
@@ -221,7 +219,7 @@ static void handle_update(HinawaFwUnit *self,
 	HinawaFwUnitPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
-	priv = FW_UNIT_GET_PRIVATE(self);
+	priv = hinawa_fw_unit_get_instance_private(self);
 
 	priv->generation = event->generation;
 
@@ -242,7 +240,7 @@ static gboolean check_src(GSource *gsrc)
 {
 	FwUnitSource *src = (FwUnitSource *)gsrc;
 	HinawaFwUnit *unit = src->unit;
-	HinawaFwUnitPrivate *priv = FW_UNIT_GET_PRIVATE(unit);
+	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(unit);
 	struct fw_cdev_event_common *common;
 	int len;
 	GIOCondition condition;
@@ -310,7 +308,7 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 	GSource *src;
 
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
-	priv = FW_UNIT_GET_PRIVATE(self);
+	priv = hinawa_fw_unit_get_instance_private(self);
 
 	/*
 	 * MEMO: allocate one page because we cannot assume the size of
@@ -361,7 +359,7 @@ void hinawa_fw_unit_unlisten(HinawaFwUnit *self)
 	HinawaFwUnitPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
-	priv = FW_UNIT_GET_PRIVATE(self);
+	priv = hinawa_fw_unit_get_instance_private(self);
 
 	if (priv->src == NULL)
 		return;

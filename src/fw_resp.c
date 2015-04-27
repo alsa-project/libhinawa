@@ -35,9 +35,6 @@ struct _HinawaFwRespPrivate {
 	GArray *req_frame;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwResp, hinawa_fw_resp, G_TYPE_OBJECT)
-#define FW_RESP_GET_PRIVATE(obj)					\
-	(G_TYPE_INSTANCE_GET_PRIVATE((obj),				\
-				     HINAWA_TYPE_FW_RESP, HinawaFwRespPrivate))
 
 /* This object has one signal. */
 enum fw_resp_sig_type {
@@ -95,7 +92,7 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 
 static void hinawa_fw_resp_init(HinawaFwResp *self)
 {
-	self->priv = hinawa_fw_resp_get_instance_private(self);
+	return;
 }
 
 /**
@@ -116,7 +113,7 @@ void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
 	int err;
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
-	priv = FW_RESP_GET_PRIVATE(self);
+	priv = hinawa_fw_resp_get_instance_private(self);
 
 	if (priv->unit != NULL) {
 		raise(exception, EINVAL);
@@ -167,7 +164,7 @@ void hinawa_fw_resp_unregister(HinawaFwResp *self)
 	int err;
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
-	priv = FW_RESP_GET_PRIVATE(self);
+	priv = hinawa_fw_resp_get_instance_private(self);
 
 	if (priv->unit == NULL)
 		return;
@@ -195,7 +192,7 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 	int err;
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
-	priv = FW_RESP_GET_PRIVATE(self);
+	priv = hinawa_fw_resp_get_instance_private(self);
 
 	if (event->length > priv->width) {
 		resp.rcode = RCODE_CONFLICT_ERROR;

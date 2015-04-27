@@ -77,9 +77,6 @@ struct _HinawaSndEfwPrivate {
 	GMutex lock;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndEfw, hinawa_snd_efw, HINAWA_TYPE_SND_UNIT)
-#define SND_EFW_GET_PRIVATE(obj)					\
-	(G_TYPE_INSTANCE_GET_PRIVATE((obj),				\
-				     HINAWA_TYPE_SND_EFW, HinawaSndEfwPrivate))
 
 static void snd_efw_dispose(GObject *obj)
 {
@@ -101,7 +98,7 @@ static void hinawa_snd_efw_class_init(HinawaSndEfwClass *klass)
 
 static void hinawa_snd_efw_init(HinawaSndEfw *self)
 {
-	self->priv = hinawa_snd_efw_get_instance_private(self);
+	return;
 }
 
 /**
@@ -118,7 +115,7 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
 	int type;
 
 	g_return_if_fail(HINAWA_IS_SND_EFW(self));
-	priv = SND_EFW_GET_PRIVATE(self);
+	priv = hinawa_snd_efw_get_instance_private(self);
 
 	hinawa_snd_unit_open(&self->parent_instance, path, exception);
 	if (*exception != NULL)
@@ -130,7 +127,7 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
 		return;
 	}
 
-	priv = SND_EFW_GET_PRIVATE(self);
+	priv = hinawa_snd_efw_get_instance_private(self);
 	priv->seqnum = 0;
 	priv->transactions = NULL;
 	g_mutex_init(&priv->lock);
@@ -162,7 +159,7 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 	gint64 expiration;
 
 	g_return_if_fail(HINAWA_IS_SND_EFW(self));
-	priv = SND_EFW_GET_PRIVATE(self);
+	priv = hinawa_snd_efw_get_instance_private(self);
 
 	/* Check unit type and function arguments . */
 	g_object_get(G_OBJECT(self), "type", &type, NULL);
@@ -282,7 +279,7 @@ void hinawa_snd_efw_handle_response(HinawaSndEfw *self,
 	GList *entry;
 
 	g_return_if_fail(HINAWA_IS_SND_EFW(self));
-	priv = SND_EFW_GET_PRIVATE(self);
+	priv = hinawa_snd_efw_get_instance_private(self);
 
 	while (len > 0) {
 		resp_frame =  (struct snd_efw_transaction *)responses;
