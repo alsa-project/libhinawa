@@ -22,6 +22,9 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 void hinawa_fw_req_handle_response(HinawaFwReq *self,
 				   struct fw_cdev_event_response *event);
 
+void hinawa_snd_unit_read(HinawaSndUnit *unit,
+			  void *buf, unsigned int length,
+			  GError **exception);
 void hinawa_snd_unit_write(HinawaSndUnit *unit,
 			   const void *buf, unsigned int length,
 			   GError **exception);

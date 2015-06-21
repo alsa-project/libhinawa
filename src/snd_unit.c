@@ -365,6 +365,18 @@ void hinawa_snd_unit_fcp_transact(HinawaSndUnit *self,
 }
 
 /* For internal use. */
+void hinawa_snd_unit_read(HinawaSndUnit *self,
+			  void *buf, unsigned int length,
+			  GError **exception)
+{
+	HinawaSndUnitPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	priv = hinawa_snd_unit_get_instance_private(self);
+
+	if (read(priv->fd, buf, length) != length)
+		raise(exception, errno);
+}
 void hinawa_snd_unit_write(HinawaSndUnit *self,
 			   const void *buf, unsigned int length,
 			   GError **exception)
