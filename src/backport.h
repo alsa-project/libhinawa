@@ -54,3 +54,12 @@ struct snd_firewire_event_digi00x_message {
 
 #endif
 
+#ifndef SNDRV_FIREWIRE_TYPE_TASCAM
+#define SNDRV_FIREWIRE_TYPE_TASCAM	6
+#define SNDRV_FIREWIRE_EVENT_TASCAM_STATUS      0x5453434d
+struct snd_firewire_event_tascam_status {
+	unsigned int type;
+	__u32 status[64];	/* TASCAM model status image */
+};
+#define SNDRV_FIREWIRE_TYPE_TASCAM	6
+#endif

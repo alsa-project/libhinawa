@@ -39,7 +39,9 @@ libhinawa_la_SOURCES =				\
 	snd_efw.h				\
 	snd_efw.c				\
 	snd_dg00x.h				\
-	snd_dg00x.c
+	snd_dg00x.c				\
+	snd_tascam.h				\
+	snd_tascam.c
 
 pkginclude_HEADERS =				\
 	hinawa_sigs_marshal.h			\
@@ -50,7 +52,8 @@ pkginclude_HEADERS =				\
 	snd_unit.h				\
 	snd_dice.h				\
 	snd_efw.h				\
-	snd_dg00x.h
+	snd_dg00x.h				\
+	snd_tascam.h
 
 hinawa_sigs_marshal.list:
 	$(AM_V_GEN)( find | grep \.c$$ | xargs cat | 			\
