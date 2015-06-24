@@ -28,6 +28,10 @@ void hinawa_snd_unit_read(HinawaSndUnit *unit,
 void hinawa_snd_unit_write(HinawaSndUnit *unit,
 			   const void *buf, unsigned int length,
 			   GError **exception);
+void hinawa_snd_unit_mmap(HinawaSndUnit *self, unsigned int size,
+			  void **addr, GError **exception);
+void hinawa_snd_unit_munmap(HinawaSndUnit *self, unsigned int size,
+			    void *addr);
 void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 					 const void *buf, unsigned int len);
 void hinawa_snd_efw_handle_response(HinawaSndEfw *self,

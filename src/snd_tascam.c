@@ -7,8 +7,12 @@
 #  include <config.h>
 #endif
 
+struct _HinawaSndTscmPrivate {
+	struct snd_firewire_tascam_status *status;
+};
+
 /**
- * SECTION:snd_tascam
+ * SECTION:snd_tscm
  * @Title: HinawaSndTscm
  * @Short_description: A notification listener for Dg00x models
  *
@@ -16,51 +20,53 @@
  * received. This inherits #HinawaSndUnit.
  */
 
-G_DEFINE_TYPE(HinawaSndTscm, hinawa_snd_tascam, HINAWA_TYPE_SND_UNIT)
+G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndTscm, hinawa_snd_tscm, HINAWA_TYPE_SND_UNIT)
 
 /* For error handling. */
-G_DEFINE_QUARK("HinawaSndTscm", hinawa_snd_tascam)
+G_DEFINE_QUARK("HinawaSndTscm", hinawa_snd_tscm)
 #define raise(exception, errno)						\
-	g_set_error(exception, hinawa_snd_tascam_quark(), errno,		\
+	g_set_error(exception, hinawa_snd_tscm_quark(), errno,	\
 		    "%d: %s", __LINE__, strerror(errno))
 
-static void snd_tascam_dispose(GObject *obj)
+static void snd_tscm_dispose(GObject *obj)
 {
-	G_OBJECT_CLASS(hinawa_snd_tascam_parent_class)->dispose(obj);
+	G_OBJECT_CLASS(hinawa_snd_tscm_parent_class)->dispose(obj);
 }
 
-static void snd_tascam_finalize(GObject *gobject)
+static void snd_tscm_finalize(GObject *gobject)
 {
-	G_OBJECT_CLASS(hinawa_snd_tascam_parent_class)->finalize(gobject);
+	G_OBJECT_CLASS(hinawa_snd_tscm_parent_class)->finalize(gobject);
 }
 
-static void hinawa_snd_tascam_class_init(HinawaSndTscmClass *klass)
+static void hinawa_snd_tscm_class_init(HinawaSndTscmClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
-	gobject_class->dispose = snd_tascam_dispose;
-	gobject_class->finalize = snd_tascam_finalize;
+	gobject_class->dispose = snd_tscm_dispose;
+	gobject_class->finalize = snd_tscm_finalize;
 }
 
-static void hinawa_snd_tascam_init(HinawaSndTscm *self)
+static void hinawa_snd_tscm_init(HinawaSndTscm *self)
 {
 	return;
 }
 
 /**
- * hinawa_snd_tascam_open:
+ * hinawa_snd_tscm_open:
  * @self: A #HinawaSndUnit
  * @path: A full path of a special file for ALSA hwdep character device
  * @exception: A #GError
  *
  * Open ALSA hwdep character device and check it for Dg00x  devices.
  */
-void hinawa_snd_tascam_open(HinawaSndTscm *self, gchar *path,
+void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path,
 			    GError **exception)
 {
+	HinawaSndTscmPrivate *priv;
 	int type;
 
 	g_return_if_fail(HINAWA_IS_SND_TSCM(self));
+	priv = hinawa_snd_tscm_get_instance_private(self);
 
 	hinawa_snd_unit_open(&self->parent_instance, path, exception);
 	if (*exception != NULL)
@@ -71,23 +77,25 @@ void hinawa_snd_tascam_open(HinawaSndTscm *self, gchar *path,
 		raise(exception, EINVAL);
 		return;
 	}
+
+	hinawa_snd_unit_mmap(&self->parent_instance,
+			     sizeof(struct snd_firewire_tascam_status),
+			     (void **)&priv->status, exception);
 }
-#include <stdio.h>
-void hinawa_snd_tascam_get_status(HinawaSndTscm *self, GError **exception)
+
+/**
+ * hinawa_snd_tscm_get_status:
+ * @self: A #HinawaSndTscm
+ *
+ * Returns: (element-type guint32) (array fixed-size=64) (transfer none): status image
+ *
+ */
+const guint32 *const hinawa_snd_tscm_get_status(HinawaSndTscm *self)
 {
-	struct snd_firewire_event_tascam_status status;
-	unsigned int i;
+	HinawaSndTscmPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_SND_TSCM(self));
+	priv = hinawa_snd_tscm_get_instance_private(self);
 
-	hinawa_snd_unit_read(&self->parent_instance, &status,
-			     sizeof(status), exception);
-	if (*exception != NULL) {
-		raise(exception, errno);
-		return;
-	}
-
-	for (i = 0; i < 64; i++) {
-		printf("[%02d] %08x\n", i, status.status[i]);
-	}
+	return priv->status->status;
 }

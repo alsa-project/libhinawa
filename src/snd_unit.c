@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
+#include <sys/mman.h>
 
 #include <sound/firewire.h>
 
@@ -388,6 +389,26 @@ void hinawa_snd_unit_write(HinawaSndUnit *self,
 
 	if (write(priv->fd, buf, length) != length)
 		raise(exception, errno);
+}
+void hinawa_snd_unit_mmap(HinawaSndUnit *self, unsigned int size,
+			  void **addr, GError **exception)
+{
+	HinawaSndUnitPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	priv = hinawa_snd_unit_get_instance_private(self);
+
+	*addr = mmap(NULL, size, PROT_READ, MAP_FILE | MAP_SHARED,
+			priv->fd, 0);
+	if (*addr == MAP_FAILED)
+		raise(exception, errno);
+}
+void hinawa_snd_unit_munmap(HinawaSndUnit *self, unsigned int size,
+			    void *addr)
+{
+	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+
+	munmap(addr, size);
 }
 
 static void handle_lock_event(HinawaSndUnit *self,

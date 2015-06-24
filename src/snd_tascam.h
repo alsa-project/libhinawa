@@ -7,13 +7,13 @@
 
 G_BEGIN_DECLS
 
-#define HINAWA_TYPE_SND_TSCM	(hinawa_snd_tascam_get_type())
+#define HINAWA_TYPE_SND_TSCM	(hinawa_snd_tscm_get_type())
 
 #define HINAWA_SND_TSCM(obj)					\
 	(G_TYPE_CHECK_INSTANCE_CAST((obj),			\
 				    HINAWA_TYPE_SND_TSCM,	\
 				    HinawaSndTscm))
-#define HINAWA_IS_SND_TSCM(obj)				\
+#define HINAWA_IS_SND_TSCM(obj)					\
 	(G_TYPE_CHECK_INSTANCE_TYPE((obj),			\
 				    HINAWA_TYPE_SND_TSCM))
 
@@ -21,7 +21,7 @@ G_BEGIN_DECLS
 	(G_TYPE_CHECK_CLASS_CAST((klass),			\
 				 HINAWA_TYPE_SND_TSCM,		\
 				 HinawaSndTscmClass))
-#define HINAWA_IS_SND_TSCM_CLASS(klass)			\
+#define HINAWA_IS_SND_TSCM_CLASS(klass)				\
 	(G_TYPE_CHECK_CLASS_TYPE((klass),			\
 				 HINAWA_TYPE_SND_TSCM))
 #define HINAWA_SND_TSCM_GET_CLASS(obj)				\
@@ -43,9 +43,9 @@ struct _HinawaSndTscmClass {
 	HinawaSndUnitClass parent_class;
 };
 
-GType hinawa_snd_tascam_get_type(void) G_GNUC_CONST;
+GType hinawa_snd_tscm_get_type(void) G_GNUC_CONST;
 
-void hinawa_snd_tascam_open(HinawaSndTscm *self, gchar *path,
+void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path,
 			    GError **exception);
-void hinawa_snd_tascam_get_status(HinawaSndTscm *self, GError **exception);
+const guint32 *const hinawa_snd_tscm_get_status(HinawaSndTscm *self);
 #endif
