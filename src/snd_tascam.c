@@ -81,7 +81,7 @@ const guint32 *const hinawa_snd_tscm_get_status(HinawaSndTscm *self)
 {
 	HinawaSndTscmPrivate *priv;
 
-	g_return_if_fail(HINAWA_IS_SND_TSCM(self));
+	g_return_val_if_fail(HINAWA_IS_SND_TSCM(self), NULL);
 	priv = hinawa_snd_tscm_get_instance_private(self);
 
 	return priv->status->status;
