@@ -210,18 +210,18 @@ void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
  * Execute lock transaction to the given unit.
  */
 void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit,
-			guint64 addr, GArray *frame,  GError **exception)
+			guint64 addr, GArray **frame, GError **exception)
 {
 	int err;
 
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
-	if (frame == NULL || g_array_get_element_size(frame) != 4) {
+	if (frame == NULL || g_array_get_element_size(*frame) != 4) {
 		err = EINVAL;
 	} else {
 		g_object_ref(unit);
 		fw_req_transact(self, unit,
-				FW_REQ_TYPE_COMPARE_SWAP, addr, frame, &err);
+				FW_REQ_TYPE_COMPARE_SWAP, addr, *frame, &err);
 		g_object_unref(unit);
 	}
 

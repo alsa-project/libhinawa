@@ -327,7 +327,7 @@ void hinawa_snd_unit_write_transact(HinawaSndUnit *self,
  * Execute lock transaction to the given unit.
  */
 void hinawa_snd_unit_lock_transact(HinawaSndUnit *self,
-				   guint64 addr, GArray *frame,
+				   guint64 addr, GArray **frame,
 				   GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
