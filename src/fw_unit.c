@@ -36,6 +36,10 @@ typedef struct {
 
 struct _HinawaFwUnitPrivate {
 	int fd;
+	struct fw_cdev_get_info info;
+
+	GMutex mutex;
+	guint32 *config_rom;
 	guint32 generation;
 
 	unsigned int len;
@@ -93,6 +97,8 @@ static void fw_unit_finalize(GObject *obj)
 	hinawa_fw_unit_unlisten(self);
 
 	close(priv->fd);
+
+	g_mutex_clear(&priv->mutex);
 
 	G_OBJECT_CLASS(hinawa_fw_unit_parent_class)->finalize(obj);
 }
@@ -156,7 +162,8 @@ static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 
 static void hinawa_fw_unit_init(HinawaFwUnit *self)
 {
-	return;
+	HinawaFwUnitPrivate *priv= hinawa_fw_unit_get_instance_private(self);
+	g_mutex_init(&priv->mutex);
 }
 
 /**
@@ -169,7 +176,6 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 {
 	HinawaFwUnitPrivate *priv;
 	int fd;
-	struct fw_cdev_get_info info = {0};
 	struct fw_cdev_event_bus_reset br = {0};
 
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
@@ -181,17 +187,57 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 		return;
 	}
 
-	info.version = 4;
-	info.bus_reset = (guint64)&br;
-	info.bus_reset_closure = (guint64)self;
-	if (ioctl(fd, FW_CDEV_IOC_GET_INFO, &info) < 0) {
+	g_mutex_lock(&priv->mutex);
+
+	priv->info.version = 4;
+	priv->info.bus_reset = (guint64)&br;
+	priv->info.bus_reset_closure = (guint64)self;
+	if (ioctl(fd, FW_CDEV_IOC_GET_INFO, &priv->info) < 0) {
 		raise(exception, errno);
 		close(fd);
-		return;
+		goto end;
 	}
+
+	/* Duplicate contents of Config ROM in userspace. */
+	priv->config_rom = g_malloc0(priv->info.rom_length);
+	if (priv->config_rom == NULL) {
+		raise(exception, ENOMEM);
+		close(fd);
+		goto end;
+	}
+	priv->info.rom = (__u64)priv->config_rom;
+
+	if (ioctl(fd, FW_CDEV_IOC_GET_INFO, &priv->info) < 0) {
+		raise(exception, errno);
+		close(fd);
+		goto end;
+	}
+	g_mutex_init(&priv->mutex);
 
 	priv->fd = fd;
 	priv->generation = br.generation;
+end:
+	g_mutex_unlock(&priv->mutex);
+}
+
+/**
+ * hinawa_fw_unit_get_config_rom:
+ * @self: A #HinawaFwUnit
+ * @quads: (out) (optional): the number of quadlet consists of the config rom
+ *
+ * Returns: (element-type guint32) (array length=quads) (transfer none): config rom image
+ */
+const guint32 *hinawa_fw_unit_get_config_rom(HinawaFwUnit *self, guint *quads)
+{
+	HinawaFwUnitPrivate *priv;
+
+	g_return_val_if_fail(HINAWA_IS_FW_UNIT(self), NULL);
+	priv = hinawa_fw_unit_get_instance_private(self);
+
+	if (quads != NULL)
+		*quads = priv->info.rom_length / 4;
+
+	return priv->config_rom;
 }
 
 /* Internal use only. */
