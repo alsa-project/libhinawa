@@ -40,7 +40,7 @@ struct _HinawaFwUnitPrivate {
 
 	GMutex mutex;
 	guint32 *config_rom;
-	guint32 generation;
+	struct fw_cdev_event_bus_reset generation;
 
 	unsigned int len;
 	void *buf;
@@ -50,7 +50,12 @@ G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwUnit, hinawa_fw_unit, G_TYPE_OBJECT)
 
 /* This object has properties. */
 enum fw_unit_prop_type {
-	FW_UNIT_PROP_TYPE_GENERATION = 1,
+	FW_UNIT_PROP_TYPE_NODE_ID = 1,
+	FW_UNIT_PROP_TYPE_LOCAL_NODE_ID,
+	FW_UNIT_PROP_TYPE_BUS_MANAGER_NODE_ID,
+	FW_UNIT_PROP_TYPE_IR_MANAGER_NODE_ID,
+	FW_UNIT_PROP_TYPE_ROOT_NODE_ID,
+	FW_UNIT_PROP_TYPE_GENERATION,
 	FW_UNIT_PROP_TYPE_LISTENING,
 	FW_UNIT_PROP_TYPE_COUNT,
 };
@@ -71,8 +76,35 @@ static void fw_unit_get_property(GObject *obj, guint id,
 	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(self);
 
 	switch (id) {
+	case FW_UNIT_PROP_TYPE_NODE_ID:
+		g_mutex_lock(&priv->mutex);
+		g_value_set_ulong(val, priv->generation.node_id);
+		g_mutex_unlock(&priv->mutex);
+		break;
+	case FW_UNIT_PROP_TYPE_LOCAL_NODE_ID:
+		g_mutex_lock(&priv->mutex);
+		g_value_set_ulong(val, priv->generation.local_node_id);
+		g_mutex_unlock(&priv->mutex);
+		break;
+	case FW_UNIT_PROP_TYPE_BUS_MANAGER_NODE_ID:
+		g_mutex_lock(&priv->mutex);
+		g_value_set_ulong(val, priv->generation.bm_node_id);
+		g_mutex_unlock(&priv->mutex);
+		break;
+	case FW_UNIT_PROP_TYPE_IR_MANAGER_NODE_ID:
+		g_mutex_lock(&priv->mutex);
+		g_value_set_ulong(val, priv->generation.irm_node_id);
+		g_mutex_unlock(&priv->mutex);
+		break;
+	case FW_UNIT_PROP_TYPE_ROOT_NODE_ID:
+		g_mutex_lock(&priv->mutex);
+		g_value_set_ulong(val, priv->generation.root_node_id);
+		g_mutex_unlock(&priv->mutex);
+		break;
 	case FW_UNIT_PROP_TYPE_GENERATION:
-		g_value_set_uint(val, priv->generation);
+		g_mutex_lock(&priv->mutex);
+		g_value_set_ulong(val, priv->generation.generation);
+		g_mutex_unlock(&priv->mutex);
 		break;
 	case FW_UNIT_PROP_TYPE_LISTENING:
 		g_value_set_boolean(val, priv->src != NULL);
@@ -98,6 +130,7 @@ static void fw_unit_finalize(GObject *obj)
 
 	close(priv->fd);
 
+	g_free(priv->config_rom);
 	g_mutex_clear(&priv->mutex);
 
 	G_OBJECT_CLASS(hinawa_fw_unit_parent_class)->finalize(obj);
@@ -111,11 +144,41 @@ static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 	gobject_class->set_property = fw_unit_set_property;
 	gobject_class->finalize = fw_unit_finalize;
 
+	fw_unit_props[FW_UNIT_PROP_TYPE_NODE_ID] =
+		g_param_spec_ulong("node-id", "node-id",
+				   "Node-ID of this unit at this generation.",
+				   0, ULONG_MAX, 0,
+				   G_PARAM_READABLE);
+	fw_unit_props[FW_UNIT_PROP_TYPE_LOCAL_NODE_ID] =
+		g_param_spec_ulong("local-node-id", "local-node-id",
+				   "Node-ID for a unit which this unit use to "
+				   "communicate to the other units on the bus "
+				   "at this generation.",
+				   0, ULONG_MAX, 0,
+				   G_PARAM_READABLE);
+	fw_unit_props[FW_UNIT_PROP_TYPE_BUS_MANAGER_NODE_ID] =
+		g_param_spec_ulong("bus-manager-node-id", "bus-manager-node-id",
+				   "Node-ID for bus manager on the bus at this "
+				   "generation.",
+				   0, ULONG_MAX, 0,
+				   G_PARAM_READABLE);
+	fw_unit_props[FW_UNIT_PROP_TYPE_IR_MANAGER_NODE_ID] =
+		g_param_spec_ulong("ir-manager-node-id", "ir-manager-node-id",
+				   "Node-ID for isochronous resource manager "
+				   "on the bus at this generation",
+				   0, ULONG_MAX, 0,
+				   G_PARAM_READABLE);
+	fw_unit_props[FW_UNIT_PROP_TYPE_ROOT_NODE_ID] =
+		g_param_spec_ulong("root-node-id", "root-node-id",
+				   "Node-ID for root of bus topology at this "
+				   "generation.",
+				   0, ULONG_MAX, 0,
+				   G_PARAM_READABLE);
 	fw_unit_props[FW_UNIT_PROP_TYPE_GENERATION] =
-		g_param_spec_uint("generation", "generation",
-				  "current level of generation on this bus.",
-				  0, UINT_MAX, 0,
-				  G_PARAM_READABLE);
+		g_param_spec_ulong("generation", "generation",
+				   "current level of generation on this bus.",
+				   0, ULONG_MAX, 0,
+				   G_PARAM_READABLE);
 	fw_unit_props[FW_UNIT_PROP_TYPE_LISTENING] =
 		g_param_spec_boolean("listening", "listening",
 				     "Whether this device is under listening.",
@@ -176,7 +239,6 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 {
 	HinawaFwUnitPrivate *priv;
 	int fd;
-	struct fw_cdev_event_bus_reset br = {0};
 
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
 	priv = hinawa_fw_unit_get_instance_private(self);
@@ -189,8 +251,9 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 
 	g_mutex_lock(&priv->mutex);
 
+	/* Duplicate generation parameters in userspace. */
 	priv->info.version = 4;
-	priv->info.bus_reset = (guint64)&br;
+	priv->info.bus_reset = (guint64)&priv->generation;
 	priv->info.bus_reset_closure = (guint64)self;
 	if (ioctl(fd, FW_CDEV_IOC_GET_INFO, &priv->info) < 0) {
 		raise(exception, errno);
@@ -212,10 +275,8 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 		close(fd);
 		goto end;
 	}
-	g_mutex_init(&priv->mutex);
 
 	priv->fd = fd;
-	priv->generation = br.generation;
 end:
 	g_mutex_unlock(&priv->mutex);
 }
@@ -261,10 +322,11 @@ static void handle_update(HinawaFwUnit *self,
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
 	priv = hinawa_fw_unit_get_instance_private(self);
 
-	priv->generation = event->generation;
+	g_mutex_lock(&priv->mutex);
+	memcpy(&priv->generation, event, sizeof(struct fw_cdev_get_info));
+	g_mutex_unlock(&priv->mutex);
 
-	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE], 0,
-		      NULL);
+	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE], 0, NULL);
 }
 
 static gboolean prepare_src(GSource *src, gint *timeout)
