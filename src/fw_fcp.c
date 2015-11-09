@@ -62,25 +62,19 @@ struct _HinawaFwFcpPrivate {
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwFcp, hinawa_fw_fcp, G_TYPE_OBJECT)
 
-static void hinawa_fw_fcp_dispose(GObject *obj)
+static void hinawa_fw_fcp_finalize(GObject *obj)
 {
 	HinawaFwFcp *self = HINAWA_FW_FCP(obj);
 
 	hinawa_fw_fcp_unlisten(self);
 
-	G_OBJECT_CLASS(hinawa_fw_fcp_parent_class)->dispose(obj);
-}
-
-static void hinawa_fw_fcp_finalize(GObject *gobject)
-{
-	G_OBJECT_CLASS(hinawa_fw_fcp_parent_class)->finalize(gobject);
+	G_OBJECT_CLASS(hinawa_fw_fcp_parent_class)->finalize(obj);
 }
 
 static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
-	gobject_class->dispose = hinawa_fw_fcp_dispose;
 	gobject_class->finalize = hinawa_fw_fcp_finalize;
 }
 

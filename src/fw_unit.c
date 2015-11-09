@@ -85,7 +85,7 @@ static void fw_unit_set_property(GObject *obj, guint id,
 	G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
 }
 
-static void fw_unit_dispose(GObject *obj)
+static void fw_unit_finalize(GObject *obj)
 {
 	HinawaFwUnit *self = HINAWA_FW_UNIT(obj);
 	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(self);
@@ -94,12 +94,7 @@ static void fw_unit_dispose(GObject *obj)
 
 	close(priv->fd);
 
-	G_OBJECT_CLASS(hinawa_fw_unit_parent_class)->dispose(obj);
-}
-
-static void fw_unit_finalize(GObject *gobject)
-{
-	G_OBJECT_CLASS(hinawa_fw_unit_parent_class)->finalize(gobject);
+	G_OBJECT_CLASS(hinawa_fw_unit_parent_class)->finalize(obj);
 }
 
 static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
@@ -108,7 +103,6 @@ static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 
 	gobject_class->get_property = fw_unit_get_property;
 	gobject_class->set_property = fw_unit_set_property;
-	gobject_class->dispose = fw_unit_dispose;
 	gobject_class->finalize = fw_unit_finalize;
 
 	fw_unit_props[FW_UNIT_PROP_TYPE_GENERATION] =

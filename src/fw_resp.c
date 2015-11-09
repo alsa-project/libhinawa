@@ -43,18 +43,13 @@ enum fw_resp_sig_type {
 };
 static guint fw_resp_sigs[FW_RESP_SIG_TYPE_COUNT] = { 0 };
 
-static void fw_resp_dispose(GObject *gobject)
+static void fw_resp_finalize(GObject *obj)
 {
-	HinawaFwResp *self = HINAWA_FW_RESP(gobject);
+	HinawaFwResp *self = HINAWA_FW_RESP(obj);
 
 	hinawa_fw_resp_unregister(self);
 
-	G_OBJECT_CLASS(hinawa_fw_resp_parent_class)->dispose(gobject);
-}
-
-static void fw_resp_finalize(GObject *gobject)
-{
-	G_OBJECT_CLASS(hinawa_fw_resp_parent_class)->finalize(gobject);
+	G_OBJECT_CLASS(hinawa_fw_resp_parent_class)->finalize(obj);
 }
 
 static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
@@ -63,7 +58,6 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 
 	gobject_class->get_property = NULL;
 	gobject_class->set_property = NULL;
-	gobject_class->dispose = fw_resp_dispose;
 	gobject_class->finalize = fw_resp_finalize;
 
 	/**

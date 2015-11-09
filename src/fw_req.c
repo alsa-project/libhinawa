@@ -41,24 +41,9 @@ struct _HinawaFwReqPrivate {
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwReq, hinawa_fw_req, G_TYPE_OBJECT)
 
-static void fw_req_dispose(GObject *gobject)
-{
-	G_OBJECT_CLASS(hinawa_fw_req_parent_class)->dispose(gobject);
-}
-
-static void fw_req_finalize(GObject *gobject)
-{
-	G_OBJECT_CLASS(hinawa_fw_req_parent_class)->finalize(gobject);
-}
-
 static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-
-	gobject_class->get_property = NULL;
-	gobject_class->set_property = NULL;
-	gobject_class->dispose = fw_req_dispose;
-	gobject_class->finalize = fw_req_finalize;
+	return;
 }
 
 static void hinawa_fw_req_init(HinawaFwReq *self)
