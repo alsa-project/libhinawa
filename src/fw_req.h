@@ -49,7 +49,7 @@ void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 			 GArray *frame, GError **exception);
 
 void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
-			GArray *frame, guint len, GError **exception);
+			GArray *frame, guint quads, GError **exception);
 
 void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit,
 			guint64 addr, GArray **frame, GError **exception);
