@@ -41,6 +41,7 @@
             <xi:include href="xml/snd_dice.xml"/>
             <xi:include href="xml/snd_efw.xml"/>
             <xi:include href="xml/snd_dg00x.xml"/>
+            <xi:include href="xml/snd_tascam.xml"/>
             <xi:include href="xml/annotation-glossary.xml">
                 <xi:fallback />
             </xi:include>

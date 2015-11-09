@@ -12,7 +12,7 @@ struct _HinawaSndTscmPrivate {
 };
 
 /**
- * SECTION:snd_tscm
+ * SECTION:snd_tascam
  * @Title: HinawaSndTscm
  * @Short_description: A notification listener for Dg00x models
  *
