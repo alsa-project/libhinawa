@@ -31,23 +31,8 @@ enum dg00x_sig_type {
 };
 static guint dg00x_sigs[DG00X_SIG_TYPE_COUNT] = { 0 };
 
-static void snd_dg00x_dispose(GObject *obj)
-{
-	G_OBJECT_CLASS(hinawa_snd_dg00x_parent_class)->dispose(obj);
-}
-
-static void snd_dg00x_finalize(GObject *gobject)
-{
-	G_OBJECT_CLASS(hinawa_snd_dg00x_parent_class)->finalize(gobject);
-}
-
 static void hinawa_snd_dg00x_class_init(HinawaSndDg00xClass *klass)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-
-	gobject_class->dispose = snd_dg00x_dispose;
-	gobject_class->finalize = snd_dg00x_finalize;
-
 	/**
 	 * HinawaSndDg00x::message:
 	 * @self: A #HinawaSndDg00x

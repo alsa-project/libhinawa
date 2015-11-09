@@ -40,23 +40,8 @@ enum dice_sig_type {
 };
 static guint dice_sigs[DICE_SIG_TYPE_COUNT] = { 0 };
 
-static void snd_dice_dispose(GObject *obj)
-{
-	G_OBJECT_CLASS(hinawa_snd_dice_parent_class)->dispose(obj);
-}
-
-static void snd_dice_finalize(GObject *gobject)
-{
-	G_OBJECT_CLASS(hinawa_snd_dice_parent_class)->finalize(gobject);
-}
-
 static void hinawa_snd_dice_class_init(HinawaSndDiceClass *klass)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-
-	gobject_class->dispose = snd_dice_dispose;
-	gobject_class->finalize = snd_dice_finalize;
-
 	/**
 	 * HinawaSndDice::notified:
 	 * @self: A #HinawaSndDice

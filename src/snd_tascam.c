@@ -28,22 +28,9 @@ G_DEFINE_QUARK("HinawaSndTscm", hinawa_snd_tscm)
 	g_set_error(exception, hinawa_snd_tscm_quark(), errno,	\
 		    "%d: %s", __LINE__, strerror(errno))
 
-static void snd_tscm_dispose(GObject *obj)
-{
-	G_OBJECT_CLASS(hinawa_snd_tscm_parent_class)->dispose(obj);
-}
-
-static void snd_tscm_finalize(GObject *gobject)
-{
-	G_OBJECT_CLASS(hinawa_snd_tscm_parent_class)->finalize(gobject);
-}
-
 static void hinawa_snd_tscm_class_init(HinawaSndTscmClass *klass)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-
-	gobject_class->dispose = snd_tscm_dispose;
-	gobject_class->finalize = snd_tscm_finalize;
+	return;
 }
 
 static void hinawa_snd_tscm_init(HinawaSndTscm *self)

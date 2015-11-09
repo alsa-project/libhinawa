@@ -114,7 +114,7 @@ static void snd_unit_set_property(GObject *obj, guint id,
 	G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
 }
 
-static void snd_unit_dispose(GObject *obj)
+static void snd_unit_finalize(GObject *obj)
 {
 	HinawaSndUnit *self = HINAWA_SND_UNIT(obj);
 	HinawaSndUnitPrivate *priv = hinawa_snd_unit_get_instance_private(self);
@@ -125,12 +125,7 @@ static void snd_unit_dispose(GObject *obj)
 	g_clear_object(&priv->req);
 	g_clear_object(&priv->fcp);
 
-	G_OBJECT_CLASS(hinawa_snd_unit_parent_class)->dispose(obj);
-}
-
-static void snd_unit_finalize(GObject *gobject)
-{
-	G_OBJECT_CLASS(hinawa_snd_unit_parent_class)->finalize(gobject);
+	G_OBJECT_CLASS(hinawa_snd_unit_parent_class)->finalize(obj);
 }
 
 static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
@@ -139,7 +134,6 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 
 	gobject_class->get_property = snd_unit_get_property;
 	gobject_class->set_property = snd_unit_set_property;
-	gobject_class->dispose = snd_unit_dispose;
 	gobject_class->finalize = snd_unit_finalize;
 
 	snd_unit_props[SND_UNIT_PROP_TYPE_FW_TYPE] =
