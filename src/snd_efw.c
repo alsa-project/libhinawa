@@ -78,22 +78,9 @@ struct _HinawaSndEfwPrivate {
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndEfw, hinawa_snd_efw, HINAWA_TYPE_SND_UNIT)
 
-static void snd_efw_dispose(GObject *obj)
-{
-	G_OBJECT_CLASS(hinawa_snd_efw_parent_class)->dispose(obj);
-}
-
-static void snd_efw_finalize(GObject *gobject)
-{
-	G_OBJECT_CLASS(hinawa_snd_efw_parent_class)->finalize(gobject);
-}
-
 static void hinawa_snd_efw_class_init(HinawaSndEfwClass *klass)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-
-	gobject_class->dispose = snd_efw_dispose;
-	gobject_class->finalize = snd_efw_finalize;
+	return;
 }
 
 static void hinawa_snd_efw_init(HinawaSndEfw *self)
