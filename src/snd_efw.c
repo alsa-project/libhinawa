@@ -137,7 +137,7 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 	int type;
 
 	struct efw_transaction trans;
-	__le32 *items;
+	guint32 *items;
 
 	unsigned int quads;
 	unsigned int count;
@@ -183,9 +183,9 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 		       args->data, args->len * sizeof(guint32));
 
 	/* The transactions are aligned to big-endian. */
-	items = (__le32 *)trans.frame;
+	items = (guint32 *)trans.frame;
 	for (i = 0; i < quads; i++)
-		items[i] = htobe32(items[i]);
+		items[i] = GUINT32_TO_BE(items[i]);
 
 	/* Insert this entry to list and enter critical section. */
 	g_mutex_lock(&priv->lock);
@@ -210,12 +210,12 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 		goto end;
 	}
 
-	quads = be32toh(trans.frame->length);
+	quads = GUINT32_FROM_BE(trans.frame->length);
 
 	/* The transactions are aligned to big-endian. */
-	items = (__le32 *)trans.frame;
+	items = (guint32 *)trans.frame;
 	for (i = 0; i < quads; i++)
-		items[i] = be32toh(items[i]);
+		items[i] = GUINT32_FROM_BE(items[i]);
 
 	/* Check transaction status. */
 	if (trans.frame->status != EFT_STATUS_OK) {
@@ -278,13 +278,14 @@ void hinawa_snd_efw_handle_response(HinawaSndEfw *self,
 		     entry != NULL; entry = entry->next) {
 			trans = (struct efw_transaction *)entry->data;
 
-			if (be32toh(resp_frame->seqnum) == trans->seqnum)
+			if (GUINT32_FROM_BE(resp_frame->seqnum) ==
+								trans->seqnum)
 				break;
 		}
 
 		g_mutex_unlock(&priv->lock);
 
-		quadlets = be32toh(resp_frame->length);
+		quadlets = GUINT32_FROM_BE(resp_frame->length);
 		if (trans != NULL) {
 			memcpy(trans->frame, resp_frame, quadlets * 4);
 			g_cond_signal(&trans->cond);

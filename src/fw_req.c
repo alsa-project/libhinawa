@@ -67,11 +67,11 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 	guint32 *buf;
 	int i;
 
-	/* From host order to be32. */
+	/* From host order to big-endian. */
 	if (frame != NULL) {
 		buf = (guint32 *)frame->data;
 		for (i = 0; i < frame->len; i++)
-			buf[i] = htobe32(buf[i]);
+			buf[i] = GUINT32_TO_BE(buf[i]);
 	}
 
 	/* Setup a private structure. */
@@ -126,11 +126,11 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 		g_mutex_unlock(&lock);
 	}
 
-	/* From be32 to host order. */
+	/* From big-endian to host order. */
 	if (frame != NULL) {
 		buf = (guint32 *)frame->data;
 		for (i = 0; i < frame->len; i++)
-			buf[i] = be32toh(buf[i]);
+			buf[i] = GUINT32_FROM_BE(buf[i]);
 	}
 
 	g_mutex_clear(&lock);

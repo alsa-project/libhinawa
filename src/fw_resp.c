@@ -201,7 +201,7 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 	/* For endiannness. */
 	buf = (guint32 *)priv->req_frame->data;
 	for (i = 0; i < quads; i++)
-		buf[i] = be32toh(buf[i]);
+		buf[i] = GUINT32_FROM_BE(buf[i]);
 
 	/* Emit signal to handlers. */
 	g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ], 0,
@@ -214,7 +214,7 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 	/* For endianness. */
 	buf = (guint32 *)resp_frame->data;
 	for (i = 0; i < resp_frame->len; i++)
-		buf[i] = htobe32(buf[i]);
+		buf[i] = GUINT32_TO_BE(buf[i]);
 
 	resp.length = resp_frame->len;
 	resp.data = (guint64)resp_frame->data;
