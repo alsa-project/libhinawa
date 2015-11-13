@@ -115,7 +115,8 @@ except Exception as e:
 req = Hinawa.FwReq()
 
 # Fireworks/BeBoB/OXFW supports FCP and some AV/C commands
-if snd_unit.get_property('type') is not 1 and not 5:
+snd_unit_type = snd_unit.get_property('type')
+if snd_unit_type is not 1 and snd_unit_type is not 5:
     request = bytes([0x01, 0xff, 0x19, 0x00, 0xff, 0xff, 0xff, 0xff])
     try:
         response = snd_unit.fcp_transact(request)
