@@ -31,12 +31,9 @@ G_BEGIN_DECLS
 
 typedef struct _HinawaSndDg00x		HinawaSndDg00x;
 typedef struct _HinawaSndDg00xClass	HinawaSndDg00xClass;
-typedef struct _HinawaSndDg00xPrivate	HinawaSndDg00xPrivate;
 
 struct _HinawaSndDg00x {
 	HinawaSndUnit parent_instance;
-
-	HinawaSndDg00xPrivate *priv;
 };
 
 struct _HinawaSndDg00xClass {
