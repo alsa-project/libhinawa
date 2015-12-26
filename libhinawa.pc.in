@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libhinawa
+Description: Input/Output library to audio and music units on IEEE 1394 bus
+Version: @VERSION@
+Requires: glib-2.0 gobject-2.0
+Libs: -L${libdir} -lhinawa
+Cflags: -I${includedir}/hinawa

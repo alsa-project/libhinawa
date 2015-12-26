@@ -59,6 +59,7 @@ AC_CONFIG_FILES([
   doc/Makefile
   doc/reference/Makefile
   doc/reference/version.xml
+  libhinawa.pc
 ])
 
 # Generate scripts and launch
