@@ -1,10 +1,8 @@
+#include <string.h>
+#include <errno.h>
 #include <sys/ioctl.h>
-#include "fw_req.h"
-#include "internal.h"
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include "internal.h"
 
 /**
  * SECTION:fw_req

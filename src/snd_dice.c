@@ -1,11 +1,7 @@
-#include <linux/types.h>
-#include <sound/firewire.h>
-#include "snd_dice.h"
-#include "internal.h"
+#include <string.h>
+#include <errno.h>
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include "internal.h"
 
 /**
  * SECTION:snd_dice

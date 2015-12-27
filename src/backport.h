@@ -1,21 +1,31 @@
-/* backporting from 3.16 */
+#ifndef _UAPI_SOUND_FIREWIRE_H_INCLUDED
+#define _UAPI_SOUND_FIREWIRE_H_INCLUDED
 
-/* alsa-lib 1.0.28 is a lack of some Hwdep interfaces */
-#ifndef SND_HWDEP_IFACE_FW_DICE
-#define SND_HWDEP_IFACE_FW_DICE		(SND_HWDEP_IFACE_SB_RC + 3)
-#define SND_HWDEP_IFACE_FW_FIREWORKS	(SND_HWDEP_IFACE_SB_RC + 4)
-#define SND_HWDEP_IFACE_FW_BEBOB	(SND_HWDEP_IFACE_SB_RC + 5)
-#define SND_HWDEP_IFACE_FW_OXFW		(SND_HWDEP_IFACE_SB_RC + 6)
-#endif
-
-
+#include <linux/ioctl.h>
 #include <linux/types.h>
 
+/* events can be read() from the hwdep device */
 
-#ifndef SND_EFW_TRANSACTION_USER_SEQNUM_MAX
+#define SNDRV_FIREWIRE_EVENT_LOCK_STATUS	0x000010cc
+#define SNDRV_FIREWIRE_EVENT_DICE_NOTIFICATION	0xd1ce004e
+#define SNDRV_FIREWIRE_EVENT_EFW_RESPONSE	0x4e617475
+#define SNDRV_FIREWIRE_EVENT_DIGI00X_MESSAGE	0x746e736c
+
+struct snd_firewire_event_common {
+	unsigned int type; /* SNDRV_FIREWIRE_EVENT_xxx */
+};
+
+struct snd_firewire_event_lock_status {
+	unsigned int type;
+	unsigned int status; /* 0/1 = unlocked/locked */
+};
+
+struct snd_firewire_event_dice_notification {
+	unsigned int type;
+	unsigned int notification; /* DICE-specific bits */
+};
 
 #define SND_EFW_TRANSACTION_USER_SEQNUM_MAX	((__u32)((__u16)~0) - 1)
-
 /* each field should be in big endian */
 struct snd_efw_transaction {
 	__be32 length;
@@ -31,34 +41,46 @@ struct snd_firewire_event_efw_response {
 	__be32 response[0];	/* some responses */
 };
 
-#define SNDRV_FIREWIRE_EVENT_EFW_RESPONSE       0x4e617475
-
-#define SNDRV_FIREWIRE_TYPE_FIREWORKS	2
-#define SNDRV_FIREWIRE_TYPE_BEBOB	3
-#define SNDRV_FIREWIRE_TYPE_OXFW	4
-#define SNDRV_FIREWIRE_TYPE_DIGI00X	5
-
-#endif
-
-#ifndef SND_HWDEP_IFACE_FW_DIGI00X
-#define SND_HWDEP_IFACE_FW_DIGI00X	(SND_HWDEP_IFACE_SB_RC + 7)
-
-#define SNDRV_FIREWIRE_EVENT_DIGI00x_MESSAGE    0x746e736c
-
 struct snd_firewire_event_digi00x_message {
 	unsigned int type;
 	__u32 message;	/* Digi00x-specific message */
 };
 
+union snd_firewire_event {
+	struct snd_firewire_event_common            common;
+	struct snd_firewire_event_lock_status       lock_status;
+	struct snd_firewire_event_dice_notification dice_notification;
+	struct snd_firewire_event_efw_response      efw_response;
+	struct snd_firewire_event_digi00x_message   digi00x_message;
+};
+
+
+#define SNDRV_FIREWIRE_IOCTL_GET_INFO _IOR('H', 0xf8, struct snd_firewire_get_info)
+#define SNDRV_FIREWIRE_IOCTL_LOCK      _IO('H', 0xf9)
+#define SNDRV_FIREWIRE_IOCTL_UNLOCK    _IO('H', 0xfa)
+
+#define SNDRV_FIREWIRE_TYPE_DICE	1
+#define SNDRV_FIREWIRE_TYPE_FIREWORKS	2
+#define SNDRV_FIREWIRE_TYPE_BEBOB	3
+#define SNDRV_FIREWIRE_TYPE_OXFW	4
 #define SNDRV_FIREWIRE_TYPE_DIGI00X	5
+#define SNDRV_FIREWIRE_TYPE_TASCAM	6
+/* RME, MOTU, ... */
 
-#endif
+struct snd_firewire_get_info {
+	unsigned int type; /* SNDRV_FIREWIRE_TYPE_xxx */
+	unsigned int card; /* same as fw_cdev_get_info.card */
+	unsigned char guid[8];
+	char device_name[16]; /* device node in /dev */
+};
 
-#ifndef SNDRV_FIREWIRE_TYPE_TASCAM
+/*
+ * SNDRV_FIREWIRE_IOCTL_LOCK prevents the driver from streaming.
+ * Returns -EBUSY if the driver is already streaming.
+ */
 
 struct snd_firewire_tascam_status {
 	__u32 status[64];
 };
 
-#define SNDRV_FIREWIRE_TYPE_TASCAM	6
-#endif
+#endif /* _UAPI_SOUND_FIREWIRE_H_INCLUDED */

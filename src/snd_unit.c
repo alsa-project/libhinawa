@@ -1,26 +1,17 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <string.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 
-#include <sound/firewire.h>
-
-#include "hinawa_context.h"
-#include "snd_unit.h"
-#include "fw_req.h"
-#include "fw_fcp.h"
-#include "snd_dice.h"
-#include "snd_efw.h"
-#include "snd_dg00x.h"
 #include "internal.h"
-
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include "hinawa_context.h"
+#include "fw_fcp.h"
 
 /**
  * SECTION:snd_unit
@@ -360,18 +351,6 @@ void hinawa_snd_unit_fcp_transact(HinawaSndUnit *self,
 }
 
 /* For internal use. */
-void hinawa_snd_unit_read(HinawaSndUnit *self,
-			  void *buf, unsigned int length,
-			  GError **exception)
-{
-	HinawaSndUnitPrivate *priv;
-
-	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
-	priv = hinawa_snd_unit_get_instance_private(self);
-
-	if (read(priv->fd, buf, length) != length)
-		raise(exception, errno);
-}
 void hinawa_snd_unit_write(HinawaSndUnit *self,
 			   const void *buf, unsigned int length,
 			   GError **exception)
@@ -384,21 +363,21 @@ void hinawa_snd_unit_write(HinawaSndUnit *self,
 	if (write(priv->fd, buf, length) != length)
 		raise(exception, errno);
 }
-void hinawa_snd_unit_mmap(HinawaSndUnit *self, unsigned int size,
-			  void **addr, GError **exception)
+
+void hinawa_snd_unit_mmap(HinawaSndUnit *self, unsigned int size, void **addr,
+			  GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
 
-	*addr = mmap(NULL, size, PROT_READ, MAP_FILE | MAP_SHARED,
-			priv->fd, 0);
+	*addr = mmap(NULL, size, PROT_READ, MAP_FILE | MAP_SHARED, priv->fd, 0);
 	if (*addr == MAP_FAILED)
 		raise(exception, errno);
 }
-void hinawa_snd_unit_munmap(HinawaSndUnit *self, unsigned int size,
-			    void *addr)
+
+void hinawa_snd_unit_munmap(HinawaSndUnit *self, unsigned int size, void *addr)
 {
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 
@@ -464,18 +443,24 @@ static gboolean check_src(GSource *gsrc)
 
 	if (common->type == SNDRV_FIREWIRE_EVENT_LOCK_STATUS)
 		handle_lock_event(unit, priv->buf, len);
+#if HAVE_SND_DICE
 	else if (HINAWA_IS_SND_DICE(unit) &&
 		 common->type == SNDRV_FIREWIRE_EVENT_DICE_NOTIFICATION)
 		hinawa_snd_dice_handle_notification(HINAWA_SND_DICE(unit),
 						    priv->buf, len);
+#endif
+#if HAVE_SND_EFW
 	else if (HINAWA_IS_SND_EFW(unit) &&
 		 common->type == SNDRV_FIREWIRE_EVENT_EFW_RESPONSE)
 		hinawa_snd_efw_handle_response(HINAWA_SND_EFW(unit),
 					       priv->buf, len);
+#endif
+#if HAVE_SND_DG00X
 	else if (HINAWA_IS_SND_DG00X(unit) &&
-		 common->type == SNDRV_FIREWIRE_EVENT_DIGI00x_MESSAGE)
+		 common->type == SNDRV_FIREWIRE_EVENT_DIGI00X_MESSAGE)
 		hinawa_snd_dg00x_handle_msg(HINAWA_SND_DG00X(unit),
-					       priv->buf, len);
+					    priv->buf, len);
+#endif
 end:
 	/* Don't go to dispatch, then continue to process this source. */
 	return FALSE;

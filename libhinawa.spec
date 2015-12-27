@@ -58,6 +58,7 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
 %files devel
 /usr/include/hinawa/*
+/usr/lib/*/pkgconfig/*
 /usr/share/gir-1.0/*
 /usr/share/gtk-doc/html/hinawa/*
 %{_docdir}/hinawa/*

@@ -1,13 +1,19 @@
 #ifndef __ALSA_TOOLS_HINAWA_INTERNAL_H__
 #define __ALSA_TOOLS_HINAWA_INTERNAL_H__
 
-#include <errno.h>
-#include <string.h>
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
 
 #include <linux/firewire-cdev.h>
 #include <linux/firewire-constants.h>
 
+#if WITH_BACKPORT
 #include "backport.h"
+#else
+#include <sound/firewire.h>
+#endif
+
 #include "fw_unit.h"
 #include "fw_resp.h"
 #include "fw_req.h"
@@ -22,16 +28,13 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 void hinawa_fw_req_handle_response(HinawaFwReq *self,
 				   struct fw_cdev_event_response *event);
 
-void hinawa_snd_unit_read(HinawaSndUnit *unit,
-			  void *buf, unsigned int length,
-			  GError **exception);
-void hinawa_snd_unit_write(HinawaSndUnit *unit,
+void hinawa_snd_unit_write(HinawaSndUnit *self,
 			   const void *buf, unsigned int length,
 			   GError **exception);
-void hinawa_snd_unit_mmap(HinawaSndUnit *self, unsigned int size,
-			  void **addr, GError **exception);
-void hinawa_snd_unit_munmap(HinawaSndUnit *self, unsigned int size,
-			    void *addr);
+void hinawa_snd_unit_mmap(HinawaSndUnit *self, unsigned int size, void **addr,
+			  GError **exception);
+void hinawa_snd_unit_munmap(HinawaSndUnit *self, unsigned int size, void *addr);
+
 void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 					 const void *buf, unsigned int len);
 void hinawa_snd_efw_handle_response(HinawaSndEfw *self,

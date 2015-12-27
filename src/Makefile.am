@@ -33,15 +33,7 @@ libhinawa_la_SOURCES =				\
 	fw_fcp.h				\
 	fw_fcp.c				\
 	snd_unit.h				\
-	snd_unit.c				\
-	snd_dice.h				\
-	snd_dice.c				\
-	snd_efw.h				\
-	snd_efw.c				\
-	snd_dg00x.h				\
-	snd_dg00x.c				\
-	snd_tascam.h				\
-	snd_tascam.c
+	snd_unit.c
 
 pkginclude_HEADERS =				\
 	hinawa_sigs_marshal.h			\
@@ -54,6 +46,30 @@ pkginclude_HEADERS =				\
 	snd_efw.h				\
 	snd_dg00x.h				\
 	snd_tascam.h
+
+if WITH_SND_DICE
+libhinawa_la_SOURCES +=				\
+	snd_dice.h				\
+	snd_dice.c
+endif
+
+if WITH_SND_EFW
+libhinawa_la_SOURCES +=				\
+	snd_efw.h				\
+	snd_efw.c
+endif
+
+if WITH_SND_DG00X
+libhinawa_la_SOURCES +=				\
+	snd_dg00x.h				\
+	snd_dg00x.c
+endif
+
+if WITH_SND_TSCM
+libhinawa_la_SOURCES +=				\
+	snd_tascam.h				\
+	snd_tascam.c
+endif
 
 hinawa_sigs_marshal.list:
 	$(AM_V_GEN)( find | grep \.c$$ | xargs cat | 			\

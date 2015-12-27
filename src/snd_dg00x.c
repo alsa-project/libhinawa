@@ -1,11 +1,7 @@
-#include <linux/types.h>
-#include <sound/firewire.h>
-#include "snd_dg00x.h"
-#include "internal.h"
+#include <string.h>
+#include <errno.h>
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include "internal.h"
 
 /**
  * SECTION:snd_dg00x

@@ -1,6 +1,9 @@
+#include <string.h>
+#include <errno.h>
+
 #include "fw_fcp.h"
-#include "fw_resp.h"
 #include "fw_req.h"
+#include "fw_resp.h"
 
 /**
  * SECTION:fw_fcp

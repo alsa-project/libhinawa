@@ -1,11 +1,8 @@
-#include <linux/types.h>
-#include <sound/firewire.h>
-#include "snd_tascam.h"
-#include "internal.h"
+#include <string.h>
+#include <errno.h>
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include "internal.h"
+#include "snd_tascam.h"
 
 struct _HinawaSndTscmPrivate {
 	struct snd_firewire_tascam_status *status;

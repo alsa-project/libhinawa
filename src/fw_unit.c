@@ -1,16 +1,13 @@
+#include <string.h>
+#include <errno.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "hinawa_context.h"
-#include "fw_unit.h"
 #include "internal.h"
-
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include "hinawa_context.h"
 
 /* For error handling. */
 G_DEFINE_QUARK("HinawaFwUnit", hinawa_fw_unit)

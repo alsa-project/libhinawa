@@ -1,11 +1,9 @@
+#include <string.h>
+#include <errno.h>
 #include <sys/ioctl.h>
-#include "fw_resp.h"
+
 #include "internal.h"
 #include "hinawa_sigs_marshal.h"
-
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
 
 /**
  * SECTION:fw_resp
