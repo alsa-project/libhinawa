@@ -192,7 +192,7 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 	}
 
 	/* Store requested frame. */
-	quads = event->length / 4;
+	quads = (event->length + sizeof(guint32) - 1) / sizeof(guint32);
 	g_array_set_size(priv->req_frame, quads);
 	memcpy(priv->req_frame->data, event->data, event->length);
 
