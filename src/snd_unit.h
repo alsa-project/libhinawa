@@ -59,9 +59,6 @@ void hinawa_snd_unit_write_transact(HinawaSndUnit *self,
 void hinawa_snd_unit_lock_transact(HinawaSndUnit *self,
 				   guint64 addr, GArray **frame,
 				   GError **exception);
-void hinawa_snd_unit_fcp_transact(HinawaSndUnit *self,
-				  GArray *req_frame, GArray *resp_frame,
-				  GError **exception);
 
 void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception);
 void hinawa_snd_unit_unlisten(HinawaSndUnit *self);

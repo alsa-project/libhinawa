@@ -11,7 +11,6 @@
 
 #include "internal.h"
 #include "hinawa_context.h"
-#include "fw_fcp.h"
 
 /**
  * SECTION:snd_unit
@@ -45,7 +44,6 @@ struct _HinawaSndUnitPrivate {
 	SndUnitSource *src;
 
 	HinawaFwReq *req;
-	HinawaFwFcp *fcp;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndUnit, hinawa_snd_unit, HINAWA_TYPE_FW_UNIT)
 
@@ -114,7 +112,6 @@ static void snd_unit_finalize(GObject *obj)
 
 	close(priv->fd);
 	g_clear_object(&priv->req);
-	g_clear_object(&priv->fcp);
 
 	G_OBJECT_CLASS(hinawa_snd_unit_parent_class)->finalize(obj);
 }
@@ -221,7 +218,6 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 		goto end;
 
 	priv->req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
-	priv->fcp = g_object_new(HINAWA_TYPE_FW_FCP, NULL);
 end:
 	if (*exception != NULL)
 		close(priv->fd);
@@ -328,26 +324,6 @@ void hinawa_snd_unit_lock_transact(HinawaSndUnit *self,
 
 	hinawa_fw_req_lock(priv->req, &self->parent_instance, addr, frame,
 			   exception);
-}
-
-/**
- * hinawa_snd_unit_fcp_transact:
- * @self: A #HinawaSndUnit
- * @req_frame:  (element-type guint8) (array) (in): a byte frame for request
- * @resp_frame: (element-type guint8) (array) (out caller-allocates): a byte
- *		frame for response
- * @exception: A #GError
- */
-void hinawa_snd_unit_fcp_transact(HinawaSndUnit *self,
-				  GArray *req_frame, GArray *resp_frame,
-				  GError **exception)
-{
-	HinawaSndUnitPrivate *priv;
-
-	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
-	priv = hinawa_snd_unit_get_instance_private(self);
-
-	hinawa_fw_fcp_transact(priv->fcp, req_frame, resp_frame, exception);
 }
 
 /* For internal use. */
@@ -538,12 +514,6 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 		return;
 	}
 
-	hinawa_fw_fcp_listen(priv->fcp, &self->parent_instance, exception);
-	if (*exception != NULL) {
-		hinawa_snd_unit_unlisten(self);
-		hinawa_fw_unit_unlisten(&self->parent_instance);
-	}
-
 	/* Check locked or not. */
 	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_LOCK, NULL) < 0) {
 		if (errno == EBUSY)
@@ -580,6 +550,5 @@ void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 	priv->buf = NULL;
 	priv->len = 0;
 
-	hinawa_fw_fcp_unlisten(priv->fcp);
 	hinawa_fw_unit_unlisten(&self->parent_instance);
 }

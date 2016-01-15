@@ -122,6 +122,12 @@ req = Hinawa.FwReq()
 # Fireworks/BeBoB/OXFW supports FCP and some AV/C commands
 snd_unit_type = snd_unit.get_property('type')
 if snd_unit_type is not 1 and snd_unit_type is not 5:
+    fcp = Hinawa.FwFcp()
+    try:
+        fcp.listen(snd_unit)
+    except Exception as e:
+        print(e)
+        sys.exit()
     request = bytearray(8)
     request[0] = 0x01
     request[1] = 0xff
@@ -131,7 +137,6 @@ if snd_unit_type is not 1 and snd_unit_type is not 5:
     request[5] = 0xff
     request[6] = 0xff
     request[7] = 0xff
-
     try:
         response = snd_unit.fcp_transact(request)
     except Exception as e:
@@ -140,6 +145,8 @@ if snd_unit_type is not 1 and snd_unit_type is not 5:
     print('FCP Response:')
     for i in range(len(response)):
         print(' [{0:02d}]: 0x{1:02x}'.format(i, ord(response[i])))
+    fcp.unlisten()
+    del fcp
 
 # Echo Fireworks Transaction
 if snd_unit.get_property("type") is 2:
