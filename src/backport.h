@@ -3,6 +3,7 @@
 
 #include <linux/ioctl.h>
 #include <linux/types.h>
+#include <glib.h>
 
 /* events can be read() from the hwdep device */
 
@@ -67,10 +68,15 @@ union snd_firewire_event {
 #define SNDRV_FIREWIRE_TYPE_TASCAM	6
 /* RME, MOTU, ... */
 
+typedef union {
+	unsigned char guid[8];
+	guint64 guid64;
+} snd_firewire_guid_info;
+
 struct snd_firewire_get_info {
 	unsigned int type; /* SNDRV_FIREWIRE_TYPE_xxx */
 	unsigned int card; /* same as fw_cdev_get_info.card */
-	unsigned char guid[8];
+	snd_firewire_guid_info guid_info;
 	char device_name[16]; /* device node in /dev */
 };
 
