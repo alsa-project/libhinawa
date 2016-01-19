@@ -83,7 +83,7 @@ static void snd_unit_get_property(GObject *obj, guint id,
 		break;
 	case SND_UNIT_PROP_TYPE_GUID:
 		g_value_set_uint64(val,
-				GUINT64_FROM_BE(*((guint64 *)priv->info.guid)));
+				GUINT64_FROM_BE(priv->info.guid_info.guid64));
 		break;
 	case SND_UNIT_PROP_TYPE_STREAMING:
 		g_value_set_boolean(val, priv->streaming);
