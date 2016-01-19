@@ -8,7 +8,7 @@ Build-Depends: debhelper (>= 8.0.0), autotools-dev,
     gtk-doc-tools (>= 1.18-2),
     gobject-introspection (>= 1.32.1),
     libgirepository1.0-dev (>= 1.32.1)
-Standards-Version: 3.9.4
+Standards-Version: 3.9.6
 Homepage: https://github.com/takaswie/libhinawa
 Vcs-Browser: https://github.com/takaswie/libhinawa.git
 
