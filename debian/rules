@@ -18,7 +18,7 @@ configure: configure-stamp
 configure-stamp:
 	# Add here commands to configure the package.
 	./autogen.sh
-	dh_auto_configure -- --prefix=/usr --enable-gtk-doc --docdir=/usr/share/doc/hinawa --enable-static=no
+	dh_auto_configure -- --prefix=/usr --enable-gtk-doc --enable-static=no
 
 	touch configure-stamp
 
