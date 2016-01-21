@@ -14,7 +14,7 @@ m4_define([my_iface],	[my_current:my_revision:my_age])
 # https://lists.gnu.org/archive/html/autotools-announce/2008-04/msg00002.html
 AC_PREREQ(2.62)
 # Initialize Autoconf
-AC_INIT([hinawa], [my_version], [o-takashi@sakamocchi.jp])
+AC_INIT([libhinawa], [my_version], [o-takashi@sakamocchi.jp])
 # The directory for helper scripts
 AC_CONFIG_AUX_DIR([config])
 # The directory for M4 macros
