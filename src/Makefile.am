@@ -32,6 +32,7 @@ libhinawa_la_SOURCES =				\
 	fw_req.c				\
 	fw_fcp.h				\
 	fw_fcp.c				\
+	internal.h				\
 	snd_unit.h				\
 	snd_unit.c
 
