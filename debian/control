@@ -19,7 +19,7 @@ Depends: ${shlibs:Depends}, ${misc:Depends},
     libglib2.0-0 (>= 2.32.0)
 Multi-Arch: same
 Description: Hinawa is an userspace library for IEEE 1394 transactions
- Hinawa is an gobject introspection library for devices connected to
+ Hinawa is an GObject introspection library for devices connected to
  IEEE 1394 bus. This library supports any types of transactions over
  IEEE 1394 bus.  This library also supports some functionality which
  ALSA firewire stack produces.
