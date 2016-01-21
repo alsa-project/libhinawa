@@ -26,7 +26,6 @@ Description: Hinawa is an userspace library for IEEE 1394 transactions.
 
 Package: gir1.2-hinawa-1.0
 Section: introspection
-Priority: optional
 Architecture: linux-any
 Depends: ${misc:Depends}, ${gir:Depends},
     libhinawa0 (= ${binary:Version}),
