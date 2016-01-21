@@ -21,6 +21,7 @@ libhinawa_la_LIBADD =				\
 	$(GLIB_LIBS)
 
 libhinawa_la_SOURCES =				\
+	hinawa_context.h			\
 	hinawa_context.c			\
 	hinawa_sigs_marshal.h			\
 	hinawa_sigs_marshal.c			\
