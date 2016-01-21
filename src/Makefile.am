@@ -35,7 +35,8 @@ libhinawa_la_SOURCES =				\
 	fw_fcp.c				\
 	internal.h				\
 	snd_unit.h				\
-	snd_unit.c
+	snd_unit.c				\
+	backport.h
 
 pkginclude_HEADERS =				\
 	hinawa_sigs_marshal.h			\
