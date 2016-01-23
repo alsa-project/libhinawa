@@ -1,0 +1,2 @@
+version=3
+opts=filenamemangle=s/.+\/v?(\d\S*)\.tar\.gz/libhinawa-$1\.tar\.gz/ https://github.com/takaswie/libhinawa/tags .*/v?(\d\S*)\.tar\.gz
