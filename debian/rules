@@ -8,4 +8,4 @@
 	dh $@ --with autotools-dev --with gir
 
 override_dh_auto_configure:
-	dh_auto_configure -- --prefix=/usr --enable-gtk-doc --enable-static=no
+	dh_auto_configure -- --enable-gtk-doc --enable-static=no
