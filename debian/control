@@ -52,3 +52,11 @@ Depends: ${misc:Depends},
     libhinawa0 (= ${binary:Version})
 Description: libhinawa debugging symbols
  This package contains libhinawa debugging symbols.
+ .
+ Usually, there is no need to generate -dbg by manually because -dbgsym
+ package is generated automatically on Debian and as a result it becomes to
+ empty package.
+ .
+ This -dbg package is kept for Debian derivative distribution such as Ubuntu.
+ (In contrast to Debian, it is required to install Ubuntu specific package -
+ pkg-create-dbgsym explicitly)
