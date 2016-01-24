@@ -162,7 +162,7 @@ deferred:
 		goto end;
 
 	/* It's a deffered transaction, wait 200 milli-seconds again. */
-	if (trans.resp_frame->data[0] >> 24 == AVC_STATUS_INTERIM) {
+	if (trans.resp_frame->data[0] == AVC_STATUS_INTERIM) {
 		expiration = g_get_monotonic_time() +
 			     200 * G_TIME_SPAN_MILLISECOND;
 		goto deferred;
