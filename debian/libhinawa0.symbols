@@ -1,41 +1,33 @@
 libhinawa.so.0 libhinawa0 #MINVER#
- hinawa_context_add_src@Base 0.6.0
- hinawa_context_remove_src@Base 0.6.0
  hinawa_fw_fcp_get_type@Base 0.6.0
  hinawa_fw_fcp_listen@Base 0.6.0
  hinawa_fw_fcp_quark@Base 0.6.0
  hinawa_fw_fcp_transact@Base 0.6.0
  hinawa_fw_fcp_unlisten@Base 0.6.0
  hinawa_fw_req_get_type@Base 0.6.0
- hinawa_fw_req_handle_response@Base 0.6.0
  hinawa_fw_req_lock@Base 0.6.0
  hinawa_fw_req_quark@Base 0.6.0
  hinawa_fw_req_read@Base 0.6.0
  hinawa_fw_req_write@Base 0.6.0
  hinawa_fw_resp_get_type@Base 0.6.0
- hinawa_fw_resp_handle_request@Base 0.6.0
  hinawa_fw_resp_quark@Base 0.6.0
  hinawa_fw_resp_register@Base 0.6.0
  hinawa_fw_resp_unregister@Base 0.6.0
  hinawa_fw_unit_get_config_rom@Base 0.6.0
  hinawa_fw_unit_get_type@Base 0.6.0
- hinawa_fw_unit_ioctl@Base 0.6.0
  hinawa_fw_unit_listen@Base 0.6.0
  hinawa_fw_unit_open@Base 0.6.0
  hinawa_fw_unit_quark@Base 0.6.0
  hinawa_fw_unit_unlisten@Base 0.6.0
  hinawa_sigs_marshal_BOXED__INT_BOXED@Base 0.6.0
  hinawa_snd_dg00x_get_type@Base 0.6.0
- hinawa_snd_dg00x_handle_msg@Base 0.6.0
  hinawa_snd_dg00x_open@Base 0.6.0
  hinawa_snd_dg00x_quark@Base 0.6.0
  hinawa_snd_dice_get_type@Base 0.6.0
- hinawa_snd_dice_handle_notification@Base 0.6.0
  hinawa_snd_dice_open@Base 0.6.0
  hinawa_snd_dice_quark@Base 0.6.0
  hinawa_snd_dice_transact@Base 0.6.0
  hinawa_snd_efw_get_type@Base 0.6.0
- hinawa_snd_efw_handle_response@Base 0.6.0
  hinawa_snd_efw_open@Base 0.6.0
  hinawa_snd_efw_quark@Base 0.6.0
  hinawa_snd_efw_transact@Base 0.6.0
@@ -47,8 +39,6 @@ libhinawa.so.0 libhinawa0 #MINVER#
  hinawa_snd_unit_listen@Base 0.6.0
  hinawa_snd_unit_lock@Base 0.6.0
  hinawa_snd_unit_lock_transact@Base 0.6.0
- hinawa_snd_unit_mmap@Base 0.6.0
- hinawa_snd_unit_munmap@Base 0.6.0
  hinawa_snd_unit_open@Base 0.6.0
  hinawa_snd_unit_quark@Base 0.6.0
  hinawa_snd_unit_read_transact@Base 0.6.0
