@@ -15,7 +15,8 @@ lib_LTLIBRARIES =				\
 	libhinawa.la
 
 libhinawa_la_LDFLAGS =				\
-	-version-info $(LT_IFACE)
+	-version-info $(LT_IFACE)		\
+	-export-symbols $(top_srcdir)/src/hinawa.symbols
 
 libhinawa_la_LIBADD =				\
 	$(GLIB_LIBS)
@@ -36,7 +37,8 @@ libhinawa_la_SOURCES =				\
 	internal.h				\
 	snd_unit.h				\
 	snd_unit.c				\
-	backport.h
+	backport.h				\
+	hinawa.symbols
 
 pkginclude_HEADERS =				\
 	hinawa_sigs_marshal.h			\
