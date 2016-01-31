@@ -18,10 +18,10 @@ Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends}, ${misc:Depends},
     libglib2.0-0 (>= 2.32.0)
 Multi-Arch: same
-Description: Hinawa is an userspace library for IEEE 1394 transactions
- Hinawa is an GObject introspection library for devices connected to
- IEEE 1394 bus. This library supports any types of transactions over
- IEEE 1394 bus.  This library also supports some functionality which
+Description: I/O library for IEEE 1394 asynchronous transactions
+ This is an I/O library for units on IEEE 1394 bus. This library
+ supports any types of asynchronous transactions over IEEE 1394 bus.
+ Additionally, this library also supports some functionalities which
  ALSA firewire stack produces.
 
 Package: gir1.2-hinawa-1.0
@@ -29,9 +29,11 @@ Section: introspection
 Architecture: linux-any
 Depends: ${misc:Depends}, ${gir:Depends},
     libhinawa0 (= ${binary:Version}),
-Description: libhinawa-1.0 introspection data
- This package contains the GObject-introspection data of libhinawa-1.0 in
- binary typelib format.
+Description: GObjet introspection data for libhinawa0
+ This package contains introspection data for libhinawa0. It can be
+ used by packages using the GIRepository format to generate dynamic
+ bindings, or it can be used by interpreters understanding the
+ GIReporsitory format to libhinawa0.
 
 Package: libhinawa-dev
 Section: libdevel
@@ -40,6 +42,10 @@ Depends: ${misc:Depends},
     libhinawa0 (= ${binary:Version}),
     libglib2.0-dev (>= 2.32.0),
     libgirepository1.0-dev (>= 1.32.1),
-Description: libhinawa development package
- This package contains libraries and header files for
- developing applications that use libhinawa.
+Description: I/O library for IEEE 1394 asynchronous transactions (development file)
+ Libhinawa is an I/O library for units on IEEE 1394 bus. This library
+ supports any types of asynchronous transactions over IEEE 1394 bus.
+ Additionally, this library also supports some functionalities which
+ ALSA firewire stack produces.
+ This package contains development files including C headers and
+ XML data for GIRepository.
