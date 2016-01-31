@@ -56,14 +56,12 @@ GOBJECT_INTROSPECTION_REQUIRE([1.32.1])
 with_snd_dice='no'
 with_snd_efw='no'
 with_snd_dg00x='no'
-with_snd_tscm='no'
 AC_CHECK_FILE(
     [src/backport.h],
     [AC_DEFINE([WITH_BACKPORT], [1], [Define if backport header is available])
      with_snd_dice='yes'
      with_snd_efw='yes'
-     with_snd_dg00x='yes'
-     with_snd_tscm='yes'],
+     with_snd_dg00x='yes'],
     [AC_CHECK_TYPE([struct snd_firewire_event_dice_notification],
                    [with_snd_dice='yes'], [],
                    [#include <sound/firewire.h>])
@@ -72,23 +70,17 @@ AC_CHECK_FILE(
                    [#include <sound/firewire.h>])
      AC_CHECK_TYPE([struct snd_firewire_event_digi00x_message],
                    [with_snd_dg00x='yes'], [],
-                   [[#include <sound/firewire.h>]])
-     AC_CHECK_TYPE([struct snd_firewire_tascam_status],
-                   [with_snd_tscm='yes'], [],
                    [[#include <sound/firewire.h>]])]
 )
 AM_CONDITIONAL(WITH_SND_DICE,  [test x$with_snd_dice = xyes])
 AM_CONDITIONAL(WITH_SND_EFW,   [test x$with_snd_efw = xyes])
 AM_CONDITIONAL(WITH_SND_DG00X, [test x$with_snd_dg00x = xyes])
-AM_CONDITIONAL(WITH_SND_TSCM, [test x$with_snd_tscm = xyes])
 AS_IF([test x$with_snd_dice = xyes],
       [AC_DEFINE([HAVE_SND_DICE], [1], [Define if snd_dice is available])])
 AS_IF([test x$with_snd_efw = xyes],
       [AC_DEFINE([HAVE_SND_EFW], [1], [Define if snd_efw is available])])
 AS_IF([test x$with_snd_dg00x = xyes],
       [AC_DEFINE([HAVE_SND_DG00X], [1], [Define if snd_efw is available])])
-AS_IF([test x$with_snd_tscm = xyes],
-      [AC_DEFINE([HAVE_SND_TSCM], [1], [Define if snd_tscm is available])])
 
 # The files generated from *.in
 AC_CONFIG_FILES([

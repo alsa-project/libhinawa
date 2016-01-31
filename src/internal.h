@@ -31,9 +31,6 @@ void hinawa_fw_req_handle_response(HinawaFwReq *self,
 void hinawa_snd_unit_write(HinawaSndUnit *self,
 			   const void *buf, unsigned int length,
 			   GError **exception);
-void hinawa_snd_unit_mmap(HinawaSndUnit *self, unsigned int size, void **addr,
-			  GError **exception);
-void hinawa_snd_unit_munmap(HinawaSndUnit *self, unsigned int size, void *addr);
 
 void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 					 const void *buf, unsigned int len);

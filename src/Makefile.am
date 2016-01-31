@@ -49,8 +49,7 @@ pkginclude_HEADERS =				\
 	snd_unit.h				\
 	snd_dice.h				\
 	snd_efw.h				\
-	snd_dg00x.h				\
-	snd_tascam.h
+	snd_dg00x.h
 
 if WITH_SND_DICE
 libhinawa_la_SOURCES +=				\
@@ -68,12 +67,6 @@ if WITH_SND_DG00X
 libhinawa_la_SOURCES +=				\
 	snd_dg00x.h				\
 	snd_dg00x.c
-endif
-
-if WITH_SND_TSCM
-libhinawa_la_SOURCES +=				\
-	snd_tascam.h				\
-	snd_tascam.c
 endif
 
 hinawa_sigs_marshal.list:

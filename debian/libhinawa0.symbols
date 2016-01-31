@@ -31,10 +31,6 @@ libhinawa.so.0 libhinawa0 #MINVER#
  hinawa_snd_efw_open@Base 0.6.0
  hinawa_snd_efw_quark@Base 0.6.0
  hinawa_snd_efw_transact@Base 0.6.0
- hinawa_snd_tscm_get_status@Base 0.6.0
- hinawa_snd_tscm_get_type@Base 0.6.0
- hinawa_snd_tscm_open@Base 0.6.0
- hinawa_snd_tscm_quark@Base 0.6.0
  hinawa_snd_unit_get_type@Base 0.6.0
  hinawa_snd_unit_listen@Base 0.6.0
  hinawa_snd_unit_lock@Base 0.6.0
