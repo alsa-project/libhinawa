@@ -80,7 +80,7 @@ AS_IF([test x$with_snd_dice = xyes],
 AS_IF([test x$with_snd_efw = xyes],
       [AC_DEFINE([HAVE_SND_EFW], [1], [Define if snd_efw is available])])
 AS_IF([test x$with_snd_dg00x = xyes],
-      [AC_DEFINE([HAVE_SND_DG00X], [1], [Define if snd_efw is available])])
+      [AC_DEFINE([HAVE_SND_DG00X], [1], [Define if snd_dg00x is available])])
 
 # The files generated from *.in
 AC_CONFIG_FILES([
