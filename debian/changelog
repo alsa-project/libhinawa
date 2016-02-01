@@ -10,6 +10,7 @@ libhinawa (0.7.0-1) unstable; urgency=medium
   * debian/copyright
     - specify License: field correctly.
     - add missing License: paragraph.
+    - note that backport.h comes from Linux UAPI header.
   * debian/rules
     - simplify rules by using dh_* efficiently..
   * debian/watch
