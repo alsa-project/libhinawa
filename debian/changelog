@@ -1,3 +1,25 @@
+libhinawa (0.7.0-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release 0.7.0
+  * debian/control
+    - requires to debhelper 9 or later.
+    - update to the latest standards-version.
+  * debian/source/format
+    - add missing source/format.
+  * debian/copyright
+    - specify License: field correctly.
+    - add missing License: paragraph.
+    - note that backport.h comes from Linux UAPI header.
+  * debian/rules
+    - simplify rules by using dh_* efficiently..
+  * debian/watch
+    - add missing watch file.
+  * debian/libhinawa0.symbols
+    - add missing symbol file.
+
+ -- HAYASHI Kentaro <hayashi@clear-code.com>  Mon, 01 Feb 2016 21:55:37 +0900
+
 libhinawa (0.6.0-1) unstable; urgency=medium
 
   * New upstream release 0.6.0
