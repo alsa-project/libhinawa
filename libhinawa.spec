@@ -35,7 +35,7 @@ developing applications that use %{name}.
 
 
 %build
-%configure --enable-gtk-doc
+%configure --enable-gtk-doc --disable-static
 #make %{?_smp_mflags}
 make
 
@@ -52,12 +52,13 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
 
 %files
-%{_libdir}/libhinawa.*
+%{_libdir}/libhinawa.so.*
 %{_libdir}/girepository-1.0/*
 
 %files devel
 %{_includedir}/libhinawa/*
 %{_libdir}/pkgconfig/*
+%{_libdir}/libhinawa.so
 %{_datadir}/gir-1.0/*
 %{_datadir}/gtk-doc/html/hinawa/*
 %{_docdir}/libhinawa/*
