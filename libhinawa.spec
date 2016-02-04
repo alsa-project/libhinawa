@@ -35,7 +35,7 @@ developing applications that use %{name}.
 
 
 %build
-%configure --enable-gtk-doc --prefix=$RPM_BUILD_ROOT
+%configure --enable-gtk-doc
 #make %{?_smp_mflags}
 make
 
