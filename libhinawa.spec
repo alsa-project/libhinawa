@@ -35,7 +35,6 @@ developing applications that use %{name}.
 
 
 %build
-./autogen.sh
 %configure --enable-gtk-doc --prefix=$RPM_BUILD_ROOT
 #make %{?_smp_mflags}
 make
