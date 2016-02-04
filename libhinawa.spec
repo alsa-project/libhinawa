@@ -56,10 +56,10 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 %{_libdir}/girepository-1.0/*
 
 %files devel
-/usr/include/libhinawa/*
-/usr/lib/*/pkgconfig/*
-/usr/share/gir-1.0/*
-/usr/share/gtk-doc/html/hinawa/*
+%{_includedir}/libhinawa/*
+%{_libdir}/pkgconfig/*
+%{_datadir}/gir-1.0/*
+%{_datadir}/gtk-doc/html/hinawa/*
 %{_docdir}/libhinawa/*
 
 
