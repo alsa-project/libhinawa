@@ -1,7 +1,7 @@
 Name:			libhinawa
 Version:		0.7.0
 Release:		1%{?dist}
-Summary:		Hinawa is an gobject introspection library for devices connected to IEEE 1394 bus.
+Summary:		Hinawa is an gobject introspection library for devices connected to IEEE 1394 bus
 
 License:		LGPLv2
 URL:			https://github.com/takaswie/libhinawa
