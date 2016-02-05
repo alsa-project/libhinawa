@@ -1,7 +1,7 @@
 Name:			libhinawa
 Version:		0.7.0
 Release:		1%{?dist}
-Summary:		Hinawa is an gobject introspection library for devices connected to IEEE 1394 bus.
+Summary:		GObject introspection library for devices connected to IEEE 1394 bus
 
 License:		LGPLv2
 URL:			https://github.com/takaswie/libhinawa
@@ -35,8 +35,7 @@ developing applications that use %{name}.
 
 
 %build
-./autogen.sh
-%configure --enable-gtk-doc --prefix=$RPM_BUILD_ROOT
+%configure --enable-gtk-doc --disable-static
 #make %{?_smp_mflags}
 make
 
@@ -53,17 +52,21 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
 
 %files
-%{_libdir}/libhinawa.*
+%{_libdir}/libhinawa.so.*
 %{_libdir}/girepository-1.0/*
 
 %files devel
-/usr/include/libhinawa/*
-/usr/lib/*/pkgconfig/*
-/usr/share/gir-1.0/*
-/usr/share/gtk-doc/html/hinawa/*
+%{_includedir}/libhinawa/*
+%{_libdir}/pkgconfig/*
+%{_libdir}/libhinawa.so
+%{_datadir}/gir-1.0/*
+%{_datadir}/gtk-doc/html/hinawa/*
 %{_docdir}/libhinawa/*
 
 
 %changelog
-* Tue Mar  3 2015 Yoshihiro Okada
--
+* Fri Feb  5 2016 HAYASHI Kentaro <hayashi@clear-code.com> - 0.7.0-1
+- new upstream release.
+
+* Tue Mar  3 2015 Yoshihiro Okada - 0.5.0-1
+- new upstream release.
