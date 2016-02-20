@@ -27,7 +27,7 @@ AC_CONFIG_HEADERS([config.h])
 
 # Automake 1.10 or later
 # GObject Introspection uses GNU Make-specific functionality.
-AM_INIT_AUTOMAKE([1.10.1  -Wno-portability])
+AM_INIT_AUTOMAKE([1.10.1 -Wno-portability foreign])
 # Don't output command lines
 AM_SILENT_RULES([yes])
 
