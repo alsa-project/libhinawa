@@ -21,11 +21,14 @@ libhinawa_la_LDFLAGS =				\
 libhinawa_la_LIBADD =				\
 	$(GLIB_LIBS)
 
+BUILT_SOURCES =					\
+	hinawa_sigs_marshal.h			\
+	hinawa_sigs_marshal.c
+
 libhinawa_la_SOURCES =				\
+	$(BUILT_SOURCES)			\
 	hinawa_context.h			\
 	hinawa_context.c			\
-	hinawa_sigs_marshal.h			\
-	hinawa_sigs_marshal.c			\
 	fw_unit.h				\
 	fw_unit.c				\
 	fw_resp.h				\
