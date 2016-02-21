@@ -41,7 +41,6 @@ libhinawa_la_SOURCES =				\
 	hinawa.symbols
 
 pkginclude_HEADERS =				\
-	hinawa_sigs_marshal.h			\
 	fw_unit.h				\
 	fw_resp.h				\
 	fw_req.h				\
