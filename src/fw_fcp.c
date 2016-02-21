@@ -197,7 +197,7 @@ static GArray *handle_response(HinawaFwResp *self, gint tcode,
 
 	g_mutex_lock(&priv->lock);
 
-	/* Seek correcponding request. */
+	/* Seek corresponding request. */
 	for (entry = priv->transactions; entry != NULL; entry = entry->next) {
 		trans = (struct fcp_transaction *)entry->data;
 
