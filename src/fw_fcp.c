@@ -143,7 +143,9 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	g_mutex_init(&local_lock);
 
 	/* Send this request frame. */
-	hinawa_fw_req_write(req, priv->unit, FCP_REQUEST_ADDR, trans.req_frame,
+	hinawa_fw_req_write(req, priv->unit, FCP_REQUEST_ADDR,
+			    (guint32 *)trans.req_frame->data,
+			    trans.req_frame->len,
 			    exception);
 	if (*exception != NULL)
 		goto end;
