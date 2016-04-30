@@ -1,3 +1,13 @@
+libhinawa (0.7.0-2) unstable; urgency=medium
+
+  * Team upload.
+  * debian/control
+    - set Architecture: linux-any for all package to avoid build with non-linux
+      arch (debian#823011).
+    - bump standars-version to 3.9.8
+
+ -- Takashi Sakamoto <o-takashi@sakamocchi.jp>  Sat, 30 Apr 2016 22:47:35 +0900
+
 libhinawa (0.7.0-1) unstable; urgency=medium
 
   * Team upload.
