@@ -2,6 +2,7 @@ Source: libhinawa
 Section: libs
 Priority: optional
 Maintainer: Takashi Sakamoto <o-takashi@sakamocchi.jp>
+Uploaders: HAYASHI Kentaro <hayashi@clear-code.com>
 Build-Depends: debhelper (>= 9), autotools-dev,
     automake (>= 1.10), autoconf (>= 2.62), libtool (>= 2.2.6),
     libglib2.0-dev (>= 2.32.0),

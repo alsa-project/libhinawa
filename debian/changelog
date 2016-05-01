@@ -1,6 +1,5 @@
 libhinawa (0.7.0-2) unstable; urgency=medium
 
-  * Team upload.
   * debian/control
     - set Architecture: linux-any for all package to avoid build with non-linux
       arch (debian#823011).
@@ -10,7 +9,6 @@ libhinawa (0.7.0-2) unstable; urgency=medium
 
 libhinawa (0.7.0-1) unstable; urgency=medium
 
-  * Team upload.
   * New upstream release 0.7.0
   * debian/control
     - requires to debhelper 9 or later.
