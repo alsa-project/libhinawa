@@ -5,8 +5,9 @@ libhinawa (0.7.0-2) unstable; urgency=medium
       arch (Closes: #823011).
     - bump standars-version to 3.9.8.
     - add 'Uploaders' field.
+    - support cryptographic signature verification.
 
- -- Takashi Sakamoto <o-takashi@sakamocchi.jp>  Mon, 02 May 2016 08:00:36 +0900
+ -- Takashi Sakamoto <o-takashi@sakamocchi.jp>  Sat, 14 May 2016 19:26:27 +0900
 
 libhinawa (0.7.0-1) unstable; urgency=medium
 
