@@ -8,7 +8,7 @@ libhinawa (0.7.0-2) unstable; urgency=medium
   * debian/watch
     - support cryptographic signature verification.
 
- -- Takashi Sakamoto <o-takashi@sakamocchi.jp>  Sat, 14 May 2016 19:26:27 +0900
+ -- Kentaro Hayashi <hayashi@clear-code.com>  Sat, 14 May 2016 22:23:32 +0900
 
 libhinawa (0.7.0-1) unstable; urgency=medium
 
