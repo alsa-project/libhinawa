@@ -5,6 +5,7 @@ libhinawa (0.7.0-2) unstable; urgency=medium
       arch (Closes: #823011).
     - bump standars-version to 3.9.8.
     - add 'Uploaders' field.
+  * debian/watch
     - support cryptographic signature verification.
 
  -- Takashi Sakamoto <o-takashi@sakamocchi.jp>  Sat, 14 May 2016 19:26:27 +0900
