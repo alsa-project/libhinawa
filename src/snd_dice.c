@@ -122,7 +122,8 @@ void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr,
 	g_cond_init(&waiter.cond);
 
 	waiter.bit_flag = bit_flag;
-	hinawa_snd_unit_write_transact(&self->parent_instance, addr, frame,
+	hinawa_snd_unit_write_transact(&self->parent_instance, addr,
+				       (guint32 *)frame->data, frame->len,
 				       exception);
 	if (*exception != NULL)
 		goto end;

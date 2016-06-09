@@ -270,36 +270,42 @@ void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
  * hinawa_snd_unit_read_transact:
  * @self: A #HinawaSndUnit
  * @addr: A destination address of target device
- * @frame: (element-type guint32) (array) (out caller-allocates): a 32bit array
  * @len: the bytes to read
+ * @frame: (array length=read_len) (out) (nullable): The read data
+ * @read_len: (optional): The read bytes
  * @exception: A #GError
  *
  * Execute read transaction to the given unit.
  */
 void hinawa_snd_unit_read_transact(HinawaSndUnit *self,
-				   guint64 addr, GArray *frame, guint len,
+				   guint64 addr, guint len,
+                                   guint32 **frame, guint *read_len,
 				   GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
 
+	*frame = NULL;
+	if (read_len)
+		*read_len = 0;
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
 
-	hinawa_fw_req_read(priv->req, &self->parent_instance, addr, frame, len,
-			   exception);
+	hinawa_fw_req_read(priv->req, &self->parent_instance, addr,
+			   len, frame, read_len, exception);
 }
 
 /**
  * hinawa_snd_unit_write_transact:
  * @self: A #HinawaSndUnit
  * @addr: A destination address of target device
- * @frame: (element-type guint32) (array) (in): a 32bit array
+ * @frame: (array length=len): a 32bit array
+ * @len: the bytes to write
  * @exception: A #GError
  *
  * Execute write transactions to the given unit.
  */
 void hinawa_snd_unit_write_transact(HinawaSndUnit *self,
-				    guint64 addr, GArray *frame,
+				    guint64 addr, guint32 *frame, guint len,
 				    GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
@@ -307,7 +313,7 @@ void hinawa_snd_unit_write_transact(HinawaSndUnit *self,
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
 
-	hinawa_fw_req_write(priv->req, &self->parent_instance, addr, frame,
+	hinawa_fw_req_write(priv->req, &self->parent_instance, addr, frame, len,
 			    exception);
 }
 
@@ -315,13 +321,14 @@ void hinawa_snd_unit_write_transact(HinawaSndUnit *self,
  * hinawa_snd_unit_lock_transact:
  * @self: A #HinawaSndUnit
  * @addr: A destination address of target device
- * @frame: (element-type guint32) (array) (inout): a 32bit array
+ * @frame: (array length=len) (inout): a 32bit array
+ * @len: (in): the bytes to lock
  * @exception: A #GError
  *
  * Execute lock transaction to the given unit.
  */
 void hinawa_snd_unit_lock_transact(HinawaSndUnit *self,
-				   guint64 addr, GArray **frame,
+				   guint64 addr, guint32 **frame, guint len,
 				   GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
@@ -329,7 +336,7 @@ void hinawa_snd_unit_lock_transact(HinawaSndUnit *self,
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
 
-	hinawa_fw_req_lock(priv->req, &self->parent_instance, addr, frame,
+	hinawa_fw_req_lock(priv->req, &self->parent_instance, addr, frame, len,
 			   exception);
 }
 

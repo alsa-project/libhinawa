@@ -33,7 +33,7 @@ enum fw_req_type {
 
 /* NOTE: This object has no properties and no signals. */
 struct _HinawaFwReqPrivate {
-	GArray *frame;
+	guint32 *frame;
 
 	GCond cond;
 };
@@ -50,7 +50,8 @@ static void hinawa_fw_req_init(HinawaFwReq *self)
 }
 
 static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
-			    enum fw_req_type type, guint64 addr, GArray *frame,
+			    enum fw_req_type type, guint64 addr,
+			    guint32 *frame, guint quads,
 			    gint *err)
 {
 	struct fw_cdev_send_request req = {0};
@@ -62,35 +63,33 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 	guint64 expiration;
 	GMutex lock;
 
-	guint32 *buf;
 	int i;
 
 	/* From host order to big-endian. */
 	if (frame != NULL) {
-		buf = (guint32 *)frame->data;
-		for (i = 0; i < frame->len; i++)
-			buf[i] = GUINT32_TO_BE(buf[i]);
+		for (i = 0; i < quads; i++)
+			frame[i] = GUINT32_TO_BE(frame[i]);
 	}
 
 	/* Setup a private structure. */
 	if (type == FW_REQ_TYPE_READ) {
 		priv->frame = frame;
 		req.data = (guint64)NULL;
-		if (frame->len == 1)
+		if (quads == 1)
 			tcode = TCODE_READ_QUADLET_REQUEST;
 		else
 			tcode = TCODE_READ_BLOCK_REQUEST;
 	} else if (type == FW_REQ_TYPE_WRITE) {
 		priv->frame = NULL;
-		req.data = (guint64)frame->data;
-		if (frame->len == 1)
+		req.data = (guint64)frame;
+		if (quads == 1)
 			tcode = TCODE_WRITE_QUADLET_REQUEST;
 		else
 			tcode = TCODE_WRITE_BLOCK_REQUEST;
 	} else if ((type == FW_REQ_TYPE_COMPARE_SWAP) &&
-		   ((frame->len == 2) || (frame->len == 4))) {
+		   ((quads == 2) || (quads == 4))) {
 			priv->frame = NULL;
-			req.data = (guint64)frame->data;
+			req.data = (guint64)frame;
 			tcode = TCODE_LOCK_COMPARE_SWAP;
 	} else {
 		*err = EINVAL;
@@ -102,7 +101,7 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 
 	/* Setup a transaction structure. */
 	req.tcode = tcode;
-	req.length = frame->len * sizeof(guint32);
+	req.length = quads * sizeof(guint32);
 	req.offset = addr;
 	req.closure = (guint64)self;
 	req.generation = generation;
@@ -126,9 +125,8 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 
 	/* From big-endian to host order. */
 	if (frame != NULL) {
-		buf = (guint32 *)frame->data;
-		for (i = 0; i < frame->len; i++)
-			buf[i] = GUINT32_FROM_BE(buf[i]);
+		for (i = 0; i < quads; i++)
+			frame[i] = GUINT32_FROM_BE(frame[i]);
 	}
 
 	g_mutex_clear(&lock);
@@ -140,24 +138,25 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
  * @self: A #HinawaFwReq
  * @unit: A #HinawaFwUnit
  * @addr: A destination address of target device
- * @frame: (element-type guint32) (array) (in): a 32bit array
+ * @frame: (array length=quads): a 32bit array
+ * @quads: the number of quadlets to write
  * @exception: A #GError
  *
  * Execute write transactions to the given unit.
  */
 void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
-			 GArray *frame, GError **exception)
+			 guint32 *frame, guint quads, GError **exception)
 {
 	int err;
 
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
-	if (frame == NULL || g_array_get_element_size(frame) != 4) {
+	if (frame == NULL) {
 		err = EINVAL;
 	} else {
 		g_object_ref(unit);
 		fw_req_transact(self, unit,
-				FW_REQ_TYPE_WRITE, addr, frame, &err);
+				FW_REQ_TYPE_WRITE, addr, frame, quads, &err);
 		g_object_unref(unit);
 	}
 
@@ -170,31 +169,38 @@ void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
  * @self: A #HinawaFwReq
  * @unit: A #HinawaFwUnit
  * @addr: A destination address of target device
- * @frame: (element-type guint32) (array) (out caller-allocates): a 32bit array
  * @quads: the number of quadlets to read
+ * @frame: (array length=read_quads) (out) (nullable): The read quadlets.
+ * @read_quads: (optional): The number of read quadlets
  * @exception: A #GError
  *
  * Execute read transaction to the given unit.
  */
 void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
-			GArray *frame, guint quads, GError **exception)
+			guint quads, guint32 **frame, guint *read_quads,
+			GError **exception)
 {
 	int err;
 
+	*frame = NULL;
+	if (read_quads)
+		*read_quads = 0;
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
-	if (frame == NULL || g_array_get_element_size(frame) != 4) {
-		err = EINVAL;
-	} else {
-		g_object_ref(unit);
-		g_array_set_size(frame, quads);
-		fw_req_transact(self, unit,
-				FW_REQ_TYPE_READ, addr, frame, &err);
-		g_object_unref(unit);
-	}
+	*frame = g_new0(guint32, quads);
+	g_object_ref(unit);
+	fw_req_transact(self, unit,
+			FW_REQ_TYPE_READ, addr, *frame, quads, &err);
+	g_object_unref(unit);
 
-	if (err != 0)
+	if (err == 0) {
+		if (read_quads)
+			*read_quads = quads;
+	} else {
+		g_free(*frame);
+		*frame = NULL;
 		raise(exception, err);
+	}
 }
 
 /**
@@ -202,24 +208,26 @@ void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
  * @self: A #HinawaFwReq
  * @unit: A #HinawaFwUnit
  * @addr: A destination address of target device
- * @frame: (element-type guint32) (array) (inout): a 32bit array
+ * @frame: (array length=quads) (inout): a 32bit array
+ * @quads: (in): the number of quadlets to lock
  * @exception: A #GError
  *
  * Execute lock transaction to the given unit.
  */
-void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit,
-			guint64 addr, GArray **frame, GError **exception)
+void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
+			guint32 **frame, guint quads, GError **exception)
 {
 	int err;
 
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
-	if (frame == NULL || g_array_get_element_size(*frame) != 4) {
+	if (frame == NULL) {
 		err = EINVAL;
 	} else {
 		g_object_ref(unit);
 		fw_req_transact(self, unit,
-				FW_REQ_TYPE_COMPARE_SWAP, addr, *frame, &err);
+				FW_REQ_TYPE_COMPARE_SWAP, addr, *frame, quads,
+				&err);
 		g_object_unref(unit);
 	}
 
@@ -238,9 +246,7 @@ void hinawa_fw_req_handle_response(HinawaFwReq *self,
 
 	/* Copy transaction frame. */
 	if (priv->frame != NULL) {
-		priv->frame->len = 0;
-		g_array_append_vals(priv->frame, event->data,
-			event->length / g_array_get_element_size(priv->frame));
+		memcpy(priv->frame, event->data, event->length);
 	}
 
 	/* Waken a thread of an user application. */
