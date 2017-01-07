@@ -3,9 +3,12 @@
 import sys
 
 # Gtk+3 gir
+import gi
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 
 # Hinawa-1.0 gir
+gi.require_version('Hinawa', '1.0')
 from gi.repository import Hinawa
 
 # to handle UNIX signal

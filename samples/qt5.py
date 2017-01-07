@@ -7,6 +7,8 @@ from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtWidgets import QToolButton, QGroupBox, QLineEdit, QLabel
 
 # Hinawa-1.0 gir
+import gi
+gi.require_version('Hinawa', '1.0')
 from gi.repository import Hinawa
 
 # to handle UNIX signal
