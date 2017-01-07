@@ -26,7 +26,7 @@
         <chapter id="libhinawa">
             <title>libhinawa</title>
             <para>
-            This library gives 7 objects, 3 objects are abstraction of the
+            This library gives 9 objects, 5 objects are abstraction of the
             functionality in ALSA firewire stack, the others are abstractions
             of the transaction functionality in Linux firewire stack.</para>
             <para>libhinawa supports gobject introspection, thus this library
@@ -41,6 +41,7 @@
             <xi:include href="xml/snd_dice.xml"/>
             <xi:include href="xml/snd_efw.xml"/>
             <xi:include href="xml/snd_dg00x.xml"/>
+            <xi:include href="xml/snd_motu.xml"/>
             <xi:include href="xml/annotation-glossary.xml">
                 <xi:fallback />
             </xi:include>

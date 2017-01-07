@@ -37,6 +37,7 @@ snd_specific_types = {
     1: Hinawa.SndDice,
     2: Hinawa.SndEfw,
     5: Hinawa.SndDg00x,
+    7: Hinawa.SndMotu,
 }
 for fullpath in glob.glob('/dev/snd/hw*'):
     try:
@@ -182,6 +183,12 @@ def handle_message(self, message):
 if snd_unit.get_property('type') is 5:
     print('hear message')
     snd_unit.connect('message', handle_message)
+
+# Motu notification and status
+def handle_motu_notification(self, message):
+    print("Motu Notification: {0:08x}".format(message))
+if snd_unit.get_property('type') is 7:
+    snd_unit.connect('notified', handle_motu_notification)
 
 # GUI
 class Sample(QWidget):

@@ -51,7 +51,8 @@ pkginclude_HEADERS =				\
 	snd_unit.h				\
 	snd_dice.h				\
 	snd_efw.h				\
-	snd_dg00x.h
+	snd_dg00x.h				\
+	snd_motu.h
 
 if WITH_SND_DICE
 libhinawa_la_SOURCES +=				\
@@ -69,6 +70,12 @@ if WITH_SND_DG00X
 libhinawa_la_SOURCES +=				\
 	snd_dg00x.h				\
 	snd_dg00x.c
+endif
+
+if WITH_SND_MOTU
+libhinawa_la_SOURCES +=				\
+	snd_motu.h				\
+	snd_motu.c
 endif
 
 hinawa_sigs_marshal.list:

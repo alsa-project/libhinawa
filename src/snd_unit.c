@@ -417,6 +417,12 @@ static gboolean check_src(GSource *gsrc)
 		hinawa_snd_dg00x_handle_msg(HINAWA_SND_DG00X(unit),
 					    priv->buf, len);
 #endif
+#if HAVE_SND_MOTU
+	else if (HINAWA_IS_SND_MOTU(unit) &&
+		 common->type == SNDRV_FIREWIRE_EVENT_MOTU_NOTIFICATION)
+		hinawa_snd_motu_handle_notification(HINAWA_SND_MOTU(unit),
+						    priv->buf, len);
+#endif
 end:
 	/* Don't go to dispatch, then continue to process this source. */
 	return FALSE;
