@@ -70,7 +70,7 @@ AC_CHECK_FILE(
                    [#include <sound/firewire.h>])
      AC_CHECK_TYPE([struct snd_firewire_event_digi00x_message],
                    [with_snd_dg00x='yes'], [],
-                   [[#include <sound/firewire.h>]])]
+                   [#include <sound/firewire.h>])]
 )
 AM_CONDITIONAL(WITH_SND_DICE,  [test x$with_snd_dice = xyes])
 AM_CONDITIONAL(WITH_SND_EFW,   [test x$with_snd_efw = xyes])
