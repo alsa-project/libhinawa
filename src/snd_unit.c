@@ -82,16 +82,9 @@ static void snd_unit_get_property(GObject *obj, guint id,
 		g_value_set_string(val, (const gchar *)priv->info.device_name);
 		break;
 	case SND_UNIT_PROP_TYPE_GUID:
-	{
-		guint64 guid = 0;
-		unsigned int i, shift;
-		for (i = 0; i < 8; i++) {
-			shift = 64 - (i + 1) * 8;
-			guid |= ((guint64)priv->info.guid[i]) << shift;
-		}
-		g_value_set_uint64(val, guid);
+		g_value_set_uint64(val,
+				GUINT64_FROM_BE(*((guint64 *)priv->info.guid)));
 		break;
-	}
 	case SND_UNIT_PROP_TYPE_STREAMING:
 		g_value_set_boolean(val, priv->streaming);
 		break;
