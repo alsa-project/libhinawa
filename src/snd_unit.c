@@ -217,7 +217,7 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 	if (*exception != NULL)
 		goto end;
 
-	priv->req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
+	priv->req = g_object_new(HINAWA_TYPE_FW_REQ, "timeout", 40, NULL);
 end:
 	if (*exception != NULL)
 		close(priv->fd);
