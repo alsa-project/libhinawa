@@ -117,8 +117,7 @@ except Exception as e:
 req = Hinawa.FwReq()
 
 # Fireworks/BeBoB/OXFW supports FCP and some AV/C commands
-snd_unit_type = snd_unit.get_property('type')
-if snd_unit_type is not 1 and snd_unit_type is not 5:
+if snd_unit.get_property('type') in (2, 3, 4):
     fcp = Hinawa.FwFcp()
     try:
         fcp.listen(snd_unit)
