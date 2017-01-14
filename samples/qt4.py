@@ -33,28 +33,28 @@ def get_array():
     return arr
 
 # query sound devices and get FireWire sound unit
+snd_specific_types = {
+    1: Hinawa.SndDice,
+    2: Hinawa.SndEfw,
+    5: Hinawa.SndDg00x,
+}
 for fullpath in glob.glob('/dev/snd/hw*'):
     try:
-        snd_unit = Hinawa.SndDice()
+        snd_unit = Hinawa.SndUnit()
         snd_unit.open(fullpath)
     except:
         del snd_unit
+        continue
+
+    snd_type = snd_unit.get_property('type')
+    if snd_type in snd_specific_types:
+        del snd_unit
+        snd_unit = snd_specific_types[snd_type]()
         try:
-            snd_unit = Hinawa.SndEfw()
             snd_unit.open(fullpath)
         except:
             del snd_unit
-            try:
-                snd_unit = Hinawa.SndDg00x()
-                snd_unit.open(fullpath)
-            except:
-                del snd_unit
-                try:
-                    snd_unit = Hinawa.SndUnit()
-                    snd_unit.open(fullpath)
-                except:
-                    del snd_unit
-                    continue
+            continue
     break
 
 if 'snd_unit' not in locals():
