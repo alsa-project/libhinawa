@@ -25,6 +25,13 @@ G_DEFINE_QUARK("HinawaFwReq", hinawa_fw_req)
 	g_set_error(exception, hinawa_fw_req_quark(), errno,		\
 		    "%d: %s", __LINE__, strerror(errno))
 
+/* This object has one property. */
+enum fw_req_prop_type {
+	FW_REQ_PROP_TYPE_TIMEOUT = 1,
+	FW_REQ_PROP_TYPE_COUNT,
+};
+static GParamSpec *fw_req_props[FW_REQ_PROP_TYPE_COUNT] = { NULL, };
+
 enum fw_req_type {
 	FW_REQ_TYPE_WRITE = 0,
 	FW_REQ_TYPE_READ,
@@ -33,15 +40,63 @@ enum fw_req_type {
 
 /* NOTE: This object has no properties and no signals. */
 struct _HinawaFwReqPrivate {
+	guint timeout;
 	GArray *frame;
 
 	GCond cond;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwReq, hinawa_fw_req, G_TYPE_OBJECT)
 
+static void fw_req_get_property(GObject *obj, guint id, GValue *val,
+				GParamSpec *spec)
+{
+	HinawaFwReq *self = HINAWA_FW_REQ(obj);
+	HinawaFwReqPrivate *priv = hinawa_fw_req_get_instance_private(self);
+
+	switch (id) {
+	case FW_REQ_PROP_TYPE_TIMEOUT:
+		g_value_set_ulong(val, priv->timeout);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
+		break;
+	}
+}
+
+static void fw_req_set_property(GObject *obj, guint id, const GValue *val,
+				GParamSpec *spec)
+{
+	HinawaFwReq *self = HINAWA_FW_REQ(obj);
+	HinawaFwReqPrivate *priv = hinawa_fw_req_get_instance_private(self);
+
+	switch (id) {
+	case FW_REQ_PROP_TYPE_TIMEOUT:
+		priv->timeout = g_value_get_uint(val);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
+		break;
+	}
+}
+
+
 static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 {
-	return;
+	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+
+	gobject_class->get_property = fw_req_get_property;
+	gobject_class->set_property = fw_req_set_property;
+
+	fw_req_props[FW_REQ_PROP_TYPE_TIMEOUT] =
+		g_param_spec_uint("timeout", "timeout",
+				  "An elapse to expire waiting for response by ms unit.",
+				  10, UINT_MAX,
+				  10,
+				  G_PARAM_READWRITE);
+
+	g_object_class_install_properties(gobject_class,
+					  FW_REQ_PROP_TYPE_COUNT,
+					  fw_req_props);
 }
 
 static void hinawa_fw_req_init(HinawaFwReq *self)
@@ -107,8 +162,9 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 	req.closure = (guint64)self;
 	req.generation = generation;
 
-	/* NOTE: Timeout is 10 milli-seconds. */
-	expiration = g_get_monotonic_time() + 10 * G_TIME_SPAN_MILLISECOND;
+	/* Timeout is set in advance as a parameter of this object. */
+	expiration = g_get_monotonic_time() +
+					priv->timeout * G_TIME_SPAN_MILLISECOND;
 	g_cond_init(&priv->cond);
 	g_mutex_init(&lock);
 
