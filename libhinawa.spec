@@ -1,5 +1,5 @@
 Name:			libhinawa
-Version:		0.7.0
+Version:		0.8.0
 Release:		1%{?dist}
 Summary:		GObject introspection library for devices connected to IEEE 1394 bus
 
@@ -65,6 +65,9 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
 
 %changelog
+* Sat Apr 22 2017 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 0.8.0-1
+- new upstream release.
+
 * Fri Feb  5 2016 HAYASHI Kentaro <hayashi@clear-code.com> - 0.7.0-1
 - new upstream release.
 

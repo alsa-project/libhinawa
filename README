@@ -30,6 +30,6 @@ qt4 - PyQt4 is required (also test python2).
 qt5 - PyQt5 is required.
 
 How to make RPM package
-1. archive all source code into libhinawa-0.7.0.tar.gz
-  $ git archive --format tar.gz --prefix='libhinawa-0.7.0/' 0.7.0 -o ~/rpmbuild/SOURCES/libhinawa-0.7.0.tar.gz
+1. archive all source code into libhinawa-0.8.0.tar.gz
+  $ git archive --format tar.gz --prefix='libhinawa-0.8.0/' 0.8.0 -o ~/rpmbuild/SOURCES/libhinawa-0.8.0.tar.gz
 2. rpmbuild -bb libhinawa.spec
