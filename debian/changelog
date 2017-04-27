@@ -1,13 +1,13 @@
-libhinawa (0.8.0-1) unstable; urgency=medium
+libhinawa (0.8.0-1) experimental; urgency=medium
 
+  [ Takashi Sakamoto ]
   * New upstream release 0.8.0.
-    - Add HinawaSndMotu class to handle models of MOTU FireWire series.
+  * debian/libhinawa0.symbols
     - Below two symbols are newly introduced.
      - hinawa_snd_motu_get_type
      - hinawa_snd_motu_open
-    - Update backported UAPI header, corresponding to the one on v4.12 kernel.
 
- -- Takashi Sakamoto <o-takashi@sakamocchi.jp>  Sat, 22 Apr 2017 14:26:43 +0900
+ -- Kentaro Hayashi <hayashi@clear-code.com>  Thu, 27 Apr 2017 16:07:05 +0900
 
 libhinawa (0.7.0-2) unstable; urgency=medium
 
