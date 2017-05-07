@@ -1,3 +1,11 @@
+libhinawa (0.8.1-1) experimental; urgency=medium
+
+  [ Takashi Sakamoto ]
+  * New upstream bugfix release 0.8.1.
+    - Fix timeout bug of HinawaFwReq GOjbect object.
+
+ -- Kentaro Hayashi <hayashi@clear-code.com>  Sun, 07 May 2017 22:18:50 +0900
+
 libhinawa (0.8.0-1) experimental; urgency=medium
 
   [ Takashi Sakamoto ]
