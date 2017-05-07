@@ -55,7 +55,7 @@ static void fw_req_get_property(GObject *obj, guint id, GValue *val,
 
 	switch (id) {
 	case FW_REQ_PROP_TYPE_TIMEOUT:
-		g_value_set_ulong(val, priv->timeout);
+		g_value_set_uint(val, priv->timeout);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
