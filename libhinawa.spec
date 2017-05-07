@@ -65,6 +65,9 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
 
 %changelog
+* Sat May 7 2017 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 0.8.1-1
+- new upstream bugfix release.
+
 * Sat Apr 22 2017 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 0.8.0-1
 - new upstream release.
 
