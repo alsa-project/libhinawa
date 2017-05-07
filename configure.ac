@@ -2,7 +2,7 @@
 m4_define([my_major], [0])
 m4_define([my_minor], [8])
 m4_define([my_micro], [0])
-m4_define([my_version],	[my_major.my_minor.my_revision])
+m4_define([my_version],	[my_major.my_minor.my_micro])
 
 # Use -version option for libtool
 m4_define([my_current], [m4_eval(my_minor * 10 + my_micro)])
