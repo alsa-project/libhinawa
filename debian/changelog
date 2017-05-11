@@ -1,21 +1,13 @@
 libhinawa (0.8.1-1) experimental; urgency=medium
 
   [ Takashi Sakamoto ]
-  * New upstream bugfix release 0.8.1.
-    - Fix timeout bug of HinawaFwReq GOjbect object.
-
- -- Kentaro Hayashi <hayashi@clear-code.com>  Sun, 07 May 2017 22:18:50 +0900
-
-libhinawa (0.8.0-1) experimental; urgency=medium
-
-  [ Takashi Sakamoto ]
-  * New upstream release 0.8.0.
+  * New upstream release 0.8.1.
   * debian/libhinawa0.symbols
     - Below two symbols are newly introduced.
      - hinawa_snd_motu_get_type
      - hinawa_snd_motu_open
 
- -- Kentaro Hayashi <hayashi@clear-code.com>  Thu, 27 Apr 2017 16:07:05 +0900
+ -- Kentaro Hayashi <hayashi@clear-code.com>  Wed, 10 May 2017 17:13:58 +0900
 
 libhinawa (0.7.0-2) unstable; urgency=medium
 
