@@ -4,8 +4,8 @@ CLEANFILES =					\
 
 
 AM_CPPFLAGS =					\
-	 -I$(top_builddir)			\
-	 -I$(top_srcdir)
+	-I$(top_builddir)			\
+	-I$(top_srcdir)
 
 AM_CFLAGS =					\
 	$(GLIB_CFLAGS)				\
@@ -25,7 +25,7 @@ BUILT_SOURCES =					\
 	hinawa_sigs_marshal.h			\
 	hinawa_sigs_marshal.c
 
-libhinawa_la_SOURCES =				\
+SCANNED_SOURCES =				\
 	$(BUILT_SOURCES)			\
 	hinawa_context.h			\
 	hinawa_context.c			\
@@ -40,7 +40,6 @@ libhinawa_la_SOURCES =				\
 	internal.h				\
 	snd_unit.h				\
 	snd_unit.c				\
-	backport.h				\
 	hinawa.symbols
 
 pkginclude_HEADERS =				\
@@ -55,28 +54,32 @@ pkginclude_HEADERS =				\
 	snd_motu.h
 
 if WITH_SND_DICE
-libhinawa_la_SOURCES +=				\
+SCANNED_SOURCES +=				\
 	snd_dice.h				\
 	snd_dice.c
 endif
 
 if WITH_SND_EFW
-libhinawa_la_SOURCES +=				\
+SCANNED_SOURCES +=				\
 	snd_efw.h				\
 	snd_efw.c
 endif
 
 if WITH_SND_DG00X
-libhinawa_la_SOURCES +=				\
+SCANNED_SOURCES +=				\
 	snd_dg00x.h				\
 	snd_dg00x.c
 endif
 
 if WITH_SND_MOTU
-libhinawa_la_SOURCES +=				\
+SCANNED_SOURCES +=				\
 	snd_motu.h				\
 	snd_motu.c
 endif
+
+libhinawa_la_SOURCES =				\
+	$(SCANNED_SOURCES)			\
+	backport.h
 
 hinawa_sigs_marshal.list:
 	$(AM_V_GEN)( find | grep \.c$$ | xargs cat | 			\
@@ -103,7 +106,7 @@ Hinawa_1_0_gir_EXPORT_PACKAGES = hinawa
 Hinawa_1_0_gir_INCLUDES = GObject-2.0
 Hinawa_1_0_gir_CFLAGS =
 Hinawa_1_0_gir_LIBS = libhinawa.la
-Hinawa_1_0_gir_FILES = $(libhinawa_la_SOURCES)
+Hinawa_1_0_gir_FILES = $(SCANNED_SOURCES)
 Hinawa_1_0_gir_SCANNERFLAGS =			\
 	--identifier-prefix=Hinawa		\
 	--symbol-prefix=hinawa
