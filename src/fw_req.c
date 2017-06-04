@@ -106,7 +106,7 @@ static void hinawa_fw_req_init(HinawaFwReq *self)
 
 static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 			    enum fw_req_type type, guint64 addr, GArray *frame,
-			    gint *err)
+			    GError **exception)
 {
 	struct fw_cdev_send_request req = {0};
 	HinawaFwReqPrivate *priv = hinawa_fw_req_get_instance_private(self);
@@ -119,6 +119,7 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 
 	guint32 *buf;
 	int i;
+	int err = 0;
 
 	/* From host order to big-endian. */
 	if (frame != NULL) {
@@ -148,7 +149,7 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 			req.data = (guint64)frame->data;
 			tcode = TCODE_LOCK_COMPARE_SWAP;
 	} else {
-		*err = EINVAL;
+		raise(exception, EINVAL);
 		return;
 	}
 
@@ -169,15 +170,18 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 	g_mutex_init(&lock);
 
 	/* Send this transaction. */
-	hinawa_fw_unit_ioctl(unit, FW_CDEV_IOC_SEND_REQUEST, &req, err);
+	hinawa_fw_unit_ioctl(unit, FW_CDEV_IOC_SEND_REQUEST, &req, &err);
 	/* Wait for a response with timeout, waken by a response handler. */
-	if (*err == 0) {
+	if (err == 0) {
 		g_mutex_lock(&lock);
 		if (!g_cond_wait_until(&priv->cond, &lock, expiration))
-			*err = ETIMEDOUT;
-		else
-			*err = 0;
+			err = ETIMEDOUT;
 		g_mutex_unlock(&lock);
+	}
+
+	if (err != 0) {
+		raise(exception, err);
+		goto end;
 	}
 
 	/* From big-endian to host order. */
@@ -186,7 +190,7 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 		for (i = 0; i < frame->len; i++)
 			buf[i] = GUINT32_FROM_BE(buf[i]);
 	}
-
+end:
 	g_mutex_clear(&lock);
 	g_cond_clear(&priv->cond);
 }
@@ -204,21 +208,16 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 			 GArray *frame, GError **exception)
 {
-	int err;
-
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
 	if (frame == NULL || g_array_get_element_size(frame) != 4) {
-		err = EINVAL;
-	} else {
-		g_object_ref(unit);
-		fw_req_transact(self, unit,
-				FW_REQ_TYPE_WRITE, addr, frame, &err);
-		g_object_unref(unit);
+		raise(exception, EINVAL);
+		return;
 	}
 
-	if (err != 0)
-		raise(exception, err);
+	g_object_ref(unit);
+	fw_req_transact(self, unit, FW_REQ_TYPE_WRITE, addr, frame, exception);
+	g_object_unref(unit);
 }
 
 /**
@@ -235,22 +234,17 @@ void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 			GArray *frame, guint quads, GError **exception)
 {
-	int err;
-
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
 	if (frame == NULL || g_array_get_element_size(frame) != 4) {
-		err = EINVAL;
-	} else {
-		g_object_ref(unit);
-		g_array_set_size(frame, quads);
-		fw_req_transact(self, unit,
-				FW_REQ_TYPE_READ, addr, frame, &err);
-		g_object_unref(unit);
+		raise(exception, EINVAL);
+		return;
 	}
 
-	if (err != 0)
-		raise(exception, err);
+	g_object_ref(unit);
+	g_array_set_size(frame, quads);
+	fw_req_transact(self, unit, FW_REQ_TYPE_READ, addr, frame, exception);
+	g_object_unref(unit);
 }
 
 /**
@@ -266,21 +260,17 @@ void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit,
 			guint64 addr, GArray **frame, GError **exception)
 {
-	int err;
-
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
 	if (frame == NULL || g_array_get_element_size(*frame) != 4) {
-		err = EINVAL;
-	} else {
-		g_object_ref(unit);
-		fw_req_transact(self, unit,
-				FW_REQ_TYPE_COMPARE_SWAP, addr, *frame, &err);
-		g_object_unref(unit);
+		raise(exception, EINVAL);
+		return;
 	}
 
-	if (err != 0)
-		raise(exception, err);
+	g_object_ref(unit);
+	fw_req_transact(self, unit,
+			FW_REQ_TYPE_COMPARE_SWAP, addr, *frame, exception);
+	g_object_unref(unit);
 }
 
 /* NOTE: For HinawaFwUnit, internal. */
