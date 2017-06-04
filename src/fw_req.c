@@ -43,6 +43,7 @@ struct _HinawaFwReqPrivate {
 	guint timeout;
 	GArray *frame;
 
+	GMutex mutex;
 	GCond cond;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwReq, hinawa_fw_req, G_TYPE_OBJECT)
@@ -79,6 +80,15 @@ static void fw_req_set_property(GObject *obj, guint id, const GValue *val,
 	}
 }
 
+static void fw_req_finalize(GObject *obj)
+{
+	HinawaFwReq *self = HINAWA_FW_REQ(obj);
+	HinawaFwReqPrivate *priv = hinawa_fw_req_get_instance_private(self);
+
+	g_mutex_clear(&priv->mutex);
+
+	G_OBJECT_CLASS(hinawa_fw_req_parent_class)->finalize(obj);
+}
 
 static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 {
@@ -86,6 +96,7 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 
 	gobject_class->get_property = fw_req_get_property;
 	gobject_class->set_property = fw_req_set_property;
+	gobject_class->finalize = fw_req_finalize;
 
 	fw_req_props[FW_REQ_PROP_TYPE_TIMEOUT] =
 		g_param_spec_uint("timeout", "timeout",
@@ -101,7 +112,9 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 
 static void hinawa_fw_req_init(HinawaFwReq *self)
 {
-	return;
+	HinawaFwReqPrivate *priv = hinawa_fw_req_get_instance_private(self);
+
+	g_mutex_init(&priv->mutex);
 }
 
 static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
