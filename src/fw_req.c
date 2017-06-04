@@ -128,7 +128,6 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 	guint64 generation;
 
 	guint64 expiration;
-	GMutex lock;
 
 	guint32 *buf;
 	int i;
@@ -140,6 +139,8 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 		for (i = 0; i < frame->len; i++)
 			buf[i] = GUINT32_TO_BE(buf[i]);
 	}
+
+	g_mutex_lock(&priv->mutex);
 
 	/* Setup a private structure. */
 	if (type == FW_REQ_TYPE_READ) {
@@ -163,7 +164,7 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 			tcode = TCODE_LOCK_COMPARE_SWAP;
 	} else {
 		raise(exception, EINVAL);
-		return;
+		goto end;
 	}
 
 	/* Get unit properties. */
@@ -179,17 +180,15 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 	/* Timeout is set in advance as a parameter of this object. */
 	expiration = g_get_monotonic_time() +
 					priv->timeout * G_TIME_SPAN_MILLISECOND;
-	g_cond_init(&priv->cond);
-	g_mutex_init(&lock);
 
 	/* Send this transaction. */
 	hinawa_fw_unit_ioctl(unit, FW_CDEV_IOC_SEND_REQUEST, &req, &err);
 	/* Wait for a response with timeout, waken by a response handler. */
 	if (err == 0) {
-		g_mutex_lock(&lock);
-		if (!g_cond_wait_until(&priv->cond, &lock, expiration))
+		g_cond_init(&priv->cond);
+		if (!g_cond_wait_until(&priv->cond, &priv->mutex, expiration))
 			err = ETIMEDOUT;
-		g_mutex_unlock(&lock);
+		g_cond_clear(&priv->cond);
 	}
 
 	if (err != 0) {
@@ -204,8 +203,7 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 			buf[i] = GUINT32_FROM_BE(buf[i]);
 	}
 end:
-	g_mutex_clear(&lock);
-	g_cond_clear(&priv->cond);
+	g_mutex_unlock(&priv->mutex);
 }
 
 /**
@@ -295,12 +293,16 @@ void hinawa_fw_req_handle_response(HinawaFwReq *self,
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 	priv = hinawa_fw_req_get_instance_private(self);
 
+	g_mutex_lock(&priv->mutex);
+
 	/* Copy transaction frame. */
 	if (priv->frame != NULL) {
 		priv->frame->len = 0;
 		g_array_append_vals(priv->frame, event->data,
 			event->length / g_array_get_element_size(priv->frame));
 	}
+
+	g_mutex_unlock(&priv->mutex);
 
 	/* Waken a thread of an user application. */
 	g_cond_signal(&priv->cond);
