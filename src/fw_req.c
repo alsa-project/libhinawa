@@ -43,10 +43,24 @@ struct _HinawaFwReqPrivate {
 	guint timeout;
 	GArray *frame;
 
+	guint rcode;
 	GMutex mutex;
 	GCond cond;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwReq, hinawa_fw_req, G_TYPE_OBJECT)
+
+static const char *const rcode_labels[] = {
+	[RCODE_COMPLETE]	= "no error",
+	[RCODE_CONFLICT_ERROR]	= "conflict error",
+	[RCODE_DATA_ERROR]	= "data error",
+	[RCODE_TYPE_ERROR]	= "type error",
+	[RCODE_ADDRESS_ERROR]	= "address error",
+	[RCODE_SEND_ERROR]	= "send error",
+	[RCODE_CANCELLED]	= "timeout",
+	[RCODE_BUSY]		= "busy",
+	[RCODE_GENERATION]	= "bus reset",
+	[RCODE_NO_ACK]		= "no ack",
+};
 
 static void fw_req_get_property(GObject *obj, guint id, GValue *val,
 				GParamSpec *spec)
@@ -185,6 +199,9 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 	hinawa_fw_unit_ioctl(unit, FW_CDEV_IOC_SEND_REQUEST, &req, &err);
 	/* Wait for a response with timeout, waken by a response handler. */
 	if (err == 0) {
+		/* Initialize response code. This is a canary. */
+		priv->rcode = G_MAXUINT;
+
 		g_cond_init(&priv->cond);
 		if (!g_cond_wait_until(&priv->cond, &priv->mutex, expiration))
 			err = ETIMEDOUT;
@@ -193,6 +210,17 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 
 	if (err != 0) {
 		raise(exception, err);
+		goto end;
+	}
+
+	if (priv->rcode != RCODE_COMPLETE) {
+		/* The canary cries here. */
+		if (priv->rcode > RCODE_NO_ACK) {
+			raise(exception, EIO);
+		} else {
+			g_set_error(exception, hinawa_fw_req_quark(), EIO,
+				"%d: %s", __LINE__, rcode_labels[priv->rcode]);
+		}
 		goto end;
 	}
 
@@ -294,6 +322,8 @@ void hinawa_fw_req_handle_response(HinawaFwReq *self,
 	priv = hinawa_fw_req_get_instance_private(self);
 
 	g_mutex_lock(&priv->mutex);
+
+	priv->rcode = event->rcode;
 
 	/* Copy transaction frame. */
 	if (priv->frame != NULL) {
