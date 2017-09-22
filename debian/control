@@ -43,6 +43,7 @@ Depends: ${misc:Depends},
     libhinawa0 (= ${binary:Version}),
     libglib2.0-dev (>= 2.32.0),
     libgirepository1.0-dev (>= 1.32.1),
+    gir1.2-hinawa-1.0 (= ${binary:Version})
 Description: I/O library for IEEE 1394 asynchronous transactions (development file)
  Libhinawa is an I/O library for units on IEEE 1394 bus. This library
  supports any types of asynchronous transactions over IEEE 1394 bus.
