@@ -2,6 +2,16 @@ libhinawa (0.8.2-1) unstable; urgency=medium
 
   [ Takashi Sakamoto ]
   * New upstream release 0.8.2.
+  * debian/compat
+    - bump version to 10.
+  * debian/control
+    - bump Standards-Version to 4.1.0.
+    - remove needless Build-Depends since compat level 10.
+    - fix missing dependency to .gir package.
+  * debian/gir1.2-hinawa-1.0.install
+    - install .typelib into multiarch directory.
+  * debian/rules
+    - remove needless --with autotools-dev since compat level 10.
 
  -- Kentaro Hayashi <hayashi@clear-code.com>  Fri, 22 Sep 2017 22:27:10 +0900
 
