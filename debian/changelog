@@ -1,4 +1,4 @@
-libhinawa (0.8.1-1) experimental; urgency=medium
+libhinawa (0.8.1-1) unstable; urgency=medium
 
   [ Takashi Sakamoto ]
   * New upstream release 0.8.1.
@@ -7,7 +7,7 @@ libhinawa (0.8.1-1) experimental; urgency=medium
      - hinawa_snd_motu_get_type
      - hinawa_snd_motu_open
 
- -- Kentaro Hayashi <hayashi@clear-code.com>  Wed, 10 May 2017 17:13:58 +0900
+ -- Kentaro Hayashi <hayashi@clear-code.com>  Fri, 22 Sep 2017 22:27:10 +0900
 
 libhinawa (0.7.0-2) unstable; urgency=medium
 
