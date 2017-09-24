@@ -1,4 +1,4 @@
-libhinawa (0.8.1-1) experimental; urgency=medium
+libhinawa (0.8.1-1) unstable; urgency=medium
 
   [ Takashi Sakamoto ]
   * New upstream release 0.8.1.
@@ -6,8 +6,18 @@ libhinawa (0.8.1-1) experimental; urgency=medium
     - Below two symbols are newly introduced.
      - hinawa_snd_motu_get_type
      - hinawa_snd_motu_open
+  * debian/compat
+    - bump version to 10.
+  * debian/control
+    - bump Standards-Version to 4.1.0.
+    - remove needless Build-Depends since compat level 10.
+    - fix missing dependency to .gir package.
+  * debian/gir1.2-hinawa-1.0.install
+    - install .typelib into multiarch directory.
+  * debian/rules
+    - remove needless --with autotools-dev since compat level 10.
 
- -- Kentaro Hayashi <hayashi@clear-code.com>  Wed, 10 May 2017 17:13:58 +0900
+ -- Kentaro Hayashi <hayashi@clear-code.com>  Fri, 22 Sep 2017 22:27:10 +0900
 
 libhinawa (0.7.0-2) unstable; urgency=medium
 
