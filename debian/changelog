@@ -2,6 +2,7 @@ libhinawa (0.8.2-1) unstable; urgency=medium
 
   [ Takashi Sakamoto ]
   * New upstream release 0.8.2.
+  * Upload to unstable.
   * debian/compat
     - bump version to 10.
   * debian/control
