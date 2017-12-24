@@ -47,7 +47,6 @@ GType hinawa_snd_dice_get_type(void) G_GNUC_CONST;
 
 void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception);
 
-void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr,
-			      GArray *frame, guint32 bit_flag,
-			      GError **exception);
+void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
+			      guint32 bit_flag, GError **exception);
 #endif
