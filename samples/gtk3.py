@@ -217,9 +217,10 @@ class Sample(Gtk.Window):
         self.on_click_close( None)
 
     def on_click_transact(self, button):
+        req = Hinawa.FwReq()
         try:
             addr = int(self.entry.get_text(), 16)
-            val = snd_unit.read_transact(addr, 1)
+            val = req.read(snd_unit, addr, 1);
         except Exception as e:
             print(e)
             return

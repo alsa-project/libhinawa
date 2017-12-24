@@ -268,6 +268,9 @@ void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
  * @exception: A #GError
  *
  * Execute read transaction to the given unit.
+ *
+ * Deprecated: 0.9.0: Use hinawa_fw_req_read() with an instance of #HinawaFwReq,
+ * instead.
  */
 void hinawa_snd_unit_read_transact(HinawaSndUnit *self,
 				   guint64 addr, GArray *frame, guint len,
@@ -290,6 +293,9 @@ void hinawa_snd_unit_read_transact(HinawaSndUnit *self,
  * @exception: A #GError
  *
  * Execute write transactions to the given unit.
+ *
+ * Deprecated: 0.9.0: Use hinawa_fw_req_write() with an instance of #HinawaFwReq,
+ * instead.
  */
 void hinawa_snd_unit_write_transact(HinawaSndUnit *self,
 				    guint64 addr, GArray *frame,
@@ -312,6 +318,9 @@ void hinawa_snd_unit_write_transact(HinawaSndUnit *self,
  * @exception: A #GError
  *
  * Execute lock transaction to the given unit.
+ *
+ * Deprecated: 0.9.0: Use hinawa_fw_req_lock() with an instance of #HinawaFwReq,
+ * instead.
  */
 void hinawa_snd_unit_lock_transact(HinawaSndUnit *self,
 				   guint64 addr, GArray **frame,
