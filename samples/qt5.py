@@ -104,7 +104,7 @@ resp = Hinawa.FwResp()
 def handle_request(resp, tcode, req_frame):
     print('Requested with tcode {0}:'.format(tcode))
     for i in range(len(req_frame)):
-        print(' [{0:02d}]: 0x{1:08x}'.format(i, req_frame[i]))
+        print(' [{0:02d}]: 0x{1:02x}'.format(i, req_frame[i]))
     # Return no data for the response frame
     return None
 try:
@@ -223,12 +223,13 @@ class Sample(QWidget):
     def transact(self, val):
         try:
             addr = int(self.addr.text(), 16)
-            val = req.read(snd_unit, addr, 1)
+            vals = req.read(snd_unit, addr, 1)
         except Exception as e:
             print(e)
             return
 
-        self.value.setText('0x{0:08x}'.format(val[0]))
+        label = '0x{0:02x}{1:02x}{2:02x}{3:02x}'.format(vals[0], vals[1], vals[2], vals[3])
+        self.value.setText(labels)
         print(self.value.text())
 
 app = QApplication(sys.argv)

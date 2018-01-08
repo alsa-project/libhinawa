@@ -13,7 +13,6 @@
  *
  * A HinawaFwResp responds requests from any units.
  *
- * Any of transaction frames should be aligned to 32bit (quadlet).
  * This class is an application of Linux FireWire subsystem. All of operations
  * utilize ioctl(2) with subsystem specific request commands.
  */
@@ -62,14 +61,14 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	 * HinawaFwResp::requested:
 	 * @self: A #HinawaFwResp
 	 * @tcode: Transaction code
-	 * @req_frame: (element-type guint32) (array) (transfer none):
+	 * @req_frame: (element-type guint8) (array) (transfer none):
 	 *		The frame in request
 	 *
 	 * When any units transfer requests to the range of address to which
 	 * this object listening. The ::requested signal handler can set
 	 * data frame to 'resp_frame' if needed.
 	 *
-	 * Returns: (element-type guint32) (array) (nullable) (transfer full):
+	 * Returns: (element-type guint8) (array) (nullable) (transfer full):
 	 *	A data frame for response.
 	 */
 	fw_resp_sigs[FW_RESP_SIG_TYPE_REQ] =
@@ -126,8 +125,8 @@ void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
 		return;
 	}
 
-	priv->req_frame = g_array_sized_new(FALSE, TRUE, sizeof(guint32),
-					    allocate.length / sizeof(guint32));
+	priv->req_frame = g_array_sized_new(FALSE, TRUE, sizeof(guint8),
+					    allocate.length);
 	if (!priv->req_frame) {
 		raise(exception, ENOMEM);
 		hinawa_fw_resp_unregister(self);
@@ -172,8 +171,6 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 {
 	HinawaFwRespPrivate *priv;
 	struct fw_cdev_send_response resp = {0};
-	guint i, quads;
-	guint32 *buf;
 	GArray *resp_frame;
 	int err;
 
@@ -185,28 +182,15 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 		goto respond;
 	}
 
-	/* Store requested frame. */
-	quads = (event->length + sizeof(guint32) - 1) / sizeof(guint32);
-	g_array_set_size(priv->req_frame, quads);
-	memcpy(priv->req_frame->data, event->data, event->length);
-
-	/* For endiannness. */
-	buf = (guint32 *)priv->req_frame->data;
-	for (i = 0; i < quads; i++)
-		buf[i] = GUINT32_FROM_BE(buf[i]);
-
 	/* Emit signal to handlers. */
+	g_array_remove_range(priv->req_frame, 0, priv->req_frame->len);
+	g_array_insert_vals(priv->req_frame, 0, event->data, event->length);
 	g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ], 0,
 		      event->tcode, priv->req_frame, &resp_frame);
 
 	resp.rcode = RCODE_COMPLETE;
-	if (resp_frame == NULL || resp_frame->len == 0)
+	if (!resp_frame || resp_frame->len == 0)
 		goto respond;
-
-	/* For endianness. */
-	buf = (guint32 *)resp_frame->data;
-	for (i = 0; i < resp_frame->len; i++)
-		buf[i] = GUINT32_TO_BE(buf[i]);
 
 	resp.length = resp_frame->len;
 	resp.data = (guint64)resp_frame->data;

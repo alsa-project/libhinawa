@@ -159,8 +159,8 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	struct fcp_transaction trans = {0};
 	GValue timeout_ms = G_VALUE_INIT;
 	gint64 expiration;
-	guint32 *buf;
-	guint i, quads, bytes;
+	guint elem_size;
+	guint quads, bytes;
 
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
 	priv = hinawa_fw_fcp_get_instance_private(self);
@@ -175,18 +175,14 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
 
 	/* Copy guint8 array to guint32 array. */
-	quads = (req_frame->len + sizeof(guint32) - 1) / sizeof(guint32);
-	trans.req_frame = g_array_sized_new(FALSE, TRUE,
-					    sizeof(guint32), quads);
+	elem_size = g_array_get_element_size(req_frame);
+	quads = (req_frame->len + elem_size - 1) / elem_size;
+	trans.req_frame = g_array_sized_new(FALSE, TRUE, elem_size, quads);
 	g_array_set_size(trans.req_frame, quads);
 	memcpy(trans.req_frame->data, req_frame->data, req_frame->len);
-	buf = (guint32 *)trans.req_frame->data;
-	for (i = 0; i < trans.req_frame->len; i++)
-		buf[i] = GUINT32_TO_BE(buf[i]);
 
 	/* Prepare response buffer. */
-	trans.resp_frame = g_array_sized_new(FALSE, TRUE,
-					     sizeof(guint32), quads);
+	trans.resp_frame = g_array_sized_new(FALSE, TRUE, elem_size, quads);
 
 	/* Insert this entry. */
 	g_mutex_lock(&priv->transactions_mutex);
@@ -217,7 +213,7 @@ deferred:
 	 */
 	if (!g_cond_wait_until(&trans.cond, &trans.mutex, expiration)) {
 		raise(exception, ETIMEDOUT);
-	} else if (g_array_index(trans.resp_frame, guint32, 0) >> 24 ==
+	} else if (g_array_index(trans.resp_frame, guint8, 0) ==
 							AVC_STATUS_INTERIM) {
 		/* It's a deffered transaction, wait again. */
 		goto deferred;
@@ -226,13 +222,9 @@ deferred:
 	g_mutex_unlock(&trans.mutex);
 
 	if (!*exception) {
-		/* Convert guint32 array to guint8 array. */
-		buf = (guint32 *)trans.resp_frame->data;
-		for (i = 0; i < trans.resp_frame->len; i++)
-			buf[i] = GUINT32_TO_BE(buf[i]);
-		bytes = trans.resp_frame->len * sizeof(guint32);
-		g_array_set_size(resp_frame, bytes);
-		memcpy(resp_frame->data, trans.resp_frame->data, bytes);
+		bytes = trans.resp_frame->len * elem_size;
+		g_array_insert_vals(resp_frame, 0, trans.resp_frame->data,
+				    bytes);
 	}
 end:
 	/* Remove this entry. */

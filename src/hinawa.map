@@ -17,7 +17,6 @@ V0_6_0 {
     "hinawa_fw_resp_quark";
     "hinawa_fw_resp_register";
     "hinawa_fw_resp_unregister";
-    "hinawa_sigs_marshal_BOXED__INT_BOXED";
 
     "hinawa_fw_fcp_get_type";
     "hinawa_fw_fcp_quark";
@@ -64,4 +63,6 @@ V1_0_0 {
   global:
     "hinawa_fw_tcode_get_type";
     "hinawa_fw_rcode_get_type";
+
+    "hinawa_sigs_marshal_BOXED__INT_BOXED";
 } V0_8_0;
