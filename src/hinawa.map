@@ -9,9 +9,6 @@ V0_6_0 {
 
     "hinawa_fw_req_get_type";
     "hinawa_fw_req_quark";
-    "hinawa_fw_req_read";
-    "hinawa_fw_req_write";
-    "hinawa_fw_req_lock";
 
     "hinawa_fw_resp_get_type";
     "hinawa_fw_resp_quark";
@@ -65,4 +62,8 @@ V1_0_0 {
     "hinawa_fw_rcode_get_type";
 
     "hinawa_sigs_marshal_BOXED__INT_BOXED";
+
+    "hinawa_fw_req_read";
+    "hinawa_fw_req_write";
+    "hinawa_fw_req_lock";
 } V0_8_0;

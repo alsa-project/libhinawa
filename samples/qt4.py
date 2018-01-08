@@ -108,6 +108,7 @@ print(" listening:\t{0}".format(snd_unit.get_property('listening')))
 resp = Hinawa.FwResp()
 def handle_request(resp, tcode, req_frame):
     print('Requested with tcode {0}:'.format(tcode))
+    req_frame = bytearray(req_frame)
     for i in range(len(req_frame)):
         print(' [{0:02d}]: 0x{1:02x}'.format(i, req_frame[i]))
     # Return no data for the response frame
@@ -238,7 +239,7 @@ class Sample(QWidget):
     def transact(self, val):
         try:
             addr = int(self.addr.text(), 16)
-            vals = req.read(snd_unit, addr, 1)
+            vals = bytearray(req.read(snd_unit, addr, 4))
         except Exception as e:
             print(e)
             return

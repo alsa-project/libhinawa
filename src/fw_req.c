@@ -15,7 +15,6 @@
  *  - write
  *  - lock
  *
- * Any of transaction frames should be aligned to 32bit (quadlet).
  * This class is an application of Linux FireWire subsystem. All of operations
  * utilize ioctl(2) with subsystem specific request commands.
  */
@@ -133,16 +132,7 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit, int tcode,
 	HinawaFwReqPrivate *priv = hinawa_fw_req_get_instance_private(self);
 	guint64 generation;
 	guint64 expiration;
-	guint32 *buf;
-	int i;
 	int err = 0;
-
-	/* From host order to big-endian. */
-	if (frame != NULL) {
-		buf = (guint32 *)frame->data;
-		for (i = 0; i < frame->len; i++)
-			buf[i] = GUINT32_TO_BE(buf[i]);
-	}
 
 	g_mutex_lock(&priv->mutex);
 
@@ -161,7 +151,7 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit, int tcode,
 
 	/* Setup a transaction structure. */
 	req.tcode = tcode;
-	req.length = frame->len * sizeof(guint32);
+	req.length = frame->len;
 	req.offset = addr;
 	req.closure = (guint64)self;
 	req.generation = generation;
@@ -198,13 +188,6 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit, int tcode,
 		}
 		goto end;
 	}
-
-	/* From big-endian to host order. */
-	if (frame != NULL) {
-		buf = (guint32 *)frame->data;
-		for (i = 0; i < frame->len; i++)
-			buf[i] = GUINT32_FROM_BE(buf[i]);
-	}
 end:
 	g_mutex_unlock(&priv->mutex);
 }
@@ -214,7 +197,7 @@ end:
  * @self: A #HinawaFwReq
  * @unit: A #HinawaFwUnit
  * @addr: A destination address of target device
- * @frame: (element-type guint32) (array) (in): a 32bit array
+ * @frame: (element-type guint8) (array) (in): a 8bit array
  * @exception: A #GError
  *
  * Execute write transactions to the given unit.
@@ -226,12 +209,12 @@ void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
-	if (frame == NULL || g_array_get_element_size(frame) != 4) {
+	if (!frame) {
 		raise(exception, EINVAL);
 		return;
 	}
 
-	if (frame->len == 1)
+	if (frame->len == 4 && !(addr & 0x03))
 		tcode = TCODE_WRITE_QUADLET_REQUEST;
 	else
 		tcode = TCODE_WRITE_BLOCK_REQUEST;
@@ -246,27 +229,27 @@ void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
  * @self: A #HinawaFwReq
  * @unit: A #HinawaFwUnit
  * @addr: A destination address of target device
- * @frame: (element-type guint32) (array) (out caller-allocates): a 32bit array
- * @quads: the number of quadlets to read
+ * @frame: (element-type guint8) (array) (out caller-allocates): a 8bit array
+ * @length: the number of bytes to read
  * @exception: A #GError
  *
  * Execute read transaction to the given unit.
  */
 void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
-			GArray *frame, guint quads, GError **exception)
+			GArray *frame, guint length, GError **exception)
 {
 	int tcode;
 
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
-	if (frame == NULL || g_array_get_element_size(frame) != 4) {
+	if (!frame) {
 		raise(exception, EINVAL);
 		return;
 	}
 
-	g_array_set_size(frame, quads);
+	g_array_set_size(frame, length);
 
-	if (frame->len == 1)
+	if (frame->len == 4 && !(addr & 0x03))
 		tcode = TCODE_READ_QUADLET_REQUEST;
 	else
 		tcode = TCODE_READ_BLOCK_REQUEST;
@@ -281,7 +264,7 @@ void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
  * @self: A #HinawaFwReq
  * @unit: A #HinawaFwUnit
  * @addr: A destination address of target device
- * @frame: (element-type guint32) (array) (inout): a 32bit array
+ * @frame: (element-type guint8) (array) (inout): a 8bit array
  * @exception: A #GError
  *
  * Execute lock transaction to the given unit.
@@ -291,8 +274,8 @@ void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit,
 {
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
-	if (!(*frame) || g_array_get_element_size(*frame) != 4 ||
-	    ((*frame)->len != 2 || (*frame)->len != 4)) {
+	if (!(*frame) || (*frame)->len == 0 || (*frame)->len % 8 > 0 ||
+	    (addr & 0x03)) {
 		raise(exception, EINVAL);
 		return;
 	}

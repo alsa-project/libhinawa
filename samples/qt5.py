@@ -223,13 +223,13 @@ class Sample(QWidget):
     def transact(self, val):
         try:
             addr = int(self.addr.text(), 16)
-            vals = req.read(snd_unit, addr, 1)
+            vals = req.read(snd_unit, addr, 4)
         except Exception as e:
             print(e)
             return
 
         label = '0x{0:02x}{1:02x}{2:02x}{3:02x}'.format(vals[0], vals[1], vals[2], vals[3])
-        self.value.setText(labels)
+        self.value.setText(label)
         print(self.value.text())
 
 app = QApplication(sys.argv)

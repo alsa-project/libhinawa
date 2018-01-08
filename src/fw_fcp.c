@@ -159,8 +159,6 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	struct fcp_transaction trans = {0};
 	GValue timeout_ms = G_VALUE_INIT;
 	gint64 expiration;
-	guint elem_size;
-	guint quads, bytes;
 
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
 	priv = hinawa_fw_fcp_get_instance_private(self);
@@ -174,23 +172,17 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 
 	req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
 
-	/* Copy guint8 array to guint32 array. */
-	elem_size = g_array_get_element_size(req_frame);
-	quads = (req_frame->len + elem_size - 1) / elem_size;
-	trans.req_frame = g_array_sized_new(FALSE, TRUE, elem_size, quads);
-	g_array_set_size(trans.req_frame, quads);
-	memcpy(trans.req_frame->data, req_frame->data, req_frame->len);
-
-	/* Prepare response buffer. */
-	trans.resp_frame = g_array_sized_new(FALSE, TRUE, elem_size, quads);
+	/* Prepare for an entry of FCP transaction. */
+	trans.req_frame = req_frame;
+	trans.resp_frame = resp_frame;
+	g_cond_init(&trans.cond);
+	g_mutex_init(&trans.mutex);
 
 	/* Insert this entry. */
 	g_mutex_lock(&priv->transactions_mutex);
 	priv->transactions = g_list_prepend(priv->transactions, &trans);
 	g_mutex_unlock(&priv->transactions_mutex);
 
-	g_cond_init(&trans.cond);
-	g_mutex_init(&trans.mutex);
 
 	g_value_init(&timeout_ms, G_TYPE_UINT);
 	g_object_get_property(G_OBJECT(self), "timeout", &timeout_ms);
@@ -198,7 +190,7 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	/* Send this request frame. */
 	hinawa_fw_req_write(req, priv->unit, FCP_REQUEST_ADDR, trans.req_frame,
 			    exception);
-	if (*exception != NULL)
+	if (*exception)
 		goto end;
 
 	g_mutex_lock(&trans.mutex);
@@ -220,12 +212,6 @@ deferred:
 	}
 
 	g_mutex_unlock(&trans.mutex);
-
-	if (!*exception) {
-		bytes = trans.resp_frame->len * elem_size;
-		g_array_insert_vals(resp_frame, 0, trans.resp_frame->data,
-				    bytes);
-	}
 end:
 	/* Remove this entry. */
 	g_mutex_lock(&priv->transactions_mutex);
@@ -233,7 +219,6 @@ end:
 			g_list_remove(priv->transactions, (gpointer *)&trans);
 	g_mutex_unlock(&priv->transactions_mutex);
 
-	g_array_free(trans.req_frame, TRUE);
 	g_mutex_clear(&trans.mutex);
 	g_clear_object(&req);
 }

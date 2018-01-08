@@ -278,12 +278,25 @@ void hinawa_snd_unit_read_transact(HinawaSndUnit *self,
 				   GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
+	GArray *req_frame;
+	gint i;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
 
-	hinawa_fw_req_read(priv->req, &self->parent_instance, addr, frame,
-			   quads, exception);
+	req_frame = g_array_sized_new(FALSE, TRUE, sizeof(guint8),
+				g_array_get_element_size(frame) * quads);
+
+	hinawa_fw_req_read(priv->req, &self->parent_instance, addr, req_frame,
+			   quads * 4, exception);
+
+	/* Alignment data. */
+	for (i = 0; i < quads; ++i) {
+		guint32 datum;
+		datum = GUINT32_FROM_BE(g_array_index(req_frame, guint32, i));
+		g_array_insert_val(frame, i * 4, datum);
+	}
+	g_array_unref(req_frame);
 }
 
 /**
@@ -303,12 +316,24 @@ void hinawa_snd_unit_write_transact(HinawaSndUnit *self,
 				    GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
+	GArray *req_frame;
+	gint i;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
 
-	hinawa_fw_req_write(priv->req, &self->parent_instance, addr, frame,
+	/* Alignment data. */
+	req_frame = g_array_sized_new(FALSE, TRUE, sizeof(guint8),
+				g_array_get_element_size(frame) * frame->len);
+	for (i = 0; i < frame->len; ++i) {
+		guint32 datum;
+		datum = GUINT32_TO_BE(g_array_index(frame, guint32, i));
+		g_array_append_vals(req_frame, &datum, sizeof(datum));
+	}
+
+	hinawa_fw_req_write(priv->req, &self->parent_instance, addr, req_frame,
 			    exception);
+	g_array_unref(req_frame);
 }
 
 /**
@@ -328,12 +353,32 @@ void hinawa_snd_unit_lock_transact(HinawaSndUnit *self,
 				   GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
+	GArray *req_frame;
+	gint i;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
 
-	hinawa_fw_req_lock(priv->req, &self->parent_instance, addr, frame,
+	req_frame = g_array_sized_new(FALSE, TRUE, sizeof(guint8),
+			g_array_get_element_size(*frame) * (*frame)->len);
+
+	/* Alignment data. */
+	for (i = 0; i < (*frame)->len; ++i) {
+		guint32 datum;
+		datum = GUINT32_TO_BE(g_array_index(*frame, guint32, i));
+		g_array_append_vals(req_frame, &datum, sizeof(datum));
+	}
+
+	hinawa_fw_req_lock(priv->req, &self->parent_instance, addr, &req_frame,
 			   exception);
+
+	/* Alignment data. */
+	for (i = 0; i < (*frame)->len; ++i) {
+		guint32 datum;
+		datum = GUINT32_FROM_BE(g_array_index(req_frame, guint32, i));
+		g_array_insert_val(*frame, i * 4, datum);
+	}
+	g_array_unref(req_frame);
 }
 
 /* For internal use. */

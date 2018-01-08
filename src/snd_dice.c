@@ -126,6 +126,10 @@ void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
 {
 	HinawaSndDicePrivate *priv;
 	HinawaSndUnit *unit;
+
+	GArray *req_frame;
+	gint i;
+
 	struct notification_waiter waiter = {0};
 	gint64 expiration;
 
@@ -133,34 +137,42 @@ void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
 	priv = hinawa_snd_dice_get_instance_private(self);
 	unit = &self->parent_instance;
 
+	/* Alignment data on given buffer to local buffer for transaction. */
+	req_frame = g_array_sized_new(FALSE, TRUE, sizeof(guint8),
+				g_array_get_element_size(frame) * frame->len);
+	for (i = 0; i < frame->len; ++i) {
+		guint32 datum;
+		datum = GUINT32_TO_BE(g_array_index(frame, guint32, i));
+		g_array_append_vals(req_frame, &datum, sizeof(datum));
+	}
+
 	/* Insert this entry to list and enter critical section. */
+	g_cond_init(&waiter.cond);
 	g_mutex_lock(&priv->mutex);
 	priv->waiters = g_list_append(priv->waiters, &waiter);
-
-	/* NOTE: Timeout is 200 milli-seconds. */
-	expiration = g_get_monotonic_time() + 200 * G_TIME_SPAN_MILLISECOND;
-	g_cond_init(&waiter.cond);
 
 	/*
 	 * NOTE: I believe that a pair of this action/subaction is done within
 	 * default timeout of HinawaFwReq.
 	 */
 	waiter.bit_flag = bit_flag;
-	hinawa_fw_req_write(priv->req, &unit->parent_instance, addr, frame,
+	hinawa_fw_req_write(priv->req, &unit->parent_instance, addr, req_frame,
 			    exception);
-	if (*exception != NULL)
-		goto end;
+	if (!*exception) {
+		/*
+		 * Wait notification till timeout and temporarily leave the
+		 * critical section.
+		 */
+		expiration = g_get_monotonic_time() +
+			     200 * G_TIME_SPAN_MILLISECOND;
+		if (!g_cond_wait_until(&waiter.cond, &priv->mutex, expiration))
+			raise(exception, ETIMEDOUT);
+	}
 
-	/*
-	 * Wait notification till timeout and temporarily leave the critical
-	 * section.
-	 */
-	if (!g_cond_wait_until(&waiter.cond, &priv->mutex, expiration))
-		raise(exception, ETIMEDOUT);
-end:
 	priv->waiters = g_list_remove(priv->waiters, (gpointer *)&waiter);
 
 	g_mutex_unlock(&priv->mutex);
+	g_array_unref(req_frame);
 }
 
 void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
