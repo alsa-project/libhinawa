@@ -137,8 +137,6 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	priv->transactions = g_list_prepend(priv->transactions, &trans);
 	g_mutex_unlock(&priv->transactions_mutex);
 
-	/* NOTE: Timeout is 200 milli-seconds. */
-	expiration = g_get_monotonic_time() + 200 * G_TIME_SPAN_MILLISECOND;
 	g_cond_init(&trans.cond);
 	g_mutex_init(&trans.mutex);
 
@@ -149,6 +147,9 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 		goto end;
 
 deferred:
+	/* NOTE: Timeout is 200 milli-seconds. */
+	expiration = g_get_monotonic_time() + 200 * G_TIME_SPAN_MILLISECOND;
+
 	/*
 	 * Wait corresponding response till timeout.
 	 * NOTE: Timeout at bus-reset, illegally.
@@ -162,12 +163,9 @@ deferred:
 	if (*exception != NULL)
 		goto end;
 
-	/* It's a deffered transaction, wait 200 milli-seconds again. */
-	if (trans.resp_frame->data[0] == AVC_STATUS_INTERIM) {
-		expiration = g_get_monotonic_time() +
-			     200 * G_TIME_SPAN_MILLISECOND;
+	/* It's a deffered transaction, wait again. */
+	if (trans.resp_frame->data[0] == AVC_STATUS_INTERIM)
 		goto deferred;
-	}
 
 	/* Convert guint32 array to guint8 array. */
 	buf = (guint32 *)trans.resp_frame->data;
