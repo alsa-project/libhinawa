@@ -146,6 +146,7 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	if (*exception != NULL)
 		goto end;
 
+	g_mutex_lock(&trans.mutex);
 deferred:
 	/* NOTE: Timeout is 200 milli-seconds. */
 	expiration = g_get_monotonic_time() + 200 * G_TIME_SPAN_MILLISECOND;
@@ -154,26 +155,24 @@ deferred:
 	 * Wait corresponding response till timeout.
 	 * NOTE: Timeout at bus-reset, illegally.
 	 */
-	g_mutex_lock(&trans.mutex);
-	if (!g_cond_wait_until(&trans.cond, &trans.mutex, expiration))
+	if (!g_cond_wait_until(&trans.cond, &trans.mutex, expiration)) {
 		raise(exception, ETIMEDOUT);
+	} else if (trans.resp_frame->data[0] == AVC_STATUS_INTERIM) {
+		/* It's a deffered transaction, wait again. */
+		goto deferred;
+	}
+
 	g_mutex_unlock(&trans.mutex);
 
-	/* Error happened. */
-	if (*exception != NULL)
-		goto end;
-
-	/* It's a deffered transaction, wait again. */
-	if (trans.resp_frame->data[0] == AVC_STATUS_INTERIM)
-		goto deferred;
-
-	/* Convert guint32 array to guint8 array. */
-	buf = (guint32 *)trans.resp_frame->data;
-	for (i = 0; i < trans.resp_frame->len; i++)
-		buf[i] = GUINT32_TO_BE(buf[i]);
-	bytes = trans.resp_frame->len * sizeof(guint32);
-	g_array_set_size(resp_frame, bytes);
-	memcpy(resp_frame->data, trans.resp_frame->data, bytes);
+	if (!*exception) {
+		/* Convert guint32 array to guint8 array. */
+		buf = (guint32 *)trans.resp_frame->data;
+		for (i = 0; i < trans.resp_frame->len; i++)
+			buf[i] = GUINT32_TO_BE(buf[i]);
+		bytes = trans.resp_frame->len * sizeof(guint32);
+		g_array_set_size(resp_frame, bytes);
+		memcpy(resp_frame->data, trans.resp_frame->data, bytes);
+	}
 end:
 	/* Remove this entry. */
 	g_mutex_lock(&priv->transactions_mutex);
