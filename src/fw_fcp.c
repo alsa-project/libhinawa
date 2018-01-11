@@ -54,6 +54,7 @@ struct fcp_transaction {
 	GArray *req_frame;	/* Request frame */
 	GArray *resp_frame;	/* Response frame */
 	GCond cond;
+	GMutex mutex;
 };
 
 struct _HinawaFwFcpPrivate {
@@ -61,7 +62,7 @@ struct _HinawaFwFcpPrivate {
 	HinawaFwResp *resp;
 
 	GList *transactions;
-	GMutex lock;
+	GMutex transactions_mutex;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwFcp, hinawa_fw_fcp, G_TYPE_OBJECT)
 
@@ -101,7 +102,6 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	HinawaFwFcpPrivate *priv;
 	HinawaFwReq *req;
 	struct fcp_transaction trans = {0};
-	GMutex local_lock;
 	gint64 expiration;
 	guint32 *buf;
 	guint i, quads, bytes;
@@ -133,29 +133,30 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 					     sizeof(guint32), quads);
 
 	/* Insert this entry. */
-	g_mutex_lock(&priv->lock);
+	g_mutex_lock(&priv->transactions_mutex);
 	priv->transactions = g_list_prepend(priv->transactions, &trans);
-	g_mutex_unlock(&priv->lock);
+	g_mutex_unlock(&priv->transactions_mutex);
 
 	/* NOTE: Timeout is 200 milli-seconds. */
 	expiration = g_get_monotonic_time() + 200 * G_TIME_SPAN_MILLISECOND;
 	g_cond_init(&trans.cond);
-	g_mutex_init(&local_lock);
+	g_mutex_init(&trans.mutex);
 
 	/* Send this request frame. */
 	hinawa_fw_req_write(req, priv->unit, FCP_REQUEST_ADDR, trans.req_frame,
 			    exception);
 	if (*exception != NULL)
 		goto end;
+
 deferred:
 	/*
 	 * Wait corresponding response till timeout.
 	 * NOTE: Timeout at bus-reset, illegally.
 	 */
-	g_mutex_lock(&local_lock);
-	if (!g_cond_wait_until(&trans.cond, &local_lock, expiration))
+	g_mutex_lock(&trans.mutex);
+	if (!g_cond_wait_until(&trans.cond, &trans.mutex, expiration))
 		raise(exception, ETIMEDOUT);
-	g_mutex_unlock(&local_lock);
+	g_mutex_unlock(&trans.mutex);
 
 	/* Error happened. */
 	if (*exception != NULL)
@@ -177,13 +178,13 @@ deferred:
 	memcpy(resp_frame->data, trans.resp_frame->data, bytes);
 end:
 	/* Remove this entry. */
-	g_mutex_lock(&priv->lock);
+	g_mutex_lock(&priv->transactions_mutex);
 	priv->transactions =
 			g_list_remove(priv->transactions, (gpointer *)&trans);
-	g_mutex_unlock(&priv->lock);
+	g_mutex_unlock(&priv->transactions_mutex);
 
 	g_array_free(trans.req_frame, TRUE);
-	g_mutex_clear(&local_lock);
+	g_mutex_clear(&trans.mutex);
 	g_clear_object(&req);
 }
 
@@ -195,26 +196,24 @@ static GArray *handle_response(HinawaFwResp *self, gint tcode,
 	struct fcp_transaction *trans;
 	GList *entry;
 
-	g_mutex_lock(&priv->lock);
+	g_mutex_lock(&priv->transactions_mutex);
 
 	/* Seek corresponding request. */
 	for (entry = priv->transactions; entry != NULL; entry = entry->next) {
 		trans = (struct fcp_transaction *)entry->data;
 
 		if ((trans->req_frame->data[1] == req_frame->data[1]) &&
-		    (trans->req_frame->data[2] == req_frame->data[2]))
+		    (trans->req_frame->data[2] == req_frame->data[2])) {
+			g_mutex_lock(&trans->mutex);
+			g_array_insert_vals(trans->resp_frame, 0,
+					    req_frame->data, req_frame->len);
+			g_cond_signal(&trans->cond);
+			g_mutex_unlock(&trans->mutex);
 			break;
+		}
 	}
 
-	/* No requests corresponding to this response. */
-	if (entry == NULL)
-		goto end;
-
-	g_array_insert_vals(trans->resp_frame, 0,
-			    req_frame->data, req_frame->len);
-	g_cond_signal(&trans->cond);
-end:
-	g_mutex_unlock(&priv->lock);
+	g_mutex_unlock(&priv->transactions_mutex);
 
 	/* Transfer no data in the response frame. */
 	return NULL;
@@ -253,7 +252,7 @@ void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
 	g_signal_connect(priv->resp, "requested",
 			 G_CALLBACK(handle_response), self);
 
-	g_mutex_init(&priv->lock);
+	g_mutex_init(&priv->transactions_mutex);
 	priv->transactions = NULL;
 }
 
