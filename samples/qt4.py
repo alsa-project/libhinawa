@@ -140,7 +140,7 @@ if snd_unit.get_property('type') in (2, 3, 4):
     request[6] = 0xff
     request[7] = 0xff
     try:
-        response = snd_unit.fcp_transact(request)
+        response = fcp.transact(request)
     except Exception as e:
         print(e)
         sys.exit()
