@@ -22,9 +22,6 @@ methods = (
     'open',
     'lock',
     'unlock',
-    'read_transact',
-    'write_transact',
-    'lock_transact',
     'listen',
     'unlisten',
 )

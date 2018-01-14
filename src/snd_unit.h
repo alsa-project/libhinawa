@@ -51,16 +51,6 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception);
 void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception);
 void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception);
 
-void hinawa_snd_unit_read_transact(HinawaSndUnit *self,
-				   guint64 addr, GArray *frame, guint quads,
-				   GError **exception);
-void hinawa_snd_unit_write_transact(HinawaSndUnit *self,
-				    guint64 addr, GArray *frame,
-				    GError **exception);
-void hinawa_snd_unit_lock_transact(HinawaSndUnit *self,
-				   guint64 addr, GArray **frame,
-				   GError **exception);
-
 void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception);
 void hinawa_snd_unit_unlisten(HinawaSndUnit *self);
 
