@@ -84,11 +84,11 @@ print('  generation:\t{0}'.format(snd_unit.get_property('generation')))
 print(' Config ROM:')
 config_rom = snd_unit.get_config_rom()
 for i in range(len(config_rom)):
-    print('  [{0:02d}]: {1:08x}'.format(i, config_rom[i]))
+    print('  [{0:016x}]: {1:08x}'.format(0xfffff0000000 + i * 4, config_rom[i]))
 
 # create FireWire unit
 def handle_bus_update(snd_unit):
-	print(snd_unit.get_property('generation'))
+    print('bus-reset: generation {0}'.format(snd_unit.get_property('generation')))
 snd_unit.connect("bus-update", handle_bus_update)
 
 # start listening
