@@ -40,10 +40,10 @@ typedef struct {
 
 struct _HinawaFwUnitPrivate {
 	int fd;
-	struct fw_cdev_get_info info;
 
 	GMutex mutex;
 	guint32 config_rom[MAX_CONFIG_ROM_SIZE];
+	unsigned int config_rom_length;
 	struct fw_cdev_event_bus_reset generation;
 
 	unsigned int len;
@@ -232,6 +232,25 @@ static void hinawa_fw_unit_init(HinawaFwUnit *self)
 	g_mutex_init(&priv->mutex);
 }
 
+static void update_info(HinawaFwUnit *self, struct fw_cdev_event_bus_reset *generation,
+			GError **exception)
+{
+	struct fw_cdev_get_info info = {0};
+	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(self);
+
+	/* Duplicate generation parameters in userspace. */
+	info.version = 4;
+	info.rom = (__u64)priv->config_rom;
+	info.rom_length = MAX_CONFIG_ROM_SIZE * 4;
+	info.bus_reset = (guint64)&priv->generation;
+	info.bus_reset_closure = (guint64)self;
+
+	if (ioctl(priv->fd, FW_CDEV_IOC_GET_INFO, &info) < 0)
+		raise(exception, errno);
+
+	priv->config_rom_length = info.rom_length;
+}
+
 /**
  * hinawa_fw_unit_open:
  * @self: A #HinawaFwUnit
@@ -251,23 +270,10 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 		raise(exception, errno);
 		return;
 	}
+	priv->fd = fd;
 
 	g_mutex_lock(&priv->mutex);
-
-	/* Duplicate generation parameters in userspace. */
-	priv->info.version = 4;
-	priv->info.rom = (__u64)priv->config_rom;
-	priv->info.rom_length = MAX_CONFIG_ROM_SIZE * 4;
-	priv->info.bus_reset = (guint64)&priv->generation;
-	priv->info.bus_reset_closure = (guint64)self;
-	if (ioctl(fd, FW_CDEV_IOC_GET_INFO, &priv->info) < 0) {
-		raise(exception, errno);
-		close(fd);
-		goto end;
-	}
-
-	priv->fd = fd;
-end:
+	update_info(self, &priv->generation, exception);
 	g_mutex_unlock(&priv->mutex);
 }
 
@@ -286,7 +292,7 @@ const guint32 *hinawa_fw_unit_get_config_rom(HinawaFwUnit *self, guint *quads)
 	priv = hinawa_fw_unit_get_instance_private(self);
 
 	if (quads != NULL)
-		*quads = priv->info.rom_length / 4;
+		*quads = priv->config_rom_length / 4;
 
 	return priv->config_rom;
 }
@@ -313,7 +319,7 @@ static void handle_update(HinawaFwUnit *self,
 	priv = hinawa_fw_unit_get_instance_private(self);
 
 	g_mutex_lock(&priv->mutex);
-	memcpy(&priv->generation, event, sizeof(struct fw_cdev_get_info));
+	update_info(self, NULL, NULL);
 	g_mutex_unlock(&priv->mutex);
 
 	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE], 0, NULL);
