@@ -32,12 +32,6 @@ enum fw_req_prop_type {
 };
 static GParamSpec *fw_req_props[FW_REQ_PROP_TYPE_COUNT] = { NULL, };
 
-enum fw_req_type {
-	FW_REQ_TYPE_WRITE = 0,
-	FW_REQ_TYPE_READ,
-	FW_REQ_TYPE_COMPARE_SWAP,
-};
-
 /* NOTE: This object has no properties and no signals. */
 struct _HinawaFwReqPrivate {
 	guint timeout;
@@ -131,18 +125,13 @@ static void hinawa_fw_req_init(HinawaFwReq *self)
 	g_mutex_init(&priv->mutex);
 }
 
-static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
-			    enum fw_req_type type, guint64 addr, GArray *frame,
-			    GError **exception)
+static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit, int tcode,
+			    guint64 addr, GArray *frame, GError **exception)
 {
 	struct fw_cdev_send_request req = {0};
 	HinawaFwReqPrivate *priv = hinawa_fw_req_get_instance_private(self);
-	int tcode;
-
 	guint64 generation;
-
 	guint64 expiration;
-
 	guint32 *buf;
 	int i;
 	int err = 0;
@@ -157,28 +146,13 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit,
 	g_mutex_lock(&priv->mutex);
 
 	/* Setup a private structure. */
-	if (type == FW_REQ_TYPE_READ) {
+	if (tcode == TCODE_READ_QUADLET_REQUEST ||
+	    tcode == TCODE_READ_BLOCK_REQUEST) {
 		priv->frame = frame;
 		req.data = (guint64)NULL;
-		if (frame->len == 1)
-			tcode = TCODE_READ_QUADLET_REQUEST;
-		else
-			tcode = TCODE_READ_BLOCK_REQUEST;
-	} else if (type == FW_REQ_TYPE_WRITE) {
+	} else {
 		priv->frame = NULL;
 		req.data = (guint64)frame->data;
-		if (frame->len == 1)
-			tcode = TCODE_WRITE_QUADLET_REQUEST;
-		else
-			tcode = TCODE_WRITE_BLOCK_REQUEST;
-	} else if ((type == FW_REQ_TYPE_COMPARE_SWAP) &&
-		   ((frame->len == 2) || (frame->len == 4))) {
-			priv->frame = NULL;
-			req.data = (guint64)frame->data;
-			tcode = TCODE_LOCK_COMPARE_SWAP;
-	} else {
-		raise(exception, EINVAL);
-		goto end;
 	}
 
 	/* Get unit properties. */
@@ -247,6 +221,8 @@ end:
 void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 			 GArray *frame, GError **exception)
 {
+	int tcode;
+
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
 	if (frame == NULL || g_array_get_element_size(frame) != 4) {
@@ -254,8 +230,13 @@ void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 		return;
 	}
 
+	if (frame->len == 1)
+		tcode = TCODE_WRITE_QUADLET_REQUEST;
+	else
+		tcode = TCODE_WRITE_BLOCK_REQUEST;
+
 	g_object_ref(unit);
-	fw_req_transact(self, unit, FW_REQ_TYPE_WRITE, addr, frame, exception);
+	fw_req_transact(self, unit, tcode, addr, frame, exception);
 	g_object_unref(unit);
 }
 
@@ -273,6 +254,8 @@ void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 			GArray *frame, guint quads, GError **exception)
 {
+	int tcode;
+
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
 	if (frame == NULL || g_array_get_element_size(frame) != 4) {
@@ -280,9 +263,15 @@ void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 		return;
 	}
 
-	g_object_ref(unit);
 	g_array_set_size(frame, quads);
-	fw_req_transact(self, unit, FW_REQ_TYPE_READ, addr, frame, exception);
+
+	if (frame->len == 1)
+		tcode = TCODE_READ_QUADLET_REQUEST;
+	else
+		tcode = TCODE_READ_BLOCK_REQUEST;
+
+	g_object_ref(unit);
+	fw_req_transact(self, unit, tcode, addr, frame, exception);
 	g_object_unref(unit);
 }
 
@@ -301,14 +290,15 @@ void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit,
 {
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
-	if (frame == NULL || g_array_get_element_size(*frame) != 4) {
+	if (frame == NULL || g_array_get_element_size(*frame) != 4 ||
+	    ((*frame)->len != 2 || (*frame)->len != 4)) {
 		raise(exception, EINVAL);
 		return;
 	}
 
 	g_object_ref(unit);
-	fw_req_transact(self, unit,
-			FW_REQ_TYPE_COMPARE_SWAP, addr, *frame, exception);
+	fw_req_transact(self, unit, TCODE_LOCK_COMPARE_SWAP, addr, *frame,
+			exception);
 	g_object_unref(unit);
 }
 
