@@ -25,6 +25,13 @@ G_DEFINE_QUARK("HinawaFwUnit", hinawa_fw_unit)
  * All of operations utilize ioctl(2) with subsystem specific request commands.
  */
 
+/*
+ * 256 comes from an actual implementation in kernel land. Read
+ * 'drivers/firewire/core-device.c'. This value is calculated by a range for
+ * configuration ROM in ISO/IEC 13213 (IEEE 1212).
+ */
+#define MAX_CONFIG_ROM_SIZE 256
+
 typedef struct {
 	GSource src;
 	HinawaFwUnit *unit;
@@ -36,7 +43,7 @@ struct _HinawaFwUnitPrivate {
 	struct fw_cdev_get_info info;
 
 	GMutex mutex;
-	guint32 *config_rom;
+	guint32 config_rom[MAX_CONFIG_ROM_SIZE];
 	struct fw_cdev_event_bus_reset generation;
 
 	unsigned int len;
@@ -127,7 +134,6 @@ static void fw_unit_finalize(GObject *obj)
 
 	close(priv->fd);
 
-	g_free(priv->config_rom);
 	g_mutex_clear(&priv->mutex);
 
 	G_OBJECT_CLASS(hinawa_fw_unit_parent_class)->finalize(obj);
@@ -250,23 +256,10 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 
 	/* Duplicate generation parameters in userspace. */
 	priv->info.version = 4;
+	priv->info.rom = (__u64)priv->config_rom;
+	priv->info.rom_length = MAX_CONFIG_ROM_SIZE * 4;
 	priv->info.bus_reset = (guint64)&priv->generation;
 	priv->info.bus_reset_closure = (guint64)self;
-	if (ioctl(fd, FW_CDEV_IOC_GET_INFO, &priv->info) < 0) {
-		raise(exception, errno);
-		close(fd);
-		goto end;
-	}
-
-	/* Duplicate contents of Config ROM in userspace. */
-	priv->config_rom = g_malloc0(priv->info.rom_length);
-	if (priv->config_rom == NULL) {
-		raise(exception, ENOMEM);
-		close(fd);
-		goto end;
-	}
-	priv->info.rom = (__u64)priv->config_rom;
-
 	if (ioctl(fd, FW_CDEV_IOC_GET_INFO, &priv->info) < 0) {
 		raise(exception, errno);
 		close(fd);
