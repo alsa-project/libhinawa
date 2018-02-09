@@ -265,13 +265,27 @@ void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
  * @unit: A #HinawaFwUnit
  * @addr: A destination address of target device
  * @frame: (element-type guint8) (array) (inout): a 8bit array
+ * @lock_tcode: One of #HinawaFwTcode enumerator for lock operation.
  * @exception: A #GError
  *
  * Execute lock transaction to the given unit.
  */
 void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit,
-			guint64 addr, GArray **frame, GError **exception)
+			guint64 addr, GArray **frame, HinawaFwTcode lock_tcode,
+			GError **exception)
 {
+	static const HinawaFwTcode lock_tcodes[] = {
+		HINAWA_FW_TCODE_LOCK_RESPONSE,
+		HINAWA_FW_TCODE_LOCK_MASK_SWAP,
+		HINAWA_FW_TCODE_LOCK_COMPARE_SWAP,
+		HINAWA_FW_TCODE_LOCK_FETCH_ADD,
+		HINAWA_FW_TCODE_LOCK_LITTLE_ADD,
+		HINAWA_FW_TCODE_LOCK_BOUNDED_ADD,
+		HINAWA_FW_TCODE_LOCK_WRAP_ADD,
+		HINAWA_FW_TCODE_LOCK_VENDOR_DEPENDENT,
+	};
+	int i;
+
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
 	if (!(*frame) || (*frame)->len == 0 || (*frame)->len % 8 > 0 ||
@@ -280,9 +294,17 @@ void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit,
 		return;
 	}
 
+	for (i = 0; i < sizeof(lock_tcodes) / sizeof(lock_tcodes[0]); ++i) {
+		if (lock_tcodes[i] == lock_tcode)
+			break;
+	}
+	if (i == sizeof(lock_tcodes) / sizeof(lock_tcodes[0])) {
+		raise(exception, EINVAL);
+		return;
+	}
+
 	g_object_ref(unit);
-	fw_req_transact(self, unit, TCODE_LOCK_COMPARE_SWAP, addr, *frame,
-			exception);
+	fw_req_transact(self, unit, lock_tcode, addr, *frame, exception);
 	g_object_unref(unit);
 }
 

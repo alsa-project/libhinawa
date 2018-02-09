@@ -11,6 +11,7 @@
 #include <sys/mman.h>
 
 #include "internal.h"
+#include "hinawa_enum_types.h"
 #include "hinawa_context.h"
 
 /**
@@ -370,7 +371,7 @@ void hinawa_snd_unit_lock_transact(HinawaSndUnit *self,
 	}
 
 	hinawa_fw_req_lock(priv->req, &self->parent_instance, addr, &req_frame,
-			   exception);
+			   HINAWA_FW_TCODE_LOCK_COMPARE_SWAP, exception);
 
 	/* Alignment data. */
 	for (i = 0; i < (*frame)->len; ++i) {
