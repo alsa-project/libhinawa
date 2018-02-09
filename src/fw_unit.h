@@ -4,8 +4,6 @@
 #include <glib.h>
 #include <glib-object.h>
 
-G_BEGIN_DECLS
-
 #define HINAWA_TYPE_FW_UNIT	(hinawa_fw_unit_get_type())
 
 #define HINAWA_FW_UNIT(obj)					\

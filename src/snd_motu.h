@@ -5,8 +5,6 @@
 #include <glib-object.h>
 #include "snd_unit.h"
 
-G_BEGIN_DECLS
-
 #define HINAWA_TYPE_SND_MOTU	(hinawa_snd_motu_get_type())
 
 #define HINAWA_SND_MOTU(obj)					\

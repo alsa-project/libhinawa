@@ -5,8 +5,6 @@
 #include <glib-object.h>
 #include "fw_unit.h"
 
-G_BEGIN_DECLS
-
 #define HINAWA_TYPE_FW_FCP	(hinawa_fw_fcp_get_type())
 
 #define HINAWA_FW_FCP(obj)					\

@@ -5,8 +5,6 @@
 #include <glib-object.h>
 #include "snd_unit.h"
 
-G_BEGIN_DECLS
-
 #define HINAWA_TYPE_SND_DG00X	(hinawa_snd_dg00x_get_type())
 
 #define HINAWA_SND_DG00X(obj)					\

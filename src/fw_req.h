@@ -5,8 +5,6 @@
 #include <glib-object.h>
 #include "fw_unit.h"
 
-G_BEGIN_DECLS
-
 #define HINAWA_TYPE_FW_REQ	(hinawa_fw_req_get_type())
 
 #define HINAWA_FW_REQ(obj)					\
