@@ -31,7 +31,8 @@ G_DEFINE_QUARK("HinawaFwUnit", hinawa_fw_unit)
  * 'drivers/firewire/core-device.c'. This value is calculated by a range for
  * configuration ROM in ISO/IEC 13213 (IEEE 1212).
  */
-#define MAX_CONFIG_ROM_SIZE 256
+#define MAX_CONFIG_ROM_SIZE	256
+#define MAX_CONFIG_ROM_LENGTH	(MAX_CONFIG_ROM_SIZE * 4)
 
 typedef struct {
 	GSource src;
@@ -43,7 +44,7 @@ struct _HinawaFwUnitPrivate {
 	int fd;
 
 	GMutex mutex;
-	guint32 config_rom[MAX_CONFIG_ROM_SIZE];
+	guint8 config_rom[MAX_CONFIG_ROM_LENGTH];
 	unsigned int config_rom_length;
 	struct fw_cdev_event_bus_reset generation;
 
@@ -238,17 +239,28 @@ static void update_info(HinawaFwUnit *self, struct fw_cdev_event_bus_reset *gene
 {
 	struct fw_cdev_get_info info = {0};
 	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(self);
+	guint32 *rom;
+	unsigned int quads;
+	int i;
 
 	/* Duplicate generation parameters in userspace. */
 	info.version = 4;
 	info.rom = (__u64)priv->config_rom;
-	info.rom_length = MAX_CONFIG_ROM_SIZE * 4;
+	info.rom_length = MAX_CONFIG_ROM_LENGTH;
 	info.bus_reset = (guint64)&priv->generation;
 	info.bus_reset_closure = (guint64)self;
 
 	if (ioctl(priv->fd, FW_CDEV_IOC_GET_INFO, &info) < 0)
 		raise(exception, errno);
 
+	/*
+	 * Align buffer for configuration ROM according to host endianness, because
+	 * Linux firewire subsystem copies raw data to it.
+	 */
+	rom = (guint32 *)priv->config_rom;
+	quads = (info.rom_length + 3) / 4;
+	for (i = 0; i < quads; ++i)
+		rom[i] = GUINT32_FROM_BE(rom[i]);
 	priv->config_rom_length = info.rom_length;
 }
 
@@ -281,19 +293,19 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 /**
  * hinawa_fw_unit_get_config_rom:
  * @self: A #HinawaFwUnit
- * @quads: (out) (optional): the number of quadlet consists of the config rom
+ * @length: (out) (optional): the number of bytes consists of the config rom
  *
- * Returns: (element-type guint32) (array length=quads) (transfer none): config rom image
+ * Returns: (element-type guint8) (array length=length) (transfer none): config rom image
  */
-const guint32 *hinawa_fw_unit_get_config_rom(HinawaFwUnit *self, guint *quads)
+const guint8 *hinawa_fw_unit_get_config_rom(HinawaFwUnit *self, guint *length)
 {
 	HinawaFwUnitPrivate *priv;
 
 	g_return_val_if_fail(HINAWA_IS_FW_UNIT(self), NULL);
 	priv = hinawa_fw_unit_get_instance_private(self);
 
-	if (quads != NULL)
-		*quads = priv->config_rom_length / 4;
+	if (length)
+		*length = priv->config_rom_length;
 
 	return priv->config_rom;
 }

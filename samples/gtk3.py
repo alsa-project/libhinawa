@@ -83,8 +83,10 @@ print('  ir-manager:\t{0:04x}'.format(snd_unit.get_property('ir-manager-node-id'
 print('  generation:\t{0}'.format(snd_unit.get_property('generation')))
 print(' Config ROM:')
 config_rom = snd_unit.get_config_rom()
-for i in range(len(config_rom)):
-    print('  [{0:016x}]: {1:08x}'.format(0xfffff0000000 + i * 4, config_rom[i]))
+for i in range(len(config_rom) // 4):
+    print('  [{0:016x}]: {1:02x}{2:02x}{3:02x}{4:02x}'.format(
+        0xfffff0000000 + i * 4, config_rom[i * 4], config_rom[i * 4 + 1],
+        config_rom[i * 4 + 2], config_rom[i * 4 + 3]))
 
 # create FireWire unit
 def handle_bus_update(snd_unit):

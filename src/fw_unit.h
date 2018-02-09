@@ -47,7 +47,7 @@ GType hinawa_fw_unit_get_type(void) G_GNUC_CONST;
 
 void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception);
 
-const guint32 *hinawa_fw_unit_get_config_rom(HinawaFwUnit *self, guint *quads);
+const guint8 *hinawa_fw_unit_get_config_rom(HinawaFwUnit *self, guint *length);
 
 void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception);
 void hinawa_fw_unit_unlisten(HinawaFwUnit *self);

@@ -5,7 +5,6 @@ V0_6_0 {
     "hinawa_fw_unit_quark";
     "hinawa_fw_unit_listen";
     "hinawa_fw_unit_unlisten";
-    "hinawa_fw_unit_get_config_rom";
 
     "hinawa_fw_req_get_type";
     "hinawa_fw_req_quark";
@@ -66,4 +65,6 @@ V1_0_0 {
     "hinawa_fw_req_read";
     "hinawa_fw_req_write";
     "hinawa_fw_req_lock";
+
+    "hinawa_fw_unit_get_config_rom";
 } V0_8_0;
