@@ -26,7 +26,6 @@ G_DEFINE_QUARK("HinawaFwResp", hinawa_fw_resp)
 struct _HinawaFwRespPrivate {
 	HinawaFwUnit *unit;
 
-	guchar *buf;
 	guint width;
 	guint64 addr_handle;
 
@@ -123,13 +122,6 @@ void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
 		raise(exception, err);
 		g_object_unref(priv->unit);
 		priv->unit = NULL;
-		return;
-	}
-
-	priv->buf = g_malloc0(allocate.length);
-	if (priv->buf == NULL) {
-		raise(exception, ENOMEM);
-		hinawa_fw_resp_unregister(self);
 		return;
 	}
 
