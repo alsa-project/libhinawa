@@ -202,6 +202,8 @@ static GArray *handle_response(HinawaFwResp *self, gint tcode,
 		if ((trans->req_frame->data[1] == req_frame->data[1]) &&
 		    (trans->req_frame->data[2] == req_frame->data[2])) {
 			g_mutex_lock(&trans->mutex);
+			g_array_remove_range(trans->resp_frame, 0,
+					     trans->resp_frame->len);
 			g_array_insert_vals(trans->resp_frame, 0,
 					    req_frame->data, req_frame->len);
 			g_cond_signal(&trans->cond);

@@ -237,6 +237,7 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 	}
 
 	/* Copy parameters. */
+	g_array_remove_range(params, 0, params->len);
 	g_array_insert_vals(params, 0, trans.frame->params, count);
 end:
 	/* Remove thie entry from list and leave the critical section. */

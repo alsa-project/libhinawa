@@ -315,10 +315,10 @@ void hinawa_fw_req_handle_response(HinawaFwReq *self,
 
 	priv->rcode = event->rcode;
 
-	/* Copy transaction frame. */
-	if (priv->frame != NULL) {
-		priv->frame->len = 0;
-		g_array_append_vals(priv->frame, event->data,
+	/* Copy transaction frame if needed. */
+	if (priv->frame) {
+		g_array_remove_range(priv->frame, 0, priv->frame->len);
+		g_array_insert_vals(priv->frame, 0, event->data,
 			event->length / g_array_get_element_size(priv->frame));
 	}
 
