@@ -125,8 +125,9 @@ void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
 		return;
 	}
 
-	priv->req_frame  = g_array_new(FALSE, TRUE, sizeof(guint32));
-	if (priv->req_frame == NULL) {
+	priv->req_frame = g_array_sized_new(FALSE, TRUE, sizeof(guint32),
+					    allocate.length / sizeof(guint32));
+	if (!priv->req_frame) {
 		raise(exception, ENOMEM);
 		hinawa_fw_resp_unregister(self);
 		return;
