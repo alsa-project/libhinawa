@@ -60,7 +60,9 @@ V1_0_0 {
     "hinawa_fw_tcode_get_type";
     "hinawa_fw_rcode_get_type";
 
-    "hinawa_sigs_marshal_BOXED__INT_BOXED";
+    "hinawa_fw_resp_get_req_frame";
+    "hinawa_fw_resp_set_resp_frame";
+    "hinawa_sigs_marshal_ENUM__ENUM";
 
     "hinawa_fw_req_read";
     "hinawa_fw_req_write";

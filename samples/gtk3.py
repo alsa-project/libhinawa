@@ -103,12 +103,12 @@ print(" listening:\t{0}".format(snd_unit.get_property('listening')))
 
 # create firewire responder
 resp = Hinawa.FwResp()
-def handle_request(resp, tcode, req_frame):
-    print('Requested with tcode {0}:'.format(tcode))
+def handle_request(resp, tcode):
+    print('Requested with tcode: {0}'.format(tcode.value_nick))
+    req_frame = resp.get_req_frame()
     for i in range(len(req_frame)):
         print(' [{0:02d}]: 0x{1:02x}'.format(i, req_frame[i]))
-    # Return no data for the response frame
-    return None
+    return Hinawa.FwRcode.COMPLETE
 try:
     resp.register(snd_unit, 0xfffff0000d00, 0x100)
     resp.connect('requested', handle_request)

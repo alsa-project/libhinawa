@@ -14,6 +14,8 @@ props = ()
 methods = (
     'register',
     'unregister',
+    'get_req_frame',
+    'set_resp_frame',
 )
 signals = (
     'requested',

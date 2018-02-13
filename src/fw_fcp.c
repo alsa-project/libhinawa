@@ -2,9 +2,9 @@
 #include <string.h>
 #include <errno.h>
 
+#include "internal.h"
 #include "fw_fcp.h"
-#include "fw_req.h"
-#include "fw_resp.h"
+#include "hinawa_enum_types.h"
 
 /**
  * SECTION:fw_fcp
@@ -223,27 +223,33 @@ end:
 	g_clear_object(&req);
 }
 
-static GArray *handle_response(HinawaFwResp *self, gint tcode,
-			       GArray *req_frame, gpointer user_data)
+static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode,
+				     gpointer user_data)
 {
 	HinawaFwFcp *fcp = (HinawaFwFcp *)user_data;
 	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(fcp);
 	struct fcp_transaction *trans;
+	const guint8 *req_frame;
+	guint length;
 	GList *entry;
 
 	g_mutex_lock(&priv->transactions_mutex);
+
+	req_frame = NULL;
+	length = 0;
+	hinawa_fw_resp_get_req_frame(resp, &req_frame, &length);
 
 	/* Seek corresponding request. */
 	for (entry = priv->transactions; entry != NULL; entry = entry->next) {
 		trans = (struct fcp_transaction *)entry->data;
 
-		if ((trans->req_frame->data[1] == req_frame->data[1]) &&
-		    (trans->req_frame->data[2] == req_frame->data[2])) {
+		if (g_array_index(trans->req_frame, guint8, 1) == req_frame[1] &&
+		    g_array_index(trans->req_frame, guint8, 2) == req_frame[2]) {
 			g_mutex_lock(&trans->mutex);
 			g_array_remove_range(trans->resp_frame, 0,
 					     trans->resp_frame->len);
-			g_array_insert_vals(trans->resp_frame, 0,
-					    req_frame->data, req_frame->len);
+                        g_array_insert_vals(trans->resp_frame, 0, req_frame,
+					    length);
 			g_cond_signal(&trans->cond);
 			g_mutex_unlock(&trans->mutex);
 			break;
@@ -252,8 +258,9 @@ static GArray *handle_response(HinawaFwResp *self, gint tcode,
 
 	g_mutex_unlock(&priv->transactions_mutex);
 
-	/* Transfer no data in the response frame. */
-	return NULL;
+	/* MEMO: no need to send any data on response frame. */
+
+	return HINAWA_FW_RCODE_COMPLETE;
 }
 
 /**

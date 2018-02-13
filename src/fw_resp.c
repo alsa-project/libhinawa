@@ -5,6 +5,7 @@
 
 #include "internal.h"
 #include "hinawa_sigs_marshal.h"
+#include "hinawa_enums.h"
 
 /**
  * SECTION:fw_resp
@@ -29,7 +30,10 @@ struct _HinawaFwRespPrivate {
 	guint width;
 	guint64 addr_handle;
 
-	GArray *req_frame;
+	guint8 *req_frame;
+	unsigned int req_length;
+	guint8 *resp_frame;
+	unsigned int resp_length;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwResp, hinawa_fw_resp, G_TYPE_OBJECT)
 
@@ -60,16 +64,15 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	/**
 	 * HinawaFwResp::requested:
 	 * @self: A #HinawaFwResp
-	 * @tcode: Transaction code
-	 * @req_frame: (element-type guint8) (array) (transfer none):
-	 *		The frame in request
+	 * @tcode: One of #HinawaTcode enumerators
 	 *
 	 * When any units transfer requests to the range of address to which
-	 * this object listening. The ::requested signal handler can set
-	 * data frame to 'resp_frame' if needed.
+	 * this object listening. The ::requested signal handler can get data
+	 * frame by a call of ::get_req_frame and set data frame by a call of
+	 * ::set_resp_frame, then returns rcode.
 	 *
-	 * Returns: (element-type guint8) (array) (nullable) (transfer full):
-	 *	A data frame for response.
+	 * Returns: One of #HinawaRcode enumerators corresponding to rcodes
+	 * 	    defined in IEEE 1394 specification.
 	 */
 	fw_resp_sigs[FW_RESP_SIG_TYPE_REQ] =
 		g_signal_new("requested",
@@ -77,8 +80,8 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 			     G_SIGNAL_RUN_LAST,
 			     0,
 			     NULL, NULL,
-			     hinawa_sigs_marshal_BOXED__INT_BOXED,
-			     G_TYPE_ARRAY, 2, G_TYPE_INT, G_TYPE_ARRAY);
+			     hinawa_sigs_marshal_ENUM__ENUM,
+			     HINAWA_TYPE_FW_RCODE, 1, HINAWA_TYPE_FW_TCODE);
 }
 
 static void hinawa_fw_resp_init(HinawaFwResp *self)
@@ -125,9 +128,15 @@ void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
 		return;
 	}
 
-	priv->req_frame = g_array_sized_new(FALSE, TRUE, sizeof(guint8),
-					    allocate.length);
+	priv->req_frame = g_malloc(allocate.length);
 	if (!priv->req_frame) {
+		raise(exception, ENOMEM);
+		hinawa_fw_resp_unregister(self);
+		return;
+	}
+
+	priv->resp_frame = g_malloc0(allocate.length);
+	if (!priv->resp_frame) {
 		raise(exception, ENOMEM);
 		hinawa_fw_resp_unregister(self);
 		return;
@@ -161,8 +170,55 @@ void hinawa_fw_resp_unregister(HinawaFwResp *self)
 	priv->unit = NULL;
 
 	if (priv->req_frame != NULL)
-		g_array_free(priv->req_frame, TRUE);
+		g_free(priv->req_frame);
 	priv->req_frame = NULL;
+
+	if (priv->resp_frame)
+		g_free(priv->resp_frame);
+	priv->resp_frame = NULL;
+	priv->resp_length = 0;
+}
+
+/**
+ * hinawa_fw_resp_get_req_frame:
+ * @self: A #HinawaFwResp
+ * @frame: (element-type guint8)(array length=length)(out): a 8bit array for
+ * 	   response frame.
+ * @length: (out): The length of bytes for the frame.
+ */
+void hinawa_fw_resp_get_req_frame(HinawaFwResp *self, const guint8 **frame,
+				  guint *length)
+{
+	HinawaFwRespPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_FW_RESP(self));
+	priv = hinawa_fw_resp_get_instance_private(self);
+
+	if (frame && length && priv->req_length > 0) {
+		*frame = (const guint8 *)priv->req_frame;
+		*length = priv->req_length;
+	}
+}
+
+/**
+ * hinawa_fw_resp_set_resp_frame:
+ * @self: A #HinawaFwResp
+ * @frame: (element-type guint8)(array length=length): a 8bit array for response
+ * 	   frame.
+ * @length: The length of bytes for the frame.
+ */
+void hinawa_fw_resp_set_resp_frame(HinawaFwResp *self, guint8 *frame,
+				   guint length)
+{
+	HinawaFwRespPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_FW_RESP(self));
+	priv = hinawa_fw_resp_get_instance_private(self);
+
+	if (frame && length <= priv->width) {
+		memcpy(priv->resp_frame, frame, length);
+		priv->resp_length = length;
+	}
 }
 
 /* NOTE: For HinawaFwUnit, internal. */
@@ -171,32 +227,39 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 {
 	HinawaFwRespPrivate *priv;
 	struct fw_cdev_send_response resp = {0};
-	GArray *resp_frame;
+	HinawaFwTcode tcode;
+	HinawaFwRcode rcode;
 	int err;
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
 	priv = hinawa_fw_resp_get_instance_private(self);
 
-	if (event->length > priv->width) {
+	if (!priv->unit || event->length > priv->width) {
 		resp.rcode = RCODE_CONFLICT_ERROR;
 		goto respond;
 	}
 
 	/* Emit signal to handlers. */
-	g_array_remove_range(priv->req_frame, 0, priv->req_frame->len);
-	g_array_insert_vals(priv->req_frame, 0, event->data, event->length);
-	g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ], 0,
-		      event->tcode, priv->req_frame, &resp_frame);
+	memcpy(priv->req_frame, event->data, event->length);
+	priv->req_length = event->length;
 
-	resp.rcode = RCODE_COMPLETE;
-	if (!resp_frame || resp_frame->len == 0)
-		goto respond;
+	/* Emit signal to handlers. */
+	tcode = (HinawaFwTcode)event->tcode;
+	rcode = HINAWA_FW_RCODE_COMPLETE;
+	g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ], 0, tcode,
+		      &rcode);
+	resp.rcode = (__u32)rcode;
 
-	resp.length = resp_frame->len;
-	resp.data = (guint64)resp_frame->data;
+	if (priv->resp_length > 0) {
+		resp.length = priv->resp_length;
+		resp.data = (guint64)priv->resp_frame;
+	}
 respond:
 	resp.handle = event->handle;
 
 	hinawa_fw_unit_ioctl(priv->unit, FW_CDEV_IOC_SEND_RESPONSE, &resp,
 			     &err);
+
+	memset(priv->resp_frame, 0, priv->width);
+	priv->resp_length = 0;
 }

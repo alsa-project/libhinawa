@@ -5,6 +5,7 @@
 #include <glib.h>
 #include <glib-object.h>
 #include "fw_unit.h"
+#include "hinawa_enums.h"
 
 G_BEGIN_DECLS
 
@@ -49,6 +50,11 @@ GType hinawa_fw_resp_get_type(void) G_GNUC_CONST;
 void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
 			     guint64 addr, guint width, GError **exception);
 void hinawa_fw_resp_unregister(HinawaFwResp *self);
+
+void hinawa_fw_resp_get_req_frame(HinawaFwResp *self, const guint8 **frame,
+				  guint *length);
+void hinawa_fw_resp_set_resp_frame(HinawaFwResp *self, guint8 *frame,
+				   guint length);
 
 G_END_DECLS
 
