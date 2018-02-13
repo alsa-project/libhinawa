@@ -126,8 +126,8 @@ void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
 {
 	HinawaSndDicePrivate *priv;
 	HinawaSndUnit *unit;
-
-	GArray *req_frame;
+	unsigned int length;
+	GByteArray *req_frame;
 	gint i;
 
 	struct notification_waiter waiter = {0};
@@ -138,12 +138,12 @@ void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
 	unit = &self->parent_instance;
 
 	/* Alignment data on given buffer to local buffer for transaction. */
-	req_frame = g_array_sized_new(FALSE, TRUE, sizeof(guint8),
-				g_array_get_element_size(frame) * frame->len);
+	length = g_array_get_element_size(frame) * frame->len;
+	req_frame = g_byte_array_sized_new(length);
 	for (i = 0; i < frame->len; ++i) {
 		guint32 datum;
 		datum = GUINT32_TO_BE(g_array_index(frame, guint32, i));
-		g_array_append_vals(req_frame, &datum, sizeof(datum));
+		g_byte_array_append(req_frame, (guint8 *)&datum, sizeof(datum));
 	}
 
 	/* Insert this entry to list and enter critical section. */
@@ -172,7 +172,7 @@ void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
 	priv->waiters = g_list_remove(priv->waiters, (gpointer *)&waiter);
 
 	g_mutex_unlock(&priv->mutex);
-	g_array_unref(req_frame);
+	g_byte_array_unref(req_frame);
 }
 
 void hinawa_snd_dice_handle_notification(HinawaSndDice *self,

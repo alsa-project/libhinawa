@@ -52,8 +52,8 @@ enum avc_status {
 };
 
 struct fcp_transaction {
-	GArray *req_frame;	/* Request frame */
-	GArray *resp_frame;	/* Response frame */
+	GByteArray *req_frame;	/* Request frame */
+	GByteArray *resp_frame;	/* Response frame */
 	GCond cond;
 	GMutex mutex;
 };
@@ -151,7 +151,7 @@ static void hinawa_fw_fcp_init(HinawaFwFcp *self)
  * @exception: A #GError
  */
 void hinawa_fw_fcp_transact(HinawaFwFcp *self,
-			    GArray *req_frame, GArray *resp_frame,
+			    GByteArray *req_frame, GByteArray *resp_frame,
 			    GError **exception)
 {
 	HinawaFwFcpPrivate *priv;
@@ -163,8 +163,7 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
 	priv = hinawa_fw_fcp_get_instance_private(self);
 
-	if (req_frame  == NULL || g_array_get_element_size(req_frame)  != 1 ||
-	    resp_frame == NULL || g_array_get_element_size(resp_frame) != 1 ||
+	if (!req_frame || !resp_frame ||
 	    req_frame->len > FCP_MAXIMUM_FRAME_BYTES) {
 		raise(exception, EINVAL);
 		return;
@@ -246,10 +245,10 @@ static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode,
 		if (g_array_index(trans->req_frame, guint8, 1) == req_frame[1] &&
 		    g_array_index(trans->req_frame, guint8, 2) == req_frame[2]) {
 			g_mutex_lock(&trans->mutex);
-			g_array_remove_range(trans->resp_frame, 0,
-					     trans->resp_frame->len);
-                        g_array_insert_vals(trans->resp_frame, 0, req_frame,
-					    length);
+			g_byte_array_remove_range(trans->resp_frame, 0,
+						  trans->resp_frame->len);
+			g_byte_array_append(trans->resp_frame,
+					    (guint8 *)req_frame, length);
 			g_cond_signal(&trans->cond);
 			g_mutex_unlock(&trans->mutex);
 			break;

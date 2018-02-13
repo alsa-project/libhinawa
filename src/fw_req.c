@@ -35,7 +35,8 @@ static GParamSpec *fw_req_props[FW_REQ_PROP_TYPE_COUNT] = { NULL, };
 /* NOTE: This object has no properties and no signals. */
 struct _HinawaFwReqPrivate {
 	guint timeout;
-	GArray *frame;
+	guint8 *frame;
+	guint length;
 
 	guint rcode;
 	GMutex mutex;
@@ -126,7 +127,8 @@ static void hinawa_fw_req_init(HinawaFwReq *self)
 }
 
 static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit, int tcode,
-			    guint64 addr, GArray *frame, GError **exception)
+			    guint64 addr, guint8 *frame, guint length,
+			    GError **exception)
 {
 	struct fw_cdev_send_request req = {0};
 	HinawaFwReqPrivate *priv = hinawa_fw_req_get_instance_private(self);
@@ -140,10 +142,11 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit, int tcode,
 	if (tcode == TCODE_READ_QUADLET_REQUEST ||
 	    tcode == TCODE_READ_BLOCK_REQUEST) {
 		priv->frame = frame;
+		priv->length = length;
 		req.data = (guint64)NULL;
 	} else {
 		priv->frame = NULL;
-		req.data = (guint64)frame->data;
+		req.data = (guint64)frame;
 	}
 
 	/* Get unit properties. */
@@ -151,7 +154,7 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit, int tcode,
 
 	/* Setup a transaction structure. */
 	req.tcode = tcode;
-	req.length = frame->len;
+	req.length = length;
 	req.offset = addr;
 	req.closure = (guint64)self;
 	req.generation = generation;
@@ -203,7 +206,7 @@ end:
  * Execute write transactions to the given unit.
  */
 void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
-			 GArray *frame, GError **exception)
+			 GByteArray *frame, GError **exception)
 {
 	int tcode;
 
@@ -220,7 +223,8 @@ void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 		tcode = TCODE_WRITE_BLOCK_REQUEST;
 
 	g_object_ref(unit);
-	fw_req_transact(self, unit, tcode, addr, frame, exception);
+	fw_req_transact(self, unit, tcode, addr, frame->data, frame->len,
+			exception);
 	g_object_unref(unit);
 }
 
@@ -236,7 +240,7 @@ void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
  * Execute read transaction to the given unit.
  */
 void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
-			GArray *frame, guint length, GError **exception)
+			GByteArray *frame, guint length, GError **exception)
 {
 	int tcode;
 
@@ -247,7 +251,7 @@ void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 		return;
 	}
 
-	g_array_set_size(frame, length);
+	g_byte_array_set_size(frame, length);
 
 	if (frame->len == 4 && !(addr & 0x03))
 		tcode = TCODE_READ_QUADLET_REQUEST;
@@ -255,7 +259,8 @@ void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 		tcode = TCODE_READ_BLOCK_REQUEST;
 
 	g_object_ref(unit);
-	fw_req_transact(self, unit, tcode, addr, frame, exception);
+	fw_req_transact(self, unit, tcode, addr, frame->data, frame->len,
+			exception);
 	g_object_unref(unit);
 }
 
@@ -271,8 +276,8 @@ void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
  * Execute lock transaction to the given unit.
  */
 void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit,
-			guint64 addr, GArray **frame, HinawaFwTcode lock_tcode,
-			GError **exception)
+			guint64 addr, GByteArray **frame,
+			HinawaFwTcode lock_tcode, GError **exception)
 {
 	static const HinawaFwTcode lock_tcodes[] = {
 		HINAWA_FW_TCODE_LOCK_RESPONSE,
@@ -304,7 +309,8 @@ void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit,
 	}
 
 	g_object_ref(unit);
-	fw_req_transact(self, unit, lock_tcode, addr, *frame, exception);
+	fw_req_transact(self, unit, lock_tcode, addr, (*frame)->data,
+			(*frame)->len, exception);
 	g_object_unref(unit);
 }
 
@@ -322,10 +328,9 @@ void hinawa_fw_req_handle_response(HinawaFwReq *self,
 	priv->rcode = event->rcode;
 
 	/* Copy transaction frame if needed. */
-	if (priv->frame) {
-		g_array_remove_range(priv->frame, 0, priv->frame->len);
-		g_array_insert_vals(priv->frame, 0, event->data,
-			event->length / g_array_get_element_size(priv->frame));
+	if (priv->frame && priv->length > 0) {
+		guint length = MIN(priv->length, event->length);
+		memcpy(priv->frame, event->data, length);
 	}
 
 	g_mutex_unlock(&priv->mutex);

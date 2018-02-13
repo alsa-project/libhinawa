@@ -48,13 +48,13 @@ struct _HinawaFwReqClass {
 GType hinawa_fw_req_get_type(void) G_GNUC_CONST;
 
 void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
-			 GArray *frame, GError **exception);
+			 GByteArray *frame, GError **exception);
 
 void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
-			GArray *frame, guint length, GError **exception);
+			GByteArray *frame, guint length, GError **exception);
 
 void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
-			GArray **frame, HinawaFwTcode lock_tcode,
+			GByteArray **frame, HinawaFwTcode lock_tcode,
 			GError **exception);
 
 G_END_DECLS

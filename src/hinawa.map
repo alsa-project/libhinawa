@@ -17,7 +17,6 @@ V0_6_0 {
     "hinawa_fw_fcp_get_type";
     "hinawa_fw_fcp_quark";
     "hinawa_fw_fcp_listen";
-    "hinawa_fw_fcp_transact";
     "hinawa_fw_fcp_unlisten";
 
     "hinawa_snd_unit_get_type";
@@ -69,4 +68,6 @@ V1_0_0 {
     "hinawa_fw_req_lock";
 
     "hinawa_fw_unit_get_config_rom";
+
+    "hinawa_fw_fcp_transact";
 } V0_8_0;
