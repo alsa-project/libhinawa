@@ -264,7 +264,7 @@ void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
  * @self: A #HinawaSndUnit
  * @addr: A destination address of target device
  * @frame: (element-type guint32) (array) (out caller-allocates): a 32bit array
- * @len: the bytes to read
+ * @quads: the number of quadlets to read
  * @exception: A #GError
  *
  * Execute read transaction to the given unit.
@@ -273,7 +273,7 @@ void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
  * instead.
  */
 void hinawa_snd_unit_read_transact(HinawaSndUnit *self,
-				   guint64 addr, GArray *frame, guint len,
+				   guint64 addr, GArray *frame, guint quads,
 				   GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
@@ -281,8 +281,8 @@ void hinawa_snd_unit_read_transact(HinawaSndUnit *self,
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
 
-	hinawa_fw_req_read(priv->req, &self->parent_instance, addr, frame, len,
-			   exception);
+	hinawa_fw_req_read(priv->req, &self->parent_instance, addr, frame,
+			   quads, exception);
 }
 
 /**

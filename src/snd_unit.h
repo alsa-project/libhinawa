@@ -49,7 +49,7 @@ void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception);
 void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception);
 
 void hinawa_snd_unit_read_transact(HinawaSndUnit *self,
-				   guint64 addr, GArray *frame, guint len,
+				   guint64 addr, GArray *frame, guint quads,
 				   GError **exception);
 void hinawa_snd_unit_write_transact(HinawaSndUnit *self,
 				    guint64 addr, GArray *frame,
