@@ -290,7 +290,7 @@ void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit,
 {
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
-	if (frame == NULL || g_array_get_element_size(*frame) != 4 ||
+	if (!(*frame) || g_array_get_element_size(*frame) != 4 ||
 	    ((*frame)->len != 2 || (*frame)->len != 4)) {
 		raise(exception, EINVAL);
 		return;
