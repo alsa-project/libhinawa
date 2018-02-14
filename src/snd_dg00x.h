@@ -5,6 +5,8 @@
 #include <glib-object.h>
 #include "snd_unit.h"
 
+G_BEGIN_DECLS
+
 #define HINAWA_TYPE_SND_DG00X	(hinawa_snd_dg00x_get_type())
 
 #define HINAWA_SND_DG00X(obj)					\
@@ -42,4 +44,7 @@ GType hinawa_snd_dg00x_get_type(void) G_GNUC_CONST;
 
 void hinawa_snd_dg00x_open(HinawaSndDg00x *self, gchar *path,
 			   GError **exception);
+
+G_END_DECLS
+
 #endif

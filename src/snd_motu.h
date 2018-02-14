@@ -5,6 +5,8 @@
 #include <glib-object.h>
 #include "snd_unit.h"
 
+G_BEGIN_DECLS
+
 #define HINAWA_TYPE_SND_MOTU	(hinawa_snd_motu_get_type())
 
 #define HINAWA_SND_MOTU(obj)					\
@@ -44,5 +46,7 @@ struct _HinawaSndMotuClass {
 GType hinawa_snd_motu_get_type(void) G_GNUC_CONST;
 
 void hinawa_snd_motu_open(HinawaSndMotu *self, gchar *path, GError **exception);
+
+G_END_DECLS
 
 #endif

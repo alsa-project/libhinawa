@@ -5,6 +5,8 @@
 #include <glib-object.h>
 #include "fw_unit.h"
 
+G_BEGIN_DECLS
+
 #define HINAWA_TYPE_FW_FCP	(hinawa_fw_fcp_get_type())
 
 #define HINAWA_FW_FCP(obj)					\
@@ -49,5 +51,7 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 			    GArray *req_frame, GArray *resp_frame,
 			    GError **exception);
 void hinawa_fw_fcp_unlisten(HinawaFwFcp *self);
+
+G_END_DECLS
 
 #endif

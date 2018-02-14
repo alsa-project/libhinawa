@@ -4,6 +4,8 @@
 #include <glib.h>
 #include <glib-object.h>
 
+G_BEGIN_DECLS
+
 #define HINAWA_TYPE_FW_UNIT	(hinawa_fw_unit_get_type())
 
 #define HINAWA_FW_UNIT(obj)					\
@@ -48,5 +50,7 @@ const guint32 *hinawa_fw_unit_get_config_rom(HinawaFwUnit *self, guint *quads);
 
 void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception);
 void hinawa_fw_unit_unlisten(HinawaFwUnit *self);
+
+G_END_DECLS
 
 #endif

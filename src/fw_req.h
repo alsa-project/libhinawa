@@ -5,6 +5,8 @@
 #include <glib-object.h>
 #include "fw_unit.h"
 
+G_BEGIN_DECLS
+
 #define HINAWA_TYPE_FW_REQ	(hinawa_fw_req_get_type())
 
 #define HINAWA_FW_REQ(obj)					\
@@ -51,4 +53,7 @@ void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 
 void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit,
 			guint64 addr, GArray **frame, GError **exception);
+
+G_END_DECLS
+
 #endif

@@ -5,6 +5,8 @@
 #include <glib-object.h>
 #include "fw_unit.h"
 
+G_BEGIN_DECLS
+
 #define HINAWA_TYPE_SND_UNIT	(hinawa_snd_unit_get_type())
 
 #define HINAWA_SND_UNIT(obj)					\
@@ -60,5 +62,7 @@ void hinawa_snd_unit_lock_transact(HinawaSndUnit *self,
 
 void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception);
 void hinawa_snd_unit_unlisten(HinawaSndUnit *self);
+
+G_END_DECLS
 
 #endif

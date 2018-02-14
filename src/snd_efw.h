@@ -5,6 +5,8 @@
 #include <glib-object.h>
 #include "snd_unit.h"
 
+G_BEGIN_DECLS
+
 #define HINAWA_TYPE_SND_EFW	(hinawa_snd_efw_get_type())
 
 #define HINAWA_SND_EFW(obj)					\
@@ -48,5 +50,7 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception);
 void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 			     GArray *args, GArray *params,
 			     GError **exception);
+
+G_END_DECLS
 
 #endif
