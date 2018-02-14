@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1+ */
 #ifndef __ALSA_TOOLS_HINAWA_FW_REQ_H__
 #define __ALSA_TOOLS_HINAWA_FW_REQ_H__
 
