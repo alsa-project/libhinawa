@@ -158,7 +158,8 @@ deferred:
 	 */
 	if (!g_cond_wait_until(&trans.cond, &trans.mutex, expiration)) {
 		raise(exception, ETIMEDOUT);
-	} else if (trans.resp_frame->data[0] == AVC_STATUS_INTERIM) {
+	} else if (g_array_index(trans.resp_frame, guint32, 0) >> 24 ==
+							AVC_STATUS_INTERIM) {
 		/* It's a deffered transaction, wait again. */
 		goto deferred;
 	}
