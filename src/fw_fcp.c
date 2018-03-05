@@ -64,10 +64,50 @@ struct _HinawaFwFcpPrivate {
 
 	GList *transactions;
 	GMutex transactions_mutex;
+	guint timeout;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwFcp, hinawa_fw_fcp, G_TYPE_OBJECT)
 
-static void hinawa_fw_fcp_finalize(GObject *obj)
+/* This object has one property. */
+enum fw_fcp_prop_type {
+	FW_FCP_PROP_TYPE_TIMEOUT = 1,
+	FW_FCP_PROP_TYPE_COUNT,
+};
+static GParamSpec *fw_fcp_props[FW_FCP_PROP_TYPE_COUNT] = { NULL, };
+
+static void fw_fcp_get_property(GObject *obj, guint id, GValue *val,
+				GParamSpec *spec)
+{
+	HinawaFwFcp *self = HINAWA_FW_FCP(obj);
+	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
+
+	switch (id) {
+	case FW_FCP_PROP_TYPE_TIMEOUT:
+		g_value_set_uint(val, priv->timeout);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
+		break;
+	}
+}
+
+static void fw_fcp_set_property(GObject *obj, guint id, const GValue *val,
+				GParamSpec *spec)
+{
+	HinawaFwFcp *self = HINAWA_FW_FCP(obj);
+	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
+
+	switch (id) {
+	case FW_FCP_PROP_TYPE_TIMEOUT:
+		priv->timeout = g_value_get_uint(val);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
+		break;
+	}
+}
+
+static void fw_fcp_finalize(GObject *obj)
 {
 	HinawaFwFcp *self = HINAWA_FW_FCP(obj);
 
@@ -80,7 +120,21 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
-	gobject_class->finalize = hinawa_fw_fcp_finalize;
+	gobject_class->get_property = fw_fcp_get_property;
+	gobject_class->set_property = fw_fcp_set_property;
+	gobject_class->finalize = fw_fcp_finalize;
+
+	fw_fcp_props[FW_FCP_PROP_TYPE_TIMEOUT] =
+		g_param_spec_uint("timeout", "timeout",
+				  "An elapse to expire waiting for response "
+				  "by msec unit.",
+				  10, UINT_MAX,
+				  200,
+				  G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
+
+	g_object_class_install_properties(gobject_class,
+					  FW_FCP_PROP_TYPE_COUNT,
+					  fw_fcp_props);
 }
 
 static void hinawa_fw_fcp_init(HinawaFwFcp *self)
@@ -103,6 +157,7 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	HinawaFwFcpPrivate *priv;
 	HinawaFwReq *req;
 	struct fcp_transaction trans = {0};
+	GValue timeout_ms = G_VALUE_INIT;
 	gint64 expiration;
 	guint32 *buf;
 	guint i, quads, bytes;
@@ -141,6 +196,9 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	g_cond_init(&trans.cond);
 	g_mutex_init(&trans.mutex);
 
+	g_value_init(&timeout_ms, G_TYPE_UINT);
+	g_object_get_property(G_OBJECT(self), "timeout", &timeout_ms);
+
 	/* Send this request frame. */
 	hinawa_fw_req_write(req, priv->unit, FCP_REQUEST_ADDR, trans.req_frame,
 			    exception);
@@ -150,7 +208,8 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	g_mutex_lock(&trans.mutex);
 deferred:
 	/* NOTE: Timeout is 200 milli-seconds. */
-	expiration = g_get_monotonic_time() + 200 * G_TIME_SPAN_MILLISECOND;
+	expiration = g_get_monotonic_time() +
+		     g_value_get_uint(&timeout_ms) * G_TIME_SPAN_MILLISECOND;
 
 	/*
 	 * Wait corresponding response till timeout.
