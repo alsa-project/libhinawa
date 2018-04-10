@@ -1,3 +1,14 @@
+2018-04-10	Takashi Sakamoto <o-takashi@sakamocchi.jp>
+	version 0.9.0 release
+	* fw_fcp: fix a bug to fail handling deffered transaction.
+	* fw_fcp: add 'timeout' property for expiration to wait response.
+	* fw_unit: update local cache of Config ROM every bus reset
+	* snd_unit: obsolete below methods. Use HinawaFwReq instead.
+		* hinawa_snd_unit_read_transact()
+		* hinawa_snd_unit_write_transact()
+		* hinawa_snd_unit_lock_transact()
+	* debian: maintenance if moved to salsa.debian.org.
+
 2017-09-24	Takashi Sakamoto <o-takashi@sakamocchi.jp>
 	version 0.8.2 release
 
