@@ -29,6 +29,16 @@ gtk - PyGObject is required.
 qt4 - PyQt4 is required (also test python2).
 qt5 - PyQt5 is required.
 
+How to make DEB package
+1. clone repository including debian stuffs from salsa.debian.org.
+  $ cd /tmp
+  $ git clone --branch debian/unstable https://salsa.debian.org/debian/libhinawa.git debian-stuffs
+2. copy debian stuffs into this repository.
+  $ cp -r /tmp/debian-stuffs/debian ~/git/libhinawa
+3. build DEB package
+  $ cd ~/git/libhinawa
+  $ dpkg-buildpackage -rfakeroot -uc -b
+
 How to make RPM package
 1. archive all source code into libhinawa-0.8.2.tar.gz
   $ git archive --format tar.gz --prefix='libhinawa-0.8.2/' 0.8.2 -o ~/rpmbuild/SOURCES/libhinawa-0.8.2.tar.gz
