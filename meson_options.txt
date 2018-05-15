@@ -1,0 +1,10 @@
+option('gtk_doc',
+  type: 'boolean',
+  value: true,
+  description: 'generate API reference',
+)
+option('gir',
+  type: 'boolean',
+  value: true,
+  description: 'generate GObject Introspection data',
+)

@@ -1,8 +1,3 @@
-# Remove auto-generated files when cleaning
-CLEANFILES =					\
-	hinawa_sigs_marshal.*
-
-
 AM_CPPFLAGS =					\
 	-I$(top_builddir)			\
 	-I$(top_srcdir)
@@ -24,6 +19,9 @@ libhinawa_la_LIBADD =				\
 BUILT_SOURCES =					\
 	hinawa_sigs_marshal.h			\
 	hinawa_sigs_marshal.c
+
+# Remove auto-generated files when cleaning
+CLEANFILES = $(BUILT_SOURCES)
 
 SCANNED_SOURCES =				\
 	$(BUILT_SOURCES)			\

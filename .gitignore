@@ -25,4 +25,5 @@ Makefile.in
 /doc/reference/gtk-doc.make
 /doc/reference/version.xml
 
-/src/hinawa_sigs_marshal.*
+/src/hinawa_sigs_marshal.h
+/src/hinawa_sigs_marshal.c
