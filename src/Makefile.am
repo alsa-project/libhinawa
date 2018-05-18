@@ -120,3 +120,8 @@ CLEANFILES +=					\
 	$(gir_DATA)				\
 	$(typelib_DATA)
 endif
+
+EXTRA_DIST = \
+	meson.build				\
+	hinawa_sigs_marshal.list		\
+	hinawa.map

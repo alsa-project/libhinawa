@@ -4,3 +4,5 @@ dist_doc_DATA =			\
 
 SUBDIRS =			\
 	reference
+
+EXTRA_DIST = meson.build

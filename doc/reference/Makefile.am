@@ -44,3 +44,5 @@ include $(top_srcdir)/doc/reference/gtk-doc.make
 CLEANFILES +=					\
 	$(DOC_MODULE)-sections.txt		\
 	$(DOC_MODULE).types
+
+EXTRA_DIST += meson.build
