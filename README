@@ -1,30 +1,51 @@
-Requirements
-- GNU Autoconf 2.62 or later
-- GNU Automake 1.10.1 or later
-- GNU libtool 2.2.6 or later
+Dependencies
 - Glib 2.34.0 or later
 - GTK-Doc 1.18-2
 - GObject Introspection 1.32.1 or later
 - Linux kernel 3.12 or later
 
+Requirements to build
+- With Meson
+ - Meson 0.32.0 or later
+ - Ninja
+- With GNU autotools
+ - GNU Autoconf 2.62 or later
+ - GNU Automake 1.10.1 or later
+ - GNU libtool 2.2.6 or later
+
 How to build
- $ ./autogen.sh
- $ ./configure
- $ make
- $ make install
+ With Meson:
+  $ meson . build
+  $ cd build
+  $ ninja
+  $ ninja install
+ With GNU Autotools:
+  $ ./autogen.sh
+  $ ./configure
+  $ make
+  $ make install
 
 How to refer document
- $ ./autogen.sh
- $ ./configure --enable-gtk-doc
- $ make
- $ make install
+ With Meson:
+  $ meson -Dgtk_doc=true . build
+  $ cd build
+  $ ninja
+  $ ninja install
+ With GNU Autotools:
+  $ ./autogen.sh
+  $ ./configure --enable-gtk-doc
+  $ make
+  $ make install
 
 How to test
 (needless to install)
- $ ./autogen.sh
- $ ./configure
- $ make
- $ ./samples/run.sh [gtk|qt4|qt5]
+ With Meson:
+  (not implemented yet)
+ With GNU autotools:
+  $ ./autogen.sh
+  $ ./configure
+  $ make
+  $ ./samples/run.sh [gtk|qt4|qt5]
 gtk - PyGObject is required.
 qt4 - PyQt4 is required (also test python2).
 qt5 - PyQt5 is required.
