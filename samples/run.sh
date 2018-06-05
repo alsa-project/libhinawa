@@ -3,8 +3,8 @@
 # NOTE:
 # Current working directory should be in root of this repository.
 
-export LD_LIBRARY_PATH=src/.libs/:/usr/lib:/lib
-export GI_TYPELIB_PATH=src/:/usr/lib/girepository-1.0
+# LD_LIBRARY_PATH and GI_TYPELIB_PATH environments variables should be se
+# in advance.
 
 if [[ $1 == 'qt4' ]] ; then
 	./samples/qt4.py

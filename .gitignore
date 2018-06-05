@@ -1,26 +1,4 @@
-*.pc
-*.a
-*.o
-*.la
-*.lo
-*.gir
-*.typelib
-Makefile
-Makefile.in
-.deps/
-.libs/
-
-/aclocal.m4
-/autom4te.cache/
-/config.h
-/config.h.in
-/config.log
-/config.status
-/config/
-/configure
-/libtool
-/m4/
-/stamp-h1
+/build
 
 /doc/reference/gtk-doc.make
 /doc/reference/version.xml

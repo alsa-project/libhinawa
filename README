@@ -6,62 +6,30 @@ Dependencies
 - PyGObject (optional to run unit tests)
 
 Requirements to build
-- With Meson
- - Meson 0.32.0 or later
- - Ninja
-- With GNU autotools
- - GNU Autoconf 2.62 or later
- - GNU Automake 1.10.1 or later
- - GNU libtool 2.2.6 or later
+- Meson 0.32.0 or later
+- Ninja
 
 How to build
- With Meson:
-  $ meson . build
-  $ cd build
-  $ ninja
-  $ ninja install
-  ($ ninja test)
- With GNU Autotools:
-  $ ./autogen.sh
-  $ ./configure
-  $ make
-  $ make install
-  ($ make check)
+$ meson . build
+$ cd build
+$ ninja
+$ ninja install
+($ ninja test)
 
 How to refer document
- With Meson:
-  $ meson -Dgtk_doc=true . build
-  $ cd build
-  $ ninja
-  $ ninja install
- With GNU Autotools:
-  $ ./autogen.sh
-  $ ./configure --enable-gtk-doc
-  $ make
-  $ make install
+$ meson -Dgtk_doc=true . build
+$ cd build
+$ ninja
+$ ninja install
 
-How to test
-(needless to install)
- With Meson:
-  (not implemented yet)
- With GNU autotools:
-  $ ./autogen.sh
-  $ ./configure
-  $ make
-  $ ./samples/run.sh [gtk|qt4|qt5]
+Sample scripts
+$ ./samples/run.sh [gtk|qt4|qt5]
 gtk - PyGObject is required.
 qt4 - PyQt4 is required (also test python2).
 qt5 - PyQt5 is required.
 
 How to make DEB package
-1. clone repository including debian stuffs from salsa.debian.org.
-  $ cd /tmp
-  $ git clone --branch debian/unstable https://salsa.debian.org/debian/libhinawa.git debian-stuffs
-2. copy debian stuffs into this repository.
-  $ cp -r /tmp/debian-stuffs/debian ~/git/libhinawa
-3. build DEB package
-  $ cd ~/git/libhinawa
-  $ dpkg-buildpackage -rfakeroot -uc -b
+- Please refer to https://salsa.debian.org/debian/libhinawa.
 
 How to make RPM package
 1. archive all source code into libhinawa-0.9.0.tar.gz
