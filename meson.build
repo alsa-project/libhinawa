@@ -4,14 +4,6 @@ project('libhinawa', 'c',
   meson_version: '>= 0.32.0',
 )
 
-my_version = meson.project_version()
-varr = my_version.split('.')
-my_major = varr[0]
-my_minor = varr[1]
-my_micro = varr[2]
-
-my_binary_version = '@0@.@1@.@2@'.format(my_major, my_minor.to_int() * 10, my_micro)
-
 # Detect support level in Linux sound subsystem.
 cc = meson.get_compiler('c')
 
@@ -54,7 +46,7 @@ conf.set10('HAVE_SND_DICE',  with_snd_dice)
 conf.set10('HAVE_SND_EFW',   with_snd_efw)
 conf.set10('HAVE_SND_DG00X', with_snd_dg00x)
 conf.set10('HAVE_SND_MOTU',  with_snd_motu)
-conf.set('VERSION', my_version)
+conf.set('VERSION', meson.project_version())
 
 # For g-i and documentation.
 gnome = import('gnome')

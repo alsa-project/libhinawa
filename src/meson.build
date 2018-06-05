@@ -75,8 +75,8 @@ vflag = '-Wl,--version-script,@0@/@1@'.format(meson.current_source_dir(), mapfil
 
 myself = library('hinawa',
   sources: sources,
-  version: my_binary_version,
-  soversion: my_major,
+  version: meson.project_version(),
+  soversion: meson.project_version().split('.')[0],
   install: true,
   dependencies: dependencies,
   link_args : vflag,
@@ -89,7 +89,7 @@ install_headers(headers,
 
 pkg = import('pkgconfig')
 pkg.generate(
-  version: my_version,
+  version: meson.project_version(),
   libraries: myself,
   requires: [
     'glib-2.0',
