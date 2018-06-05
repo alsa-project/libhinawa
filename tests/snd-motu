@@ -6,7 +6,7 @@ import errno
 from helper import test
 
 import gi
-gi.require_version('Hinawa', '1.0')
+gi.require_version('Hinawa', '2.0')
 from gi.repository import Hinawa
 
 target = Hinawa.SndMotu()

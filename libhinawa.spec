@@ -1,5 +1,5 @@
 Name:			libhinawa
-Version:		0.9.0
+Version:		1.0.0
 Release:		1%{?dist}
 Summary:		GObject introspection library for devices connected to IEEE 1394 bus
 
@@ -63,6 +63,9 @@ developing applications that use %{name}.
 
 
 %changelog
+* Tue Jun 20 2018 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 1.0.0
+- new upstream release.
+
 * Tue Apr 10 2018 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 0.9.0
 - new upstream release.
 

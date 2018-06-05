@@ -11,9 +11,9 @@ from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QApplication, QWidget, QHBoxLayout, QVBoxLayout
 from PyQt4.QtGui import QToolButton, QGroupBox, QLineEdit, QLabel
 
-# Hinawa-1.0 gir
+# Hinawa-2.0 gir
 import gi
-gi.require_version('Hinawa', '1.0')
+gi.require_version('Hinawa', '2.0')
 from gi.repository import Hinawa
 
 # to handle UNIX signal

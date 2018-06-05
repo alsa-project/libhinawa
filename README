@@ -32,6 +32,6 @@ How to make DEB package
 - Please refer to https://salsa.debian.org/debian/libhinawa.
 
 How to make RPM package
-1. archive all source code into libhinawa-0.9.0.tar.gz
-  $ git archive --format tar.gz --prefix='libhinawa-0.9.0/' 0.9.0 -o ~/rpmbuild/SOURCES/libhinawa-0.9.0.tar.gz
+1. archive all source code into libhinawa-1.0.0.tar.gz
+  $ git archive --format tar.gz --prefix='libhinawa-1.0.0/' 1.0.0 -o ~/rpmbuild/SOURCES/libhinawa-1.0.0.tar.gz
 2. rpmbuild -bb libhinawa.spec

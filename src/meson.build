@@ -104,7 +104,7 @@ pkg.generate(
 if get_option('gir')
   gnome.generate_gir(myself,
     sources: sources + headers,
-    nsversion: '1.0',
+    nsversion: '2.0',
     namespace: 'Hinawa',
     symbol_prefix: 'hinawa_',
     identifier_prefix: 'Hinawa',
