@@ -5,12 +5,9 @@ Summary:		GObject introspection library for devices connected to IEEE 1394 bus
 
 License:		LGPLv2
 URL:			https://github.com/takaswie/libhinawa
-Source:			%{name}-%{version}.tar.gz
+Source:			%{name}-%{version}.tar.xz
 
-BuildRequires:  automake >= 1.10
-BuildRequires:  autoconf >= 2.62
-BuildRequires:  libtool >= 2.2.6
-BuildRequires:  glib2 >= 2.32, glib2-devel >= 2.32
+BuildRequires:  meson >= 0.32.0
 BuildRequires:  gtk-doc >= 1.18-2
 BuildRequires:  gobject-introspection >= 1.32.1, gobject-introspection-devel >= 1.32.1
 BuildRequires:  python3-gobject
@@ -36,15 +33,16 @@ developing applications that use %{name}.
 
 
 %build
-%configure --enable-gtk-doc --disable-static
-#make %{?_smp_mflags}
-make
+%meson
+%meson_build
 
 
 %install
-rm -rf $RPM_BUILD_ROOT
-%make_install
-find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
+%meson_install
+
+
+%check
+%meson_test
 
 
 %post -p /sbin/ldconfig
@@ -62,7 +60,6 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 %{_libdir}/libhinawa.so
 %{_datadir}/gir-1.0/*
 %{_datadir}/gtk-doc/html/hinawa/*
-%{_docdir}/libhinawa/*
 
 
 %changelog
@@ -72,7 +69,7 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 * Sun Sep 24 2017 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 0.8.2-1
 - new upstream release with minor improvements.
 
-* Sat May 7 2017 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 0.8.1-1
+* Fri May 7 2017 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 0.8.1-1
 - new upstream bugfix release.
 
 * Sat Apr 22 2017 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 0.8.0-1
