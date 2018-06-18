@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+
+import sys
+import errno
+
+from helper import test
+
+import gi
+gi.require_version('Hinawa', '1.0')
+from gi.repository import Hinawa
+
+target = Hinawa.SndUnit()
+props = (
+    'type',
+    'card',
+    'device',
+    'streaming',
+    'guid',
+    'listening',
+)
+methods = (
+    'open',
+    'lock',
+    'unlock',
+    'read_transact',
+    'write_transact',
+    'lock_transact',
+    'listen',
+    'unlisten',
+)
+signals = (
+    'lock-status',
+)
+
+if not test(target, props, methods, signals):
+    sys.exit(errno.ENXIO)

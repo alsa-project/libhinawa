@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+
+import sys
+import errno
+
+from helper import test
+
+import gi
+gi.require_version('Hinawa', '1.0')
+from gi.repository import Hinawa
+
+target = Hinawa.FwUnit()
+props = (
+    'node-id',
+    'local-node-id',
+    'bus-manager-node-id',
+    'ir-manager-node-id',
+    'root-node-id',
+    'generation',
+    'listening',
+)
+methods = (
+    'open',
+    'get_config_rom',
+    'listen',
+    'unlisten'
+)
+signals = (
+    'bus-update',
+    'disconnected',
+)
+
+if not test(target, props, methods, signals):
+    sys.exit(errno.ENXIO)

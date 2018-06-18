@@ -65,3 +65,4 @@ gnome = import('gnome')
 
 subdir('src')
 subdir('doc')
+subdir('tests')

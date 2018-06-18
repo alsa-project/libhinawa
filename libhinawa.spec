@@ -13,6 +13,7 @@ BuildRequires:  libtool >= 2.2.6
 BuildRequires:  glib2 >= 2.32, glib2-devel >= 2.32
 BuildRequires:  gtk-doc >= 1.18-2
 BuildRequires:  gobject-introspection >= 1.32.1, gobject-introspection-devel >= 1.32.1
+BuildRequires:  python3-gobject
 
 
 %description

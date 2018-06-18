@@ -7,7 +7,8 @@ EXTRA_DIST = \
 
 SUBDIRS =					\
 	src					\
-	doc
+	doc					\
+	tests
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libhinawa.pc

@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+
+import sys
+import errno
+
+from helper import test
+
+import gi
+gi.require_version('Hinawa', '1.0')
+from gi.repository import Hinawa
+
+target = Hinawa.SndDg00x()
+props = ()
+methods = (
+    'open',
+)
+signals = (
+    'message',
+)
+
+if not test(target, props, methods, signals):
+    sys.exit(errno.ENXIO)
