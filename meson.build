@@ -55,10 +55,6 @@ conf.set10('HAVE_SND_EFW',   with_snd_efw)
 conf.set10('HAVE_SND_DG00X', with_snd_dg00x)
 conf.set10('HAVE_SND_MOTU',  with_snd_motu)
 conf.set('VERSION', my_version)
-configure_file(
-  output: 'config.h',
-  configuration: conf,
-)
 
 # For g-i and documentation.
 gnome = import('gnome')

@@ -1,3 +1,8 @@
+configure_file(
+  output: 'config.h',
+  configuration: conf,
+)
+
 # Depends on glib-2.0 and gobject-2.0
 gobject = dependency('gobject-2.0',
   version: '>=2.34.0'

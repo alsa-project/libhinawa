@@ -2,9 +2,7 @@
 #ifndef __ALSA_TOOLS_HINAWA_INTERNAL_H__
 #define __ALSA_TOOLS_HINAWA_INTERNAL_H__
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include <config.h>
 
 #include <linux/firewire-cdev.h>
 #include <linux/firewire-constants.h>
