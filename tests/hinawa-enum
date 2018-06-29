@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+
+import sys
+import errno
+
+from helper import test
+
+import gi
+gi.require_version('Hinawa', '1.0')
+from gi.repository import Hinawa
+
+types = {
+}
+
+for obj, types in types.items():
+    for t in types:
+        if not hasattr(obj, t):
+            print('Enumerator {0} is not produced.'.format(t))
+            sys.exit()

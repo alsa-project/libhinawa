@@ -27,6 +27,18 @@ sources = [
   'snd_unit.c',
 ]
 
+headers = [
+  'fw_unit.h',
+  'fw_resp.h',
+  'fw_req.h',
+  'fw_fcp.h',
+  'snd_unit.h',
+  'snd_dice.h',
+  'snd_efw.h',
+  'snd_dg00x.h',
+  'snd_motu.h',
+]
+
 if with_snd_dice
   sources += ['snd_dice.h', 'snd_dice.c']
 endif
@@ -48,6 +60,16 @@ marshallers = gnome.genmarshal('hinawa_sigs_marshal',
 )
 sources += marshallers
 
+enums = gnome.mkenums('hinawa_enums',
+  sources: ['hinawa_enum_types.h'],
+  identifier_prefix: 'Hinawa',
+  symbol_prefix: 'hinawa',
+  c_template: 'hinawa_enums.c.template',
+  h_template: 'hinawa_enums.h.template',
+  install_header: true)
+headers += 'hinawa_enum_types.h'
+sources += enums
+
 mapfile = 'hinawa.map'
 vflag = '-Wl,--version-script,@0@/@1@'.format(meson.current_source_dir(), mapfile)
 
@@ -61,17 +83,6 @@ myself = library('hinawa',
   link_depends : mapfile,
 )
 
-headers = [
-  'fw_unit.h',
-  'fw_resp.h',
-  'fw_req.h',
-  'fw_fcp.h',
-  'snd_unit.h',
-  'snd_dice.h',
-  'snd_efw.h',
-  'snd_dg00x.h',
-  'snd_motu.h',
-]
 install_headers(headers,
   subdir: meson.project_name()
 )
@@ -92,7 +103,7 @@ pkg.generate(
 
 if get_option('gir')
   gnome.generate_gir(myself,
-    sources: sources,
+    sources: sources + headers,
     nsversion: '1.0',
     namespace: 'Hinawa',
     symbol_prefix: 'hinawa_',

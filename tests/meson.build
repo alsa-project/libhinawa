@@ -8,6 +8,7 @@ tests = [
   ['SndDice',   'snd-dice'],
   ['SndDg00x',  'snd-dg00x'],
   ['SndMotu',   'snd-motu'],
+  ['HinawaEnum','hinawa-enum'],
 ]
 
 objdir = '@0@/src'.format(meson.build_root())
