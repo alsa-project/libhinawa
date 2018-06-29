@@ -34,10 +34,10 @@ def get_array():
 
 # query sound devices and get FireWire sound unit
 snd_specific_types = {
-    1: Hinawa.SndDice,
-    2: Hinawa.SndEfw,
-    5: Hinawa.SndDg00x,
-    7: Hinawa.SndMotu,
+    Hinawa.SndUnitType.DICE:        Hinawa.SndDice,
+    Hinawa.SndUnitType.FIREWORKS:   Hinawa.SndEfw,
+    Hinawa.SndUnitType.DIGI00X:     Hinawa.SndDg00x,
+    Hinawa.SndUnitType.MOTU:        Hinawa.SndMotu,
 }
 for fullpath in glob.glob('/dev/snd/hw*'):
     try:
@@ -72,7 +72,7 @@ def handle_disconnected(snd_unit):
     print('disconnected')
     app.main_quit()
 print('Sound device info:')
-print(' type:\t\t{0}'.format(snd_unit.get_property("type")))
+print(' type:\t\t{0}'.format(snd_unit.get_property("type").value_nick))
 print(' card:\t\t{0}'.format(snd_unit.get_property("card")))
 print(' device:\t{0}'.format(snd_unit.get_property("device")))
 print(' GUID:\t\t{0:016x}'.format(snd_unit.get_property("guid")))
@@ -126,7 +126,12 @@ except Exception as e:
 req = Hinawa.FwReq()
 
 # Fireworks/BeBoB/OXFW supports FCP and some AV/C commands
-if snd_unit.get_property('type') in (2, 3, 4):
+fcp_types = (
+    Hinawa.SndUnitType.FIREWORKS,
+    Hinawa.SndUnitType.BEBOB,
+    Hinawa.SndUnitType.OXFW,
+)
+if snd_unit.get_property('type') in fcp_types:
     fcp = Hinawa.FwFcp()
     try:
         fcp.listen(snd_unit)
@@ -169,7 +174,7 @@ if snd_unit.get_property("type") is 2:
 # Dice notification
 def handle_notification(self, message):
     print("Dice Notification: {0:08x}".format(message))
-if snd_unit.get_property('type') is 1:
+if snd_unit.get_property('type') is Hinawa.SndUnitType.DICE:
     snd_unit.connect('notified', handle_notification)
     args = get_array()
     args.append(0x0000030c)
@@ -183,14 +188,14 @@ if snd_unit.get_property('type') is 1:
 # Dg00x message
 def handle_message(self, message):
     print("Dg00x Messaging {0:08x}".format(message));
-if snd_unit.get_property('type') is 5:
+if snd_unit.get_property('type') is Hinawa.SndUnitType.DIGI00X:
     print('hear message')
     snd_unit.connect('message', handle_message)
 
 # Motu notification and status
 def handle_motu_notification(self, message):
     print("Motu Notification: {0:08x}".format(message))
-if snd_unit.get_property('type') is 7:
+if snd_unit.get_property('type') is Hinawa.SndUnitType.MOTU:
     snd_unit.connect('notified', handle_motu_notification)
 
 # GUI

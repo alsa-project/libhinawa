@@ -11,7 +11,7 @@
 #include <sys/mman.h>
 
 #include "internal.h"
-#include "hinawa_enum_types.h"
+#include "hinawa_enums.h"
 #include "hinawa_context.h"
 
 /**
@@ -75,7 +75,7 @@ static void snd_unit_get_property(GObject *obj, guint id,
 
 	switch (id) {
 	case SND_UNIT_PROP_TYPE_FW_TYPE:
-		g_value_set_int(val, priv->info.type);
+		g_value_set_enum(val, (HinawaSndUnitType)priv->info.type);
 		break;
 	case SND_UNIT_PROP_TYPE_CARD:
 		g_value_set_int(val, priv->info.card);
@@ -127,11 +127,11 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 	gobject_class->finalize = snd_unit_finalize;
 
 	snd_unit_props[SND_UNIT_PROP_TYPE_FW_TYPE] =
-		g_param_spec_int("type", "type",
-				 "The value of SNDRV_FIREWIRE_TYPE_XXX",
-				 0, INT_MAX,
-				 0,
-				 G_PARAM_READABLE);
+		g_param_spec_enum("type", "type",
+				  "The value of HinawaSndUnitType enumerators",
+				  HINAWA_TYPE_SND_UNIT_TYPE,
+				  HINAWA_SND_UNIT_TYPE_DICE,
+				  G_PARAM_READABLE);
 	snd_unit_props[SND_UNIT_PROP_TYPE_CARD] =
 		g_param_spec_int("card", "card",
 				 "A numerical ID for ALSA sound card",
