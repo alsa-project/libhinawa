@@ -9,7 +9,43 @@ import gi
 gi.require_version('Hinawa', '1.0')
 from gi.repository import Hinawa
 
+fw_tcode_enumerators = (
+    'WRITE_QUADLET_REQUEST',
+    'WRITE_BLOCK_REQUEST',
+    'WRITE_RESPONSE',
+    'READ_QUADLET_REQUEST',
+    'READ_BLOCK_REQUEST',
+    'READ_QUADLET_RESPONSE',
+    'READ_BLOCK_RESPONSE',
+    'CYCLE_START',
+    'LOCK_REQUEST',
+    'STREAM_DATA',
+    'LOCK_RESPONSE',
+    'LOCK_MASK_SWAP',
+    'LOCK_COMPARE_SWAP',
+    'LOCK_FETCH_ADD',
+    'LOCK_LITTLE_ADD',
+    'LOCK_BOUNDED_ADD',
+    'LOCK_WRAP_ADD',
+    'LOCK_VENDOR_DEPENDENT',
+)
+
+fw_rcode_enumerators = (
+    'COMPLETE',
+    'CONFLICT_ERROR',
+    'DATA_ERROR',
+    'TYPE_ERROR',
+    'ADDRESS_ERROR',
+    'SEND_ERROR',
+    'CANCELLED',
+    'BUSY',
+    'GENERATION',
+    'NO_ACK',
+)
+
 types = {
+    Hinawa.FwTcode: fw_tcode_enumerators,
+    Hinawa.FwRcode: fw_rcode_enumerators,
 }
 
 for obj, types in types.items():

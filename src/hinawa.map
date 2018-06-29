@@ -59,3 +59,9 @@ V0_8_0 {
     "hinawa_snd_motu_open";
     "hinawa_snd_motu_quark";
 } V0_7_0;
+
+V1_0_0 {
+  global:
+    "hinawa_fw_tcode_get_type";
+    "hinawa_fw_rcode_get_type";
+} V0_8_0;
