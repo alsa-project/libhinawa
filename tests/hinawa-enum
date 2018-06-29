@@ -43,9 +43,21 @@ fw_rcode_enumerators = (
     'NO_ACK',
 )
 
+snd_unit_type_enumerators = (
+    'DICE',
+    'FIREWORKS',
+    'BEBOB',
+    'OXFW',
+    'DIGI00X',
+    'TASCAM',
+    'MOTU',
+    'FIREFACE',
+)
+
 types = {
     Hinawa.FwTcode: fw_tcode_enumerators,
     Hinawa.FwRcode: fw_rcode_enumerators,
+    Hinawa.SndUnitType: snd_unit_type_enumerators,
 }
 
 for obj, types in types.items():

@@ -58,6 +58,7 @@ V1_0_0 {
   global:
     "hinawa_fw_tcode_get_type";
     "hinawa_fw_rcode_get_type";
+    "hinawa_snd_unit_type_get_type";
 
     "hinawa_fw_resp_get_req_frame";
     "hinawa_fw_resp_set_resp_frame";
