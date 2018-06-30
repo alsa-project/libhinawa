@@ -1,6 +1,6 @@
 option('gtk_doc',
   type: 'boolean',
-  value: true,
+  value: false,
   description: 'generate API reference',
 )
 option('gir',
