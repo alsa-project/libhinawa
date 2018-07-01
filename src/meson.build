@@ -66,7 +66,9 @@ enums = gnome.mkenums('hinawa_enums',
   symbol_prefix: 'hinawa',
   c_template: 'hinawa_enums.c.template',
   h_template: 'hinawa_enums.h.template',
-  install_header: true)
+  install_header: true,
+  install_dir: '@0@/@1@'.format(get_option('includedir'), meson.project_name())
+)
 headers += 'hinawa_enum_types.h'
 sources += enums
 
