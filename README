@@ -1,37 +1,97 @@
-Dependencies
+# libhinawa
+
+2018/07/01
+Takashi Sakamoto
+
+## Instruction
+
+I design this library to send asynchronous transaction from Linux userspace
+applications to units on IEEE 1394 bus by any language binding for GObject
+Introspection. According to this design, this library is an application of Linux
+FireWire subsystem and GLib/GObject.
+
+Furthermore, my recent work since 2013 for Linux sound subsystem, a.k.a
+ALSA, adds any loadable wodules for Linux kernel to handle some Audio and
+Music units on IEEE 1394 bus by ALSA PCM/RawMidi/HwDep/Sequencer interfaces.
+This library includes some helper objects to handle model-specific asynchronous
+transactions with helps of the drivers. According to this design, a part of
+this library is an application of Linux sound subsystem.
+
+## Example of Python3 with PyGobject
+
+```
+#!/usr/bin/env python3
+
+import gi
+gi.require_version('Hinawa', '2.0')
+from gi.repository import Hinawa
+
+unit = Hinawa.SndUnit()
+unit.open('/dev/snd/hwC0D0')
+unit.listen()
+
+addr = 0xfffff0000904
+req = Hinawa.FwReq()
+frames = req.read(unit, addr, 4)
+for i, frame in enumerate(frames):
+    print('{0:016x}: {0:02x}'.format(addr + i, frame))
+```
+
+## License
+
+- GNU Lesser General Public License version 2.1 or later
+- A UAPI header of Linux kernel (include/uapi/sound/firewire.h) is included
+  for backport (src/backport.h). This is licensed under GNU General Public
+  License version 2. You can build libhinawa without the backport header. In
+  this case libhinawa is built with the UAPI header installed in your system.
+
+## Dependencies
 - Glib 2.34.0 or later
-- GTK-Doc 1.18-2
 - GObject Introspection 1.32.1 or later
 - Linux kernel 3.12 or later
-- PyGObject (optional to run unit tests)
 
-Requirements to build
+## Requirements to build
 - Meson 0.32.0 or later
 - Ninja
+- PyGObject (optional to run unit tests)
+- GTK-Doc 1.18-2 (optional to generate API documentation)
 
-How to build
+## How to build
+
+```
 $ meson . build
 $ cd build
 $ ninja
 $ ninja install
 ($ ninja test)
+```
 
-How to refer document
+## How to refer document
+
+```
 $ meson -Dgtk_doc=true . build
 $ cd build
 $ ninja
 $ ninja install
+```
 
-Sample scripts
+## Sample scripts
+
+```
 $ ./samples/run.sh [gtk|qt4|qt5]
+```
 gtk - PyGObject is required.
 qt4 - PyQt4 is required (also test python2).
 qt5 - PyQt5 is required.
 
-How to make DEB package
+## How to make DEB package
+
 - Please refer to https://salsa.debian.org/debian/libhinawa.
 
-How to make RPM package
+## How to make RPM package
+
 1. archive all source code into libhinawa-1.0.0.tar.gz
   $ git archive --format tar.gz --prefix='libhinawa-1.0.0/' 1.0.0 -o ~/rpmbuild/SOURCES/libhinawa-1.0.0.tar.gz
 2. rpmbuild -bb libhinawa.spec
+
+end
