@@ -1,4 +1,4 @@
-V0_6_0 {
+HINAWA_0_6_0 {
   global:
     "hinawa_fw_unit_get_type";
     "hinawa_fw_unit_open";
@@ -40,21 +40,21 @@ V0_6_0 {
     *;
 };
 
-V0_7_0 {
+HINAWA_0_7_0 {
   global:
     "hinawa_snd_dg00x_get_type";
     "hinawa_snd_dg00x_open";
     "hinawa_snd_dg00x_quark";
-} V0_6_0;
+} HINAWA_0_6_0;
 
-V0_8_0 {
+HINAWA_0_8_0 {
   global:
     "hinawa_snd_motu_get_type";
     "hinawa_snd_motu_open";
     "hinawa_snd_motu_quark";
-} V0_7_0;
+} HINAWA_0_7_0;
 
-V1_0_0 {
+HINAWA_1_0_0 {
   global:
     "hinawa_fw_tcode_get_type";
     "hinawa_fw_rcode_get_type";
@@ -71,4 +71,4 @@ V1_0_0 {
     "hinawa_fw_unit_get_config_rom";
 
     "hinawa_fw_fcp_transact";
-} V0_8_0;
+} HINAWA_0_8_0;
