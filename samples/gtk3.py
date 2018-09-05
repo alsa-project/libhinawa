@@ -197,11 +197,11 @@ class Sample(Gtk.Window):
         topbox = Gtk.Box(spacing=10)
         vbox.pack_start(topbox, True, True, 0)
 
-        button = Gtk.Button("transact")
+        button = Gtk.Button(label="transact")
         button.connect("clicked", self.on_click_transact)
         topbox.pack_start(button, True, True, 0)
 
-        button = Gtk.Button("_Close", use_underline=True)
+        button = Gtk.Button(label="_Close", use_underline=True)
         button.connect("clicked", self.on_click_close)
         topbox.pack_start(button, True, True, 0)
 
@@ -212,7 +212,7 @@ class Sample(Gtk.Window):
         self.entry.set_text("0xfffff0000980")
         bottombox.pack_start(self.entry, True, True, 0)
 
-        self.label = Gtk.Label("result")
+        self.label = Gtk.Label(label="result")
         self.label.set_text("0x00000000")
         bottombox.pack_start(self.label, True, True, 0)
 
