@@ -22,6 +22,7 @@ G_DEFINE_QUARK("HinawaSndDice", hinawa_snd_dice)
 struct notification_waiter {
 	guint32 bit_flag;
 	GCond cond;
+	gboolean awakened;
 };
 
 struct _HinawaSndDicePrivate {
@@ -146,32 +147,37 @@ void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
 		g_byte_array_append(req_frame, (guint8 *)&datum, sizeof(datum));
 	}
 
-	/* Insert this entry to list and enter critical section. */
+	// This predicates against suprious wakeup.
+	waiter.awakened = FALSE;
 	g_cond_init(&waiter.cond);
 	g_mutex_lock(&priv->mutex);
+
+	/* Insert this entry to list and enter critical section. */
+	waiter.bit_flag = bit_flag;
 	priv->waiters = g_list_append(priv->waiters, &waiter);
+
+	expiration = g_get_monotonic_time() + 200 * G_TIME_SPAN_MILLISECOND;
 
 	/*
 	 * NOTE: I believe that a pair of this action/subaction is done within
 	 * default timeout of HinawaFwReq.
 	 */
-	waiter.bit_flag = bit_flag;
 	hinawa_fw_req_write(priv->req, &unit->parent_instance, addr, req_frame,
 			    exception);
-	if (!*exception) {
-		/*
-		 * Wait notification till timeout and temporarily leave the
-		 * critical section.
-		 */
-		expiration = g_get_monotonic_time() +
-			     200 * G_TIME_SPAN_MILLISECOND;
-		if (!g_cond_wait_until(&waiter.cond, &priv->mutex, expiration))
-			raise(exception, ETIMEDOUT);
-	}
+	if (*exception)
+		goto end;
 
+	while (!waiter.awakened) {
+		if (!g_cond_wait_until(&waiter.cond, &priv->mutex, expiration))
+			break;
+	}
+	if (!waiter.awakened)
+		raise(exception, ETIMEDOUT);
+end:
 	priv->waiters = g_list_remove(priv->waiters, (gpointer *)&waiter);
 
 	g_mutex_unlock(&priv->mutex);
+	g_cond_clear(&waiter.cond);
 	g_byte_array_unref(req_frame);
 }
 
@@ -196,15 +202,13 @@ void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 
 	for (entry = priv->waiters; entry != NULL; entry = entry->next) {
 		waiter = (struct notification_waiter *)entry->data;
-
 		if (waiter->bit_flag & event->notification)
 			break;
 	}
+	if (entry) {
+		waiter->awakened = TRUE;
+		g_cond_signal(&waiter->cond);
+	}
 
 	g_mutex_unlock(&priv->mutex);
-
-	if (entry == NULL)
-		return;
-
-	g_cond_signal(&waiter->cond);
 }
