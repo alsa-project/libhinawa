@@ -174,44 +174,47 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	/* Prepare for an entry of FCP transaction. */
 	trans.req_frame = req_frame;
 	trans.resp_frame = resp_frame;
+
+	g_value_init(&timeout_ms, G_TYPE_UINT);
+	g_object_get_property(G_OBJECT(self), "timeout", &timeout_ms);
+
+	// This predicates against suprious wakeup.
+	g_byte_array_remove_range(trans.resp_frame, 0, trans.resp_frame->len);
 	g_cond_init(&trans.cond);
 	g_mutex_init(&trans.mutex);
+	g_mutex_lock(&trans.mutex);
 
 	/* Insert this entry. */
 	g_mutex_lock(&priv->transactions_mutex);
 	priv->transactions = g_list_prepend(priv->transactions, &trans);
 	g_mutex_unlock(&priv->transactions_mutex);
 
-
-	g_value_init(&timeout_ms, G_TYPE_UINT);
-	g_object_get_property(G_OBJECT(self), "timeout", &timeout_ms);
-
 	/* Send this request frame. */
 	hinawa_fw_req_write(req, priv->unit, FCP_REQUEST_ADDR, trans.req_frame,
 			    exception);
 	if (*exception)
 		goto end;
-
-	g_mutex_lock(&trans.mutex);
 deferred:
-	/* NOTE: Timeout is 200 milli-seconds. */
 	expiration = g_get_monotonic_time() +
 		     g_value_get_uint(&timeout_ms) * G_TIME_SPAN_MILLISECOND;
 
-	/*
-	 * Wait corresponding response till timeout.
-	 * NOTE: Timeout at bus-reset, illegally.
-	 */
-	if (!g_cond_wait_until(&trans.cond, &trans.mutex, expiration)) {
+	while (trans.resp_frame->len == 0) {
+		// NOTE: Timeout at bus-reset, illegally.
+		if (!g_cond_wait_until(&trans.cond, &trans.mutex, expiration))
+			break;
+	}
+	if (trans.resp_frame->len == 0) {
 		raise(exception, ETIMEDOUT);
-	} else if (g_array_index(trans.resp_frame, guint8, 0) ==
-							AVC_STATUS_INTERIM) {
+	} else if (trans.resp_frame->data[0] == AVC_STATUS_INTERIM) {
 		/* It's a deffered transaction, wait again. */
+		g_byte_array_remove_range(trans.resp_frame, 0,
+					  trans.resp_frame->len);
 		goto deferred;
 	}
-
-	g_mutex_unlock(&trans.mutex);
 end:
+	g_mutex_unlock(&trans.mutex);
+	g_cond_clear(&trans.cond);
+
 	/* Remove this entry. */
 	g_mutex_lock(&priv->transactions_mutex);
 	priv->transactions =
@@ -245,8 +248,6 @@ static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode,
 		if (g_array_index(trans->req_frame, guint8, 1) == req_frame[1] &&
 		    g_array_index(trans->req_frame, guint8, 2) == req_frame[2]) {
 			g_mutex_lock(&trans->mutex);
-			g_byte_array_remove_range(trans->resp_frame, 0,
-						  trans->resp_frame->len);
 			g_byte_array_append(trans->resp_frame,
 					    (guint8 *)req_frame, length);
 			g_cond_signal(&trans->cond);
