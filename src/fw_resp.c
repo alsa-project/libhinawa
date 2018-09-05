@@ -143,6 +143,7 @@ void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
 	}
 
 	priv->width = allocate.length;
+	priv->addr_handle = allocate.handle;
 }
 
 /**
