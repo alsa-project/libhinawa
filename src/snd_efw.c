@@ -174,7 +174,6 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 	trans.frame->version	= MINIMUM_SUPPORTED_VERSION;
 	trans.frame->category	= category;
 	trans.frame->command	= command;
-	trans.frame->status	= 0xff;
 	if (args)
 		memcpy(trans.frame->params,
 		       args->data, args->len * sizeof(guint32));
@@ -184,13 +183,16 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 	for (i = 0; i < quads; i++)
 		items[i] = GUINT32_TO_BE(items[i]);
 
-	/* Insert this entry to list and enter critical section. */
+	// This predicates against suprious wakeup.
+	trans.frame->status = 0xffffffff;
 	g_mutex_lock(&priv->lock);
+	g_cond_init(&trans.cond);
+
+	/* Insert this entry to list and enter critical section. */
 	priv->transactions = g_list_append(priv->transactions, &trans);
 
 	/* NOTE: Timeout is 200 milli-seconds. */
 	expiration = g_get_monotonic_time() + 200 * G_TIME_SPAN_MILLISECOND;
-	g_cond_init(&trans.cond);
 
 	/* Send this request frame. */
 	hinawa_snd_unit_write(&self->parent_instance, trans.frame, quads * 4,
@@ -202,7 +204,11 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 	 * Wait corresponding response till timeout and temporarily leave the
 	 * critical section.
 	 */
-	if (!g_cond_wait_until(&trans.cond, &priv->lock, expiration)) {
+	while (trans.frame->status == 0xffffffff) {
+		if (!g_cond_wait_until(&trans.cond, &priv->lock, expiration))
+			break;
+	}
+	if (trans.frame->status == 0xffffffff) {
 		raise(exception, ETIMEDOUT);
 		goto end;
 	}
@@ -245,6 +251,7 @@ end:
 	priv->transactions =
 			g_list_remove(priv->transactions, (gpointer *)&trans);
 	g_mutex_unlock(&priv->lock);
+	g_cond_clear(&trans.cond);
 
 	g_free(trans.frame);
 }
@@ -281,13 +288,13 @@ void hinawa_snd_efw_handle_response(HinawaSndEfw *self,
 				break;
 		}
 
-		g_mutex_unlock(&priv->lock);
-
 		quadlets = GUINT32_FROM_BE(resp_frame->length);
 		if (trans != NULL) {
 			memcpy(trans->frame, resp_frame, quadlets * 4);
 			g_cond_signal(&trans->cond);
 		}
+
+		g_mutex_unlock(&priv->lock);
 
 		responses += quadlets;
 		len -= quadlets * sizeof(guint);
