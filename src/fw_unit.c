@@ -311,7 +311,8 @@ const guint8 *hinawa_fw_unit_get_config_rom(HinawaFwUnit *self, guint *length)
 }
 
 /* Internal use only. */
-void hinawa_fw_unit_ioctl(HinawaFwUnit *self, int req, void *args, int *err)
+void hinawa_fw_unit_ioctl(HinawaFwUnit *self, unsigned long req, void *args,
+			  int *err)
 {
 	HinawaFwUnitPrivate *priv;
 

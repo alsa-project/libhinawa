@@ -22,7 +22,8 @@
 #include "snd_dg00x.h"
 #include "snd_motu.h"
 
-void hinawa_fw_unit_ioctl(HinawaFwUnit *self, int req, void *args, int *err);
+void hinawa_fw_unit_ioctl(HinawaFwUnit *self, unsigned long req, void *args,
+			  int *err);
 void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 				   struct fw_cdev_event_request2 *event);
 void hinawa_fw_req_handle_response(HinawaFwReq *self,
