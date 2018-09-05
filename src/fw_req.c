@@ -136,8 +136,6 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit, int tcode,
 	guint64 expiration;
 	int err = 0;
 
-	g_mutex_lock(&priv->mutex);
-
 	/* Setup a private structure. */
 	if (tcode == TCODE_READ_QUADLET_REQUEST ||
 	    tcode == TCODE_READ_BLOCK_REQUEST) {
@@ -163,36 +161,43 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit, int tcode,
 	expiration = g_get_monotonic_time() +
 					priv->timeout * G_TIME_SPAN_MILLISECOND;
 
+	// This predicates against suprious wakeup.
+	priv->rcode = G_MAXUINT;
+	g_cond_init(&priv->cond);
+	g_mutex_lock(&priv->mutex);
+
 	/* Send this transaction. */
 	hinawa_fw_unit_ioctl(unit, FW_CDEV_IOC_SEND_REQUEST, &req, &err);
-	/* Wait for a response with timeout, waken by a response handler. */
-	if (err == 0) {
-		/* Initialize response code. This is a canary. */
-		priv->rcode = G_MAXUINT;
-
-		g_cond_init(&priv->cond);
-		if (!g_cond_wait_until(&priv->cond, &priv->mutex, expiration))
-			err = ETIMEDOUT;
+	if (err < 0) {
+		g_mutex_unlock(&priv->mutex);
 		g_cond_clear(&priv->cond);
+		raise(exception, err);
+		return;
 	}
 
-	if (err != 0) {
-		raise(exception, err);
-		goto end;
+	while (priv->rcode == G_MAXUINT) {
+		// Wait for a response with timeout, waken by a
+		// response handler.
+		if (!g_cond_wait_until(&priv->cond, &priv->mutex, expiration))
+			break;
+	}
+
+	g_cond_clear(&priv->cond);
+	g_mutex_unlock(&priv->mutex);
+
+	if (priv->rcode == G_MAXUINT) {
+		raise(exception, ETIMEDOUT);
+		return;
 	}
 
 	if (priv->rcode != RCODE_COMPLETE) {
-		/* The canary cries here. */
 		if (priv->rcode > RCODE_NO_ACK) {
 			raise(exception, EIO);
 		} else {
 			g_set_error(exception, hinawa_fw_req_quark(), EIO,
 				"%d: %s", __LINE__, rcode_labels[priv->rcode]);
 		}
-		goto end;
 	}
-end:
-	g_mutex_unlock(&priv->mutex);
 }
 
 /**
@@ -333,8 +338,8 @@ void hinawa_fw_req_handle_response(HinawaFwReq *self,
 		memcpy(priv->frame, event->data, length);
 	}
 
-	g_mutex_unlock(&priv->mutex);
-
 	/* Waken a thread of an user application. */
 	g_cond_signal(&priv->cond);
+
+	g_mutex_unlock(&priv->mutex);
 }
