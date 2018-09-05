@@ -234,8 +234,7 @@ static void hinawa_fw_unit_init(HinawaFwUnit *self)
 	g_mutex_init(&priv->mutex);
 }
 
-static void update_info(HinawaFwUnit *self, struct fw_cdev_event_bus_reset *generation,
-			GError **exception)
+static void update_info(HinawaFwUnit *self, GError **exception)
 {
 	struct fw_cdev_get_info info = {0};
 	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(self);
@@ -286,7 +285,7 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 	priv->fd = fd;
 
 	g_mutex_lock(&priv->mutex);
-	update_info(self, &priv->generation, exception);
+	update_info(self, exception);
 	g_mutex_unlock(&priv->mutex);
 }
 
@@ -333,7 +332,7 @@ static void handle_update(HinawaFwUnit *self,
 	priv = hinawa_fw_unit_get_instance_private(self);
 
 	g_mutex_lock(&priv->mutex);
-	update_info(self, NULL, NULL);
+	update_info(self, NULL);
 	g_mutex_unlock(&priv->mutex);
 
 	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE], 0, NULL);
