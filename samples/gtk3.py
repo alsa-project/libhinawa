@@ -191,30 +191,25 @@ class Sample(Gtk.Window):
         Gtk.Window.__init__(self, title="Hinawa-2.0 gir sample with Gtk+3")
         self.set_border_width(20)
 
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        self.add(vbox)
-
-        topbox = Gtk.Box(spacing=10)
-        vbox.pack_start(topbox, True, True, 0)
+        grid = Gtk.Grid(row_spacing=10, row_homogeneous=True,
+                        column_spacing=10, column_homogeneous=True)
+        self.add(grid)
 
         button = Gtk.Button(label="transact")
         button.connect("clicked", self.on_click_transact)
-        topbox.pack_start(button, True, True, 0)
+        grid.attach(button, 0, 0, 1, 1)
 
         button = Gtk.Button(label="_Close", use_underline=True)
         button.connect("clicked", self.on_click_close)
-        topbox.pack_start(button, True, True, 0)
-
-        bottombox = Gtk.Box(spacing=10)
-        vbox.pack_start(bottombox, True, True, 0)
+        grid.attach(button, 1, 0, 1, 1)
 
         self.entry = Gtk.Entry()
         self.entry.set_text("0xfffff0000980")
-        bottombox.pack_start(self.entry, True, True, 0)
+        grid.attach(self.entry, 0, 1, 1, 1)
 
         self.label = Gtk.Label(label="result")
         self.label.set_text("0x00000000")
-        bottombox.pack_start(self.label, True, True, 0)
+        grid.attach(self.label, 1, 1, 1, 1)
 
         # handle unix signal
         GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGINT, \
