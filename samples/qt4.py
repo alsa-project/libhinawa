@@ -203,7 +203,7 @@ class Sample(QWidget):
     def __init__(self, parent=None):
         super(Sample, self).__init__(parent)
 
-        self.setWindowTitle("Hinawa-1.0 gir sample with PyQt4")
+        self.setWindowTitle("Hinawa-2.0 gir sample with PyQt4")
 
         layout = QVBoxLayout()
         self.setLayout(layout)

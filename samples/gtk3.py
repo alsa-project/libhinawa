@@ -188,7 +188,7 @@ if snd_unit.get_property('type') is Hinawa.SndUnitType.MOTU:
 class Sample(Gtk.Window):
 
     def __init__(self):
-        Gtk.Window.__init__(self, title="Hinawa-1.0 gir sample")
+        Gtk.Window.__init__(self, title="Hinawa-2.0 gir sample with Gtk+3")
         self.set_border_width(20)
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
