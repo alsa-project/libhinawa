@@ -67,13 +67,13 @@ enums = gnome.mkenums('hinawa_enums',
   c_template: 'hinawa_enums.c.template',
   h_template: 'hinawa_enums.h.template',
   install_header: true,
-  install_dir: '@0@/@1@'.format(get_option('includedir'), meson.project_name())
+  install_dir: join_paths(get_option('includedir'), meson.project_name()),
 )
 headers += 'hinawa_enum_types.h'
 sources += enums
 
 mapfile = 'hinawa.map'
-vflag = '-Wl,--version-script,@0@/@1@'.format(meson.current_source_dir(), mapfile)
+vflag = '-Wl,--version-script,' + join_paths(meson.current_source_dir(), mapfile)
 
 myself = library('hinawa',
   sources: sources,

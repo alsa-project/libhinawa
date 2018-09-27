@@ -11,7 +11,7 @@ tests = [
   ['HinawaEnum','hinawa-enum'],
 ]
 
-objdir = '@0@/src'.format(meson.build_root())
+objdir = join_paths(meson.build_root(), 'src')
 
 envs = environment()
 envs.append('LD_LIBRARY_PATH', objdir, separator : ':')
