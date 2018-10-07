@@ -13,5 +13,5 @@ enum hinawa_context_type {
 
 gpointer hinawa_context_add_src(enum hinawa_context_type type, GSource *src,
 				gint fd, GIOCondition event, GError **exception);
-
+void hinawa_context_remove_src(enum hinawa_context_type type, GSource *src);
 #endif
