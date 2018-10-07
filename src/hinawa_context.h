@@ -5,7 +5,13 @@
 #include <glib.h>
 #include <glib-object.h>
 
-gpointer hinawa_context_add_src(GSource *src, gint fd, GIOCondition event,
-				GError **exception);
+enum hinawa_context_type {
+	HINAWA_CONTEXT_TYPE_FW = 0,
+	HINAWA_CONTEXT_TYPE_SND,
+	HINAWA_CONTEXT_TYPE_COUNT,
+};
+
+gpointer hinawa_context_add_src(enum hinawa_context_type type, GSource *src,
+				gint fd, GIOCondition event, GError **exception);
 
 #endif

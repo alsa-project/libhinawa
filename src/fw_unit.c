@@ -448,7 +448,8 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 	priv->len = getpagesize();
 
 	((FwUnitSource *)src)->tag =
-		hinawa_context_add_src(src, priv->fd, G_IO_IN, exception);
+		hinawa_context_add_src(HINAWA_CONTEXT_TYPE_FW, src, priv->fd,
+				       G_IO_IN, exception);
 	if (*exception != NULL) {
 		g_free(buf);
 		g_source_destroy(src);

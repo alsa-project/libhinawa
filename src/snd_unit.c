@@ -419,7 +419,8 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 	priv->len = getpagesize();
 
 	((SndUnitSource *)src)->tag =
-		hinawa_context_add_src(src, priv->fd, G_IO_IN, exception);
+		hinawa_context_add_src(HINAWA_CONTEXT_TYPE_SND, src, priv->fd,
+				       G_IO_IN, exception);
 	if (*exception != NULL) {
 		g_free(buf);
 		g_source_destroy(src);

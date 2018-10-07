@@ -1,52 +1,68 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 #include "hinawa_context.h"
 
-static GMainContext *ctx;
-static GThread *thread;
-
-static gboolean running;
-static gint counter;
+static struct {
+	GMainContext *ctx;
+	GThread *thread;
+	gboolean running;
+	gint counter;
+	GMutex mutex;
+} ctx_data[HINAWA_CONTEXT_TYPE_COUNT];
 
 static G_LOCK_DEFINE(ctx_data_lock);
 
 static gpointer run_main_loop(gpointer data)
 {
-	while (running)
-		g_main_context_iteration(ctx, TRUE);
+	enum hinawa_context_type type = (enum hinawa_context_type)data;
+
+	while (ctx_data[type].running)
+		g_main_context_iteration(ctx_data[type].ctx, TRUE);
 
 	g_thread_exit(NULL);
 
 	return NULL;
 }
 
-static GMainContext *get_my_context(GError **exception)
+static GMainContext *get_my_context(enum hinawa_context_type type,
+				    GError **exception)
 {
-	if (ctx == NULL)
-		ctx = g_main_context_new();
+	const char *labels[] = {
+		[HINAWA_CONTEXT_TYPE_FW]	= "fw",
+		[HINAWA_CONTEXT_TYPE_SND]	= "snd",
+	};
 
-	if (thread == NULL) {
-		thread = g_thread_try_new("gmain", run_main_loop, NULL,
-					  exception);
-		if (*exception != NULL) {
-			g_main_context_unref(ctx);
+	if (!ctx_data[type].ctx)
+		ctx_data[type].ctx = g_main_context_new();
+
+	if (!ctx_data[type].thread) {
+		char name[16];
+
+		g_snprintf(name, sizeof(name), "libhinawa:%s", labels[type]);
+
+		ctx_data[type].thread = g_thread_try_new(name, run_main_loop,
+						(gpointer)type, exception);
+		if (*exception) {
+			g_main_context_unref(ctx_data[type].ctx);
 			return NULL;
 		} else {
-			running = TRUE;
+			ctx_data[type].running = TRUE;
 		}
 	}
 
-	return ctx;
+	g_atomic_int_inc(&ctx_data[type].counter);
+
+	return ctx_data[type].ctx;
 }
 
-gpointer hinawa_context_add_src(GSource *src, gint fd, GIOCondition event,
-				GError **exception)
+gpointer hinawa_context_add_src(enum hinawa_context_type type, GSource *src,
+				gint fd, GIOCondition event, GError **exception)
 {
 	GMainContext *ctx;
 	gpointer tag;
 
 	G_LOCK(ctx_data_lock);
 
-	ctx = get_my_context(exception);
+	ctx = get_my_context(type, exception);
 	if (*exception) {
 		G_UNLOCK(ctx_data_lock);
 		return NULL;
@@ -62,16 +78,26 @@ gpointer hinawa_context_add_src(GSource *src, gint fd, GIOCondition event,
 	return tag;
 }
 
-void hinawa_context_remove_src(GSource *src)
+void hinawa_context_remove_src(enum hinawa_context_type type, GSource *src)
 {
-	g_source_destroy(src);
-
 	G_LOCK(ctx_data_lock);
 
-	if (g_atomic_int_dec_and_test(&counter)) {
-		running = FALSE;
-		g_thread_join(thread);
-		thread = NULL;
+	if (g_atomic_int_dec_and_test(&ctx_data[type].counter)) {
+		ctx_data[type].running = FALSE;
+		g_thread_join(ctx_data[type].thread);
+		g_thread_unref(ctx_data[type].thread);
+		ctx_data[type].thread = NULL;
+
+		// When the ctx has no source, it becomes to execute poll(2)
+		// with -1 timeout and the thread doesn't exit without any UNIX
+		// signal. To prevent this situation, desctuction of source is
+		// done here.
+		g_source_destroy(src);
+
+		g_main_context_unref(ctx_data[type].ctx);
+		ctx_data[type].ctx = NULL;
+	} else {
+		g_source_destroy(src);
 	}
 
 	G_UNLOCK(ctx_data_lock);
