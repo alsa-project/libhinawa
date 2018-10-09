@@ -7,6 +7,8 @@ static GThread *thread;
 static gboolean running;
 static gint counter;
 
+static G_LOCK_DEFINE(ctx_data_lock);
+
 static gpointer run_main_loop(gpointer data)
 {
 	while (running)
@@ -27,7 +29,9 @@ static GMainContext *get_my_context(GError **exception)
 					  exception);
 		if (*exception != NULL) {
 			g_main_context_unref(ctx);
-			ctx = NULL;
+			return NULL;
+		} else {
+			running = TRUE;
 		}
 	}
 
@@ -38,24 +42,37 @@ gpointer hinawa_context_add_src(GSource *src, gint fd, GIOCondition event,
 				GError **exception)
 {
 	GMainContext *ctx;
+	gpointer tag;
+
+	G_LOCK(ctx_data_lock);
 
 	ctx = get_my_context(exception);
-	if (*exception != NULL)
+	if (*exception) {
+		G_UNLOCK(ctx_data_lock);
 		return NULL;
-	running = TRUE;
+	}
 
 	/* NOTE: The returned ID is never used. */
 	g_source_attach(src, ctx);
 
-	return g_source_add_unix_fd(src, fd, event);
+	tag = g_source_add_unix_fd(src, fd, event);
+
+	G_UNLOCK(ctx_data_lock);
+
+	return tag;
 }
 
 void hinawa_context_remove_src(GSource *src)
 {
 	g_source_destroy(src);
+
+	G_LOCK(ctx_data_lock);
+
 	if (g_atomic_int_dec_and_test(&counter)) {
 		running = FALSE;
 		g_thread_join(thread);
 		thread = NULL;
 	}
+
+	G_UNLOCK(ctx_data_lock);
 }
