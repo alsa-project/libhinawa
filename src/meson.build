@@ -51,6 +51,10 @@ if with_snd_motu
   sources += ['snd_motu.h', 'snd_motu.c']
   headers += 'snd_motu.h'
 endif
+if with_snd_tscm
+  sources += ['snd_tscm.h', 'snd_tscm.c']
+  headers += 'snd_tscm.h'
+endif
 
 # Generate marshallers for GObject signals.
 marshallers = gnome.genmarshal('hinawa_sigs_marshal',
