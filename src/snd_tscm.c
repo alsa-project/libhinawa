@@ -17,7 +17,11 @@ G_DEFINE_QUARK("HinawaSndTscm", hinawa_snd_tscm)
 	g_set_error(exception, hinawa_snd_tscm_quark(), errno,	\
 		    "%d: %s", __LINE__, strerror(errno))
 
-G_DEFINE_TYPE(HinawaSndTscm, hinawa_snd_tscm, HINAWA_TYPE_SND_UNIT)
+struct _HinawaSndTscmPrivate {
+	struct snd_firewire_tascam_state image;
+	guint32 state[SNDRV_FIREWIRE_TASCAM_STATE_COUNT];
+};
+G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndTscm, hinawa_snd_tscm, HINAWA_TYPE_SND_UNIT)
 
 /* This object has one signal. */
 enum tscm_sig_type {
@@ -75,6 +79,32 @@ void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **exception)
 		raise(exception, EINVAL);
 		return;
 	}
+}
+
+/**
+ * hinawa_snd_tscm_get_state:
+ * @self: A #HinawaSndTscm
+ *
+ * Returns: (element-type guint32) (array fixed-size=64) (transfer none): state
+ * 	    image.
+ *
+ */
+const guint32 *const hinawa_snd_tscm_get_state(HinawaSndTscm *self,
+					       GError **exception)
+{
+	HinawaSndTscmPrivate *priv;
+	int i;
+
+	g_return_val_if_fail(HINAWA_IS_SND_TSCM(self), NULL);
+	priv = hinawa_snd_tscm_get_instance_private(self);
+
+	hinawa_snd_unit_ioctl(&self->parent_instance,
+			      SNDRV_FIREWIRE_IOCTL_TASCAM_STATE, &priv->image,
+			      exception);
+
+	for (i = 0; i < SNDRV_FIREWIRE_TASCAM_STATE_COUNT; ++i)
+		priv->state[i] = GUINT32_FROM_BE(priv->image.data[i]);
+	return priv->state;
 }
 
 void hinawa_snd_tscm_handle_control(HinawaSndTscm *self, const void *buf,

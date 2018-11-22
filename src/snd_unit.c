@@ -275,6 +275,18 @@ void hinawa_snd_unit_write(HinawaSndUnit *self,
 		raise(exception, errno);
 }
 
+void hinawa_snd_unit_ioctl(HinawaSndUnit *self, unsigned long request,
+			   void *arg, GError **exception)
+{
+	HinawaSndUnitPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	priv = hinawa_snd_unit_get_instance_private(self);
+
+	if (ioctl(priv->fd, request, arg) < 0)
+		raise(exception, errno);
+}
+
 static void handle_lock_event(HinawaSndUnit *self,
 			      void *buf, unsigned int length)
 {

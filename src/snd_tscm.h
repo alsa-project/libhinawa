@@ -31,9 +31,12 @@ G_BEGIN_DECLS
 
 typedef struct _HinawaSndTscm		HinawaSndTscm;
 typedef struct _HinawaSndTscmClass	HinawaSndTscmClass;
+typedef struct _HinawaSndTscmPrivate	HinawaSndTscmPrivate;
 
 struct _HinawaSndTscm {
 	HinawaSndUnit parent_instance;
+
+	HinawaSndTscmPrivate *priv;
 };
 
 struct _HinawaSndTscmClass {
@@ -43,5 +46,8 @@ struct _HinawaSndTscmClass {
 GType hinawa_snd_tscm_get_type(void) G_GNUC_CONST;
 
 void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **exception);
+
+const guint32 *const hinawa_snd_tscm_get_state(HinawaSndTscm *self,
+					       GError **exception);
 
 #endif
