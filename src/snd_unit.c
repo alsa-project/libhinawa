@@ -358,6 +358,12 @@ static gboolean check_src(GSource *gsrc)
 		hinawa_snd_motu_handle_notification(HINAWA_SND_MOTU(unit),
 						    priv->buf, len);
 #endif
+#if HAVE_SND_TSCM
+	else if (HINAWA_IS_SND_TSCM(unit) &&
+		 common->type == SNDRV_FIREWIRE_EVENT_TASCAM_CONTROL)
+		hinawa_snd_tscm_handle_control(HINAWA_SND_TSCM(unit),
+						    priv->buf, len);
+#endif
 end:
 	/* Don't go to dispatch, then continue to process this source. */
 	return FALSE;

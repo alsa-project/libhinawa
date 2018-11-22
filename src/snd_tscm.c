@@ -19,9 +19,32 @@ G_DEFINE_QUARK("HinawaSndTscm", hinawa_snd_tscm)
 
 G_DEFINE_TYPE(HinawaSndTscm, hinawa_snd_tscm, HINAWA_TYPE_SND_UNIT)
 
+/* This object has one signal. */
+enum tscm_sig_type {
+        TSCM_SIG_TYPE_CTL,
+        TSCM_SIG_TYPE_COUNT,
+};
+static guint tscm_sigs[TSCM_SIG_TYPE_COUNT] = { 0 };
+
 static void hinawa_snd_tscm_class_init(HinawaSndTscmClass *klass)
 {
-	return;
+	/**
+	 * HinawaSndTscm::control:
+	 * @self: A #HinawaSndTscm
+	 * @flags: A bitmask of model-dependent control
+	 *
+	 * When TASCAM FireWire unit transfer control message, the ::control
+	 * signal is emitted.
+	 */
+	tscm_sigs[TSCM_SIG_TYPE_CTL] =
+		g_signal_new("control",
+			     G_OBJECT_CLASS_TYPE(klass),
+			     G_SIGNAL_RUN_LAST,
+			     0,
+			     NULL, NULL,
+			     hinawa_sigs_marshal_VOID__UINT_UINT_UINT,
+			     G_TYPE_NONE,
+			     3, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT);
 }
 
 static void hinawa_snd_tscm_init(HinawaSndTscm *self)
@@ -51,5 +74,29 @@ void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **exception)
 	if (type != SNDRV_FIREWIRE_TYPE_TASCAM) {
 		raise(exception, EINVAL);
 		return;
+	}
+}
+
+void hinawa_snd_tscm_handle_control(HinawaSndTscm *self, const void *buf,
+				    unsigned int len)
+{
+	struct snd_firewire_event_tascam_control *event =
+			(struct snd_firewire_event_tascam_control *)buf;
+	struct snd_firewire_tascam_change *change;
+
+	g_return_if_fail(HINAWA_IS_SND_TSCM(self));
+
+	if (len < sizeof(event->type))
+		return;
+	len -= sizeof(event->type);
+
+	change = event->changes;
+	while (len >= sizeof(*change)) {
+		g_signal_emit(self, tscm_sigs[TSCM_SIG_TYPE_CTL], 0,
+			      change->index,
+			      GUINT32_FROM_BE(change->before),
+			      GUINT32_FROM_BE(change->after));
+		++change;
+		len -= sizeof(*change);
 	}
 }

@@ -21,6 +21,7 @@
 #include "snd_efw.h"
 #include "snd_dg00x.h"
 #include "snd_motu.h"
+#include "snd_tscm.h"
 
 void hinawa_fw_unit_ioctl(HinawaFwUnit *self, unsigned long req, void *args,
 			  int *err);
@@ -48,6 +49,10 @@ void hinawa_snd_dg00x_handle_msg(HinawaSndDg00x *self, const void *buf,
 #if HAVE_SND_MOTU
 void hinawa_snd_motu_handle_notification(HinawaSndMotu *self,
 					 const void *buf, unsigned int len);
+#endif
+#if HAVE_SND_TSCM
+void hinawa_snd_tscm_handle_control(HinawaSndTscm *self, const void *buf,
+				    unsigned int len);
 #endif
 
 #endif

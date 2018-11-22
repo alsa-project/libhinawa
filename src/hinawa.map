@@ -77,4 +77,5 @@ HINAWA_1_1_0 {
     "hinawa_snd_tscm_get_type";
     "hinawa_snd_tscm_open";
     "hinawa_snd_tscm_quark";
+    "hinawa_sigs_marshal_VOID__UINT_UINT";
 } HINAWA_1_0_0;
