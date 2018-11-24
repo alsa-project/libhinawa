@@ -23,6 +23,10 @@ if with_snd_motu == true
   tests += 'snd-motu'
 endif
 
+if with_snd_tscm == true
+  tests += 'snd-tscm'
+endif
+
 objdir = join_paths(meson.build_root(), 'src')
 
 envs = environment()
