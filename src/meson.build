@@ -33,23 +33,23 @@ headers = [
   'fw_req.h',
   'fw_fcp.h',
   'snd_unit.h',
-  'snd_dice.h',
-  'snd_efw.h',
-  'snd_dg00x.h',
-  'snd_motu.h',
 ]
 
 if with_snd_dice
   sources += ['snd_dice.h', 'snd_dice.c']
+  headers += 'snd_dice.h'
 endif
 if with_snd_efw
   sources += ['snd_efw.h', 'snd_efw.c']
+  headers += 'snd_efw.h'
 endif
 if with_snd_dg00x
   sources += ['snd_dg00x.h', 'snd_dg00x.c']
+  headers += 'snd_dg00x.h'
 endif
 if with_snd_motu
   sources += ['snd_motu.h', 'snd_motu.c']
+  headers += 'snd_motu.h'
 endif
 
 # Generate marshallers for GObject signals.
