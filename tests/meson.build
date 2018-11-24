@@ -1,15 +1,27 @@
 tests = [
-  ['FwUnit',    'fw-unit'],
-  ['FwReq',     'fw-req'],
-  ['FwResp',    'fw-resp'],
-  ['FwFcp',     'fw-fcp'],
-  ['SndUnit',   'snd-unit'],
-  ['SndEfw',    'snd-efw'],
-  ['SndDice',   'snd-dice'],
-  ['SndDg00x',  'snd-dg00x'],
-  ['SndMotu',   'snd-motu'],
-  ['HinawaEnum','hinawa-enum'],
+  'fw-unit',
+  'fw-req',
+  'fw-resp',
+  'fw-fcp',
+  'snd-unit',
+  'hinawa-enum',
 ]
+
+if with_snd_dice == true
+  tests += 'snd-dice'
+endif
+
+if with_snd_efw == true
+  tests += 'snd-efw'
+endif
+
+if with_snd_dg00x == true
+  tests += 'snd-dg00x'
+endif
+
+if with_snd_motu == true
+  tests += 'snd-motu'
+endif
 
 objdir = join_paths(meson.build_root(), 'src')
 
@@ -18,8 +30,8 @@ envs.append('LD_LIBRARY_PATH', objdir, separator : ':')
 envs.append('GI_TYPELIB_PATH', objdir, separator : ':')
 
 foreach test : tests
-    name = test[0]
-    script = test[1]
+    name = test
+    script = test
     prog = find_program(script)
     test(name, prog,
       env: envs,
