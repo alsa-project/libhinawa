@@ -23,19 +23,19 @@ else
   with_snd_motu = false
 
   if cc.has_header_symbol('sound/firewire.h',
-                          'struct snd_firewire_event_dice_notification')
+                          'SNDRV_FIREWIRE_EVENT_DICE_NOTIFICATION')
     with_snd_dice = true
   endif
   if cc.has_header_symbol('sound/firewire.h',
-                          'struct snd_firewire_event_efw_response')
+                          'SNDRV_FIREWIRE_EVENT_EFW_RESPONSE')
     with_snd_efw = true
   endif
   if cc.has_header_symbol('sound/firewire.h',
-                          'struct snd_firewire_event_digi00x_message')
+                          'SNDRV_FIREWIRE_EVENT_DIGI00X_MESSAGE')
     with_snd_dg00x = true
   endif
   if cc.has_header_symbol('sound/firewire.h',
-                          'struct snd_firewire_motu_status')
+                          'SNDRV_FIREWIRE_EVENT_MOTU_NOTIFICATION')
     with_snd_motu = true
   endif
 endif
