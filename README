@@ -1,6 +1,6 @@
 # libhinawa
 
-2018/07/01
+2018/12/30
 Takashi Sakamoto
 
 ## Instruction
@@ -90,8 +90,8 @@ qt5 - PyQt5 is required.
 
 ## How to make RPM package
 
-1. archive all source code into libhinawa-1.0.0.tar.gz
-  $ git archive --format tar.gz --prefix='libhinawa-1.0.0/' 1.0.0 -o ~/rpmbuild/SOURCES/libhinawa-1.0.0.tar.gz
+1. archive all source code into libhinawa-1.1.0.tar.gz
+  $ git archive --format tar.gz --prefix='libhinawa-1.1.0/' 1.1.0 -o ~/rpmbuild/SOURCES/libhinawa-1.1.0.tar.gz
 2. rpmbuild -bb libhinawa.spec
 
 end
