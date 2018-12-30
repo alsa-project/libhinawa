@@ -6,9 +6,9 @@
 #include "hinawa_sigs_marshal.h"
 
 /**
- * SECTION:snd_tascam
+ * SECTION:snd_tscm
  * @Title: HinawaSndTscm
- * @Short_description: A class for TASCAM FireWire models
+ * @Short_description: A state reader for Tascam FireWire models
  */
 
 /* For error handling. */
@@ -84,6 +84,7 @@ void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **exception)
 /**
  * hinawa_snd_tscm_get_state:
  * @self: A #HinawaSndTscm
+ * @exception: A #GError
  *
  * Returns: (element-type guint32) (array fixed-size=64) (transfer none): state
  * 	    image.
