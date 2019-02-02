@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-import sys
-import errno
+from sys import exit
+from errno import ENXIO
 
 from helper import test
 
@@ -30,4 +30,4 @@ signals = (
 )
 
 if not test(target, props, methods, signals):
-    sys.exit(errno.ENXIO)
+    exit(ENXIO)
