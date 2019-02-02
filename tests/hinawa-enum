@@ -64,4 +64,4 @@ for obj, types in types.items():
     for t in types:
         if not hasattr(obj, t):
             print('Enumerator {0} is not produced.'.format(t))
-            exit()
+            exit(ENXIO)
