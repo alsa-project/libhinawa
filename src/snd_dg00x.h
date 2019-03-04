@@ -39,6 +39,16 @@ struct _HinawaSndDg00x {
 
 struct _HinawaSndDg00xClass {
 	HinawaSndUnitClass parent_class;
+
+	/**
+	 * HinawaSndDg00xClass::message:
+	 * @self: A #HinawaSndDg00x
+	 * @message: A message
+	 *
+	 * When Dg00x models transfer notification, the ::message handler is
+	 * called.
+	 */
+	void (*message)(HinawaSndDg00x *self, gulong message);
 };
 
 GType hinawa_snd_dg00x_get_type(void) G_GNUC_CONST;
