@@ -22,14 +22,14 @@ G_BEGIN_DECLS
 #define HINAWA_FW_RESP_CLASS(klass)				\
 	(G_TYPE_CHECK_CLASS_CAST((klass),			\
 				 HINAWA_TYPE_FW_RESP,		\
-				 HinawaFwResp))
+				 HinawaFwRespClass))
 #define HINAWA_IS_FW_RESP_CLASS(klass)				\
 	(G_TYPE_CHECK_CLASS_TYPE((klass),			\
-				 HINAWA_TYPE_Seq))
+				 HINAWA_TYPE_FW_RESP))
 #define HINAWA_FW_RESP_GET_CLASS(obj)				\
 	(G_TYPE_INSTANCE_GET_CLASS((obj),			\
 				   HINAWA_TYPE_FW_RESP,		\
-				   HinawaFwResp))
+				   HinawaFwRespClass))
 
 typedef struct _HinawaFwResp		HinawaFwResp;
 typedef struct _HinawaFwRespClass	HinawaFwRespClass;
