@@ -206,7 +206,7 @@ static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 		g_signal_new("bus-update",
 			     G_OBJECT_CLASS_TYPE(klass),
 			     G_SIGNAL_RUN_LAST,
-			     0,
+			     G_STRUCT_OFFSET(HinawaFwUnitClass, bus_update),
 			     NULL, NULL,
 			     g_cclosure_marshal_VOID__VOID,
 			     G_TYPE_NONE, 0, G_TYPE_NONE);
@@ -222,7 +222,7 @@ static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 		g_signal_new("disconnected",
 			     G_OBJECT_CLASS_TYPE(klass),
 			     G_SIGNAL_RUN_LAST,
-			     0,
+			     G_STRUCT_OFFSET(HinawaFwUnitClass, disconnected),
 			     NULL, NULL,
 			     g_cclosure_marshal_VOID__VOID,
 			     G_TYPE_NONE, 0, G_TYPE_NONE);

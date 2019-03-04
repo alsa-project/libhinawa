@@ -41,6 +41,26 @@ struct _HinawaFwUnit {
 
 struct _HinawaFwUnitClass {
 	GObjectClass parent_class;
+
+	/**
+	 * HinawaFwUnitClass::bus_update:
+	 * @self: A #HinawaFwUnit
+	 *
+	 * When IEEE 1394 bus is updated, the ::bus-update handler is called.
+	 * The handlers can read current generation in the bus via 'generation'
+	 * property.
+	 */
+	void (*bus_update)(HinawaFwUnit *self);
+
+	/**
+	 * HinawaFwUnitClass::disconnected:
+	 * @self: A #HinawaFwUnit
+	 *
+	 * When phicical FireWire devices are disconnected from IEEE 1394 bus,
+	 * the #HinawaFwUnit becomes unlistening and the ::disconnected
+	 * handler is called.
+	 */
+	void (*disconnected)(HinawaFwUnit *self);
 };
 
 GType hinawa_fw_unit_get_type(void) G_GNUC_CONST;
