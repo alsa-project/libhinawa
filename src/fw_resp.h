@@ -43,6 +43,21 @@ struct _HinawaFwResp {
 
 struct _HinawaFwRespClass {
 	GObjectClass parent_class;
+
+	/**
+	 * HinawaFwRespClass::requested:
+	 * @self: A #HinawaFwResp
+	 * @tcode: One of #HinawaTcode enumerators
+	 *
+	 * When any units transfer requests to the range of address to which
+	 * this object listening. The ::requested signal handler can get data
+	 * frame by a call of ::get_req_frame and set data frame by a call of
+	 * ::set_resp_frame, then returns rcode.
+	 *
+	 * Returns: One of #HinawaRcode enumerators corresponding to rcodes
+	 * 	    defined in IEEE 1394 specification.
+	 */
+	HinawaFwRcode (*requested)(HinawaFwResp *self, HinawaFwTcode tcode);
 };
 
 GType hinawa_fw_resp_get_type(void) G_GNUC_CONST;

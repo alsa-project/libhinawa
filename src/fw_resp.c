@@ -78,7 +78,7 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 		g_signal_new("requested",
 			     G_OBJECT_CLASS_TYPE(klass),
 			     G_SIGNAL_RUN_LAST,
-			     0,
+			     G_STRUCT_OFFSET(HinawaFwRespClass, requested),
 			     NULL, NULL,
 			     hinawa_sigs_marshal_ENUM__ENUM,
 			     HINAWA_TYPE_FW_RCODE, 1, HINAWA_TYPE_FW_TCODE);
