@@ -42,6 +42,16 @@ struct _HinawaSndDice {
 
 struct _HinawaSndDiceClass {
 	HinawaSndUnitClass parent_class;
+
+	/**
+	 * HinawaSndDiceClass::notified:
+	 * @self: A #HinawaSndDice
+	 * @message: A notification message
+	 *
+	 * When Dice models transfer notification, the ::notified handler is
+	 * called.
+	 */
+	void (*notified)(HinawaSndDice *self, gulong message);
 };
 
 GType hinawa_snd_dice_get_type(void) G_GNUC_CONST;
