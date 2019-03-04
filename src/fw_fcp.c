@@ -60,13 +60,12 @@ struct fcp_transaction {
 
 struct _HinawaFwFcpPrivate {
 	HinawaFwUnit *unit;
-	HinawaFwResp *resp;
 
 	GList *transactions;
 	GMutex transactions_mutex;
 	guint timeout;
 };
-G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwFcp, hinawa_fw_fcp, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwFcp, hinawa_fw_fcp, HINAWA_TYPE_FW_RESP)
 
 /* This object has one property. */
 enum fw_fcp_prop_type {
@@ -116,9 +115,14 @@ static void fw_fcp_finalize(GObject *obj)
 	G_OBJECT_CLASS(hinawa_fw_fcp_parent_class)->finalize(obj);
 }
 
+// Define later.
+static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode);
+
 static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+
+	HINAWA_FW_RESP_CLASS(klass)->requested = handle_response;
 
 	gobject_class->get_property = fw_fcp_get_property;
 	gobject_class->set_property = fw_fcp_set_property;
@@ -225,11 +229,10 @@ end:
 	g_clear_object(&req);
 }
 
-static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode,
-				     gpointer user_data)
+static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode)
 {
-	HinawaFwFcp *fcp = (HinawaFwFcp *)user_data;
-	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(fcp);
+	HinawaFwFcp *self = HINAWA_FW_FCP(resp);
+	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
 	struct fcp_transaction *trans;
 	const guint8 *req_frame;
 	guint length;
@@ -279,22 +282,16 @@ void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
 	priv = hinawa_fw_fcp_get_instance_private(self);
 
-	priv->resp = g_object_new(HINAWA_TYPE_FW_RESP, NULL);
 	priv->unit = g_object_ref(unit);
 
-	hinawa_fw_resp_register(priv->resp, priv->unit,
+	hinawa_fw_resp_register(HINAWA_FW_RESP(self), priv->unit,
 				FCP_RESPOND_ADDR, FCP_MAXIMUM_FRAME_BYTES,
 				exception);
 	if (*exception != NULL) {
-		g_clear_object(&priv->resp);
-		priv->resp = NULL;
 		g_object_unref(priv->unit);
 		priv->unit = NULL;
 		return;
 	}
-
-	g_signal_connect(priv->resp, "requested",
-			 G_CALLBACK(handle_response), self);
 
 	g_mutex_init(&priv->transactions_mutex);
 	priv->transactions = NULL;
@@ -313,11 +310,10 @@ void hinawa_fw_fcp_unlisten(HinawaFwFcp *self)
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
 	priv = hinawa_fw_fcp_get_instance_private(self);
 
-	if (priv->resp == NULL)
-		return;
+	hinawa_fw_resp_unregister(HINAWA_FW_RESP(self));
 
-	hinawa_fw_resp_unregister(priv->resp);
-	priv->resp = NULL;
-	g_object_unref(priv->unit);
-	priv->unit = NULL;
+	if (priv->unit != NULL) {
+		g_object_unref(priv->unit);
+		priv->unit = NULL;
+	}
 }

@@ -5,6 +5,7 @@
 #include <glib.h>
 #include <glib-object.h>
 #include "fw_unit.h"
+#include "fw_resp.h"
 
 G_BEGIN_DECLS
 
@@ -35,13 +36,13 @@ typedef struct _HinawaFwFcpClass	HinawaFwFcpClass;
 typedef struct _HinawaFwFcpPrivate	HinawaFwFcpPrivate;
 
 struct _HinawaFwFcp {
-	GObject parent_instance;
+	HinawaFwResp parent_instance;
 
 	HinawaFwFcpPrivate *priv;
 };
 
 struct _HinawaFwFcpClass {
-	GObjectClass parent_class;
+	HinawaFwRespClass parent_class;
 };
 
 GType hinawa_fw_fcp_get_type(void) G_GNUC_CONST;
