@@ -42,6 +42,16 @@ struct _HinawaSndMotu {
 
 struct _HinawaSndMotuClass {
 	HinawaSndUnitClass parent_class;
+
+	/**
+	 * HinawaSndMotuClass::notified:
+	 * @self: A #HinawaSndMotu
+	 * @message: A notification message
+	 *
+	 * When Motu models transfer notification, the ::notified handler is
+	 * called.
+	 */
+	void (*notified)(HinawaSndMotu *self, gulong message);
 };
 
 GType hinawa_snd_motu_get_type(void) G_GNUC_CONST;

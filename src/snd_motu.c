@@ -44,7 +44,7 @@ static void hinawa_snd_motu_class_init(HinawaSndMotuClass *klass)
 		g_signal_new("notified",
 			     G_OBJECT_CLASS_TYPE(klass),
 			     G_SIGNAL_RUN_LAST,
-			     0,
+			     G_STRUCT_OFFSET(HinawaSndMotuClass, notified),
 			     NULL, NULL,
 			     g_cclosure_marshal_VOID__ULONG,
 			     G_TYPE_NONE, 1, G_TYPE_ULONG);
