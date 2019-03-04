@@ -175,7 +175,7 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 		g_signal_new("lock-status",
 			     G_OBJECT_CLASS_TYPE(klass),
 			     G_SIGNAL_RUN_LAST,
-			     0,
+			     G_STRUCT_OFFSET(HinawaSndUnitClass, lock_status),
 			     NULL, NULL,
 			     g_cclosure_marshal_VOID__BOOLEAN,
 			     G_TYPE_NONE, 1, G_TYPE_BOOLEAN);

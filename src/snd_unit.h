@@ -42,6 +42,16 @@ struct _HinawaSndUnit {
 
 struct _HinawaSndUnitClass {
 	HinawaFwUnitClass parent_class;
+
+	/**
+	 * HinawaSndUnitClass::lock_status:
+	 * @self: A #HinawaSndUnit
+	 * @state: %TRUE when locked, %FALSE when unlocked.
+	 *
+	 * When ALSA kernel-streaming status is changed, this ::lock_status
+	 * handler is called.
+	 */
+	void (*lock_status)(HinawaSndUnit *self, gboolean state);
 };
 
 GType hinawa_snd_unit_get_type(void) G_GNUC_CONST;
