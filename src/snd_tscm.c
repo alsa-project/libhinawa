@@ -45,7 +45,7 @@ static void hinawa_snd_tscm_class_init(HinawaSndTscmClass *klass)
 		g_signal_new("control",
 			     G_OBJECT_CLASS_TYPE(klass),
 			     G_SIGNAL_RUN_LAST,
-			     0,
+			     G_STRUCT_OFFSET(HinawaSndTscmClass, control),
 			     NULL, NULL,
 			     hinawa_sigs_marshal_VOID__UINT_UINT_UINT,
 			     G_TYPE_NONE,

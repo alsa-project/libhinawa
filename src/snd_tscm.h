@@ -42,6 +42,19 @@ struct _HinawaSndTscm {
 
 struct _HinawaSndTscmClass {
 	HinawaSndUnitClass parent_class;
+
+	/**
+	 * HinawaSndTscmClass::control:
+	 * @self: A #HinawaSndTscm
+	 * @index: the numerical index on image of status and control info.
+	 * @before: the value of info before changed.
+	 * @after: the value of info after changed.
+	 *
+	 * When TASCAM FireWire unit transfer control message, the ::control
+	 * signal is emitted.
+	 */
+	void (*control)(HinawaSndTscm *self, guint index, guint before,
+			guint after);
 };
 
 GType hinawa_snd_tscm_get_type(void) G_GNUC_CONST;
