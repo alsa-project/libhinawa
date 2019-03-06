@@ -22,5 +22,6 @@ gnome.gtkdoc('hinawa',
   scan_args: [
     '--ignore-headers=' + ' '.join(private_headers),
   ],
+  dependencies: myself_dep,
   install : true,
 )

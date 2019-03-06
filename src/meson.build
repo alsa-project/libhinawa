@@ -89,6 +89,11 @@ myself = library('hinawa',
   link_depends : mapfile,
 )
 
+myself_dep = declare_dependency(
+  link_with: myself,
+  dependencies: dependencies,
+)
+
 install_headers(headers,
   subdir: meson.project_name()
 )
