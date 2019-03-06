@@ -153,6 +153,8 @@ static void hinawa_fw_fcp_init(HinawaFwFcp *self)
  * @resp_frame: (element-type guint8) (array) (out caller-allocates): a byte
  *		frame for response
  * @exception: A #GError
+ *
+ * Execute fCP transaction.
  */
 void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 			    GByteArray *req_frame, GByteArray *resp_frame,
