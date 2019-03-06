@@ -8,6 +8,9 @@
  * SECTION:snd_tscm
  * @Title: HinawaSndTscm
  * @Short_description: A state reader for Tascam FireWire models
+ *
+ * A #HinawaSndTscm is an application of protocol defined by TASCAM. This
+ * inherits #HinawaSndUnit.
  */
 
 /* For error handling. */
@@ -86,6 +89,8 @@ void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **exception)
  * hinawa_snd_tscm_get_state:
  * @self: A #HinawaSndTscm
  * @exception: A #GError
+ *
+ * Get the latest states of target device.
  *
  * Returns: (element-type guint32) (array fixed-size=64) (transfer none): state
  * 	    image.
