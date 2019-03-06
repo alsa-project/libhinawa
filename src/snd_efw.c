@@ -126,6 +126,8 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
  *        transaction
  * @params: (element-type guint32) (array) (out caller-allocates): return params
  * @exception: A #GError
+ *
+ * Execute transaction according to Echo Fireworks Transaction protocol.
  */
 void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 			     GArray *args, GArray *params, GError **exception)
