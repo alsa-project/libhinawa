@@ -29,6 +29,11 @@
         supported by Linux sound subsystem. It's hosted in github.com.</para>
     </chapter>
 
+    <chapter id="hinawa-enumerations">
+        <title>Hinawa enumerations</title>
+        <xi:include href="xml/hinawa_enum_types.xml"/>
+    </chapter>
+
     <chapter id="hinawa-fw">
         <title>Hinawa objects for Linux FireWire subsystem.</title>
         <para>This library gives 4 objects for abstractions of some
