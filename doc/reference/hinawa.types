@@ -1,0 +1,13 @@
+hinawa_fw_fcp_get_type
+hinawa_fw_rcode_get_type
+hinawa_fw_req_get_type
+hinawa_fw_resp_get_type
+hinawa_fw_tcode_get_type
+hinawa_fw_unit_get_type
+hinawa_snd_dg00x_get_type
+hinawa_snd_dice_get_type
+hinawa_snd_efw_get_type
+hinawa_snd_motu_get_type
+hinawa_snd_tscm_get_type
+hinawa_snd_unit_get_type
+hinawa_snd_unit_type_get_type
