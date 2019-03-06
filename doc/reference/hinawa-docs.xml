@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+                      "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
+<!ENTITY version SYSTEM "version.xml">
+]>
+
+<book id="index" xmlns:xi="http://www.w3.org/2003/XInclude">
+    <bookinfo>
+        <title>Hinawa Reference Manual</title>
+    <releaseinfo>This document is for the Hinawa library, version &version;.
+    </releaseinfo>
+    </bookinfo>
+
+    <chapter id="introduction">
+        <title>Introduction</title>
+        <para>This library gives some objects for abstraction of two
+            subsystems in Linux; FireWire subsystem and Sound
+            subsystem. </para>
+        <link linkend="Overview">
+          <inlinegraphic fileref="overview.png" format="PNG"></inlinegraphic>
+        </link>
+        <para>libhinawa supports gobject introspection, thus this library
+        is available with gobject introspection bindings of each language
+        such as Python, Ruby and so on. When using this mechanism, please
+        refer to documents in each language implementation.</para>
+        <para>hinawa-utils is a set of Python 3 modules and scripts utilizing
+        libhinawa. It's for control audio and music units on IEEE 1394 bus
+        supported by Linux sound subsystem. It's hosted in github.com.</para>
+    </chapter>
+
+    <chapter id="hinawa-fw">
+        <title>Hinawa objects for Linux FireWire subsystem.</title>
+        <para>This library gives 4 objects for abstractions of some
+            features in Linux firewire stack.</para>
+        <xi:include href="xml/fw_unit.xml"/>
+        <xi:include href="xml/fw_resp.xml"/>
+        <xi:include href="xml/fw_req.xml"/>
+        <xi:include href="xml/fw_fcp.xml"/>
+    </chapter>
+
+    <chapter id="hinawa-snd">
+        <title>Hinawa objects for Linux sound subsystem.</title>
+        <para>This library gives 6 objects for abstractions of some
+            features in Linux sound subsystem. Most of the features are
+            given by corresponding kernel driver.</para>
+        <xi:include href="xml/snd_unit.xml"/>
+        <xi:include href="xml/snd_dice.xml"/>
+        <xi:include href="xml/snd_efw.xml"/>
+        <xi:include href="xml/snd_dg00x.xml"/>
+        <xi:include href="xml/snd_motu.xml"/>
+        <xi:include href="xml/snd_tscm.xml"/>
+    </chapter>
+
+    <index id="index-all">
+        <title>Index of all symbols</title>
+        <xi:include href="xml/api-index-full.xml"><xi:fallback /></xi:include>
+    </index>
+
+    <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
+
+</book>
