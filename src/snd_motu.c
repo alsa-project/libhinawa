@@ -9,7 +9,8 @@
  * @Title: HinawaSndMotu
  * @Short_description: A notification listener for Motu models
  *
- * TODO: A #HinawaSndMotu inherits #HinawaSndUnit.
+ * A #HinawaSndMotu is an application of asynchronous notification defined by
+ * Mark of the Unicorn (MOTU). This inherits #HinawaSndUnit.
  */
 
 /* For error handling. */
