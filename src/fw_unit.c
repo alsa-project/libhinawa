@@ -268,6 +268,8 @@ static void update_info(HinawaFwUnit *self, GError **exception)
  * @self: A #HinawaFwUnit
  * @path: A path to Linux FireWire character device
  * @exception: A #GError
+ *
+ * Open Linux FireWire character device to operate for node on IEEE 1394 bus.
  */
 void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 {
@@ -293,6 +295,8 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
  * hinawa_fw_unit_get_config_rom:
  * @self: A #HinawaFwUnit
  * @length: (out) (optional): the number of bytes consists of the config rom
+ *
+ * Get cached content of configuration ROM.
  *
  * Returns: (element-type guint8) (array length=length) (transfer none): config rom image
  */
