@@ -16,10 +16,7 @@ private_headers = [
 ]
 
 gnome.gtkdoc('hinawa',
-  src_dir : [
-    join_paths(meson.source_root(), 'src'),
-    join_paths(meson.build_root(), 'src'),
-  ],
+  src_dir : inc,
   main_xml : 'hinawa-docs.xml',
   html_assets: images,
   scan_args: [
