@@ -186,6 +186,8 @@ void hinawa_fw_resp_unregister(HinawaFwResp *self)
  * @frame: (element-type guint8)(array length=length)(out): a 8bit array for
  * 	   response frame.
  * @length: (out): The length of bytes for the frame.
+ *
+ * Retrieve byte frame to be requested.
  */
 void hinawa_fw_resp_get_req_frame(HinawaFwResp *self, const guint8 **frame,
 				  guint *length)
@@ -207,6 +209,8 @@ void hinawa_fw_resp_get_req_frame(HinawaFwResp *self, const guint8 **frame,
  * @frame: (element-type guint8)(array length=length): a 8bit array for response
  * 	   frame.
  * @length: The length of bytes for the frame.
+ *
+ * Register byte frame as response.
  */
 void hinawa_fw_resp_set_resp_frame(HinawaFwResp *self, guint8 *frame,
 				   guint length)
