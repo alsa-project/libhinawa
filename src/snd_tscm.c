@@ -96,8 +96,8 @@ void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **exception)
  * 	    image.
  *
  */
-const guint32 *const hinawa_snd_tscm_get_state(HinawaSndTscm *self,
-					       GError **exception)
+const guint32 *hinawa_snd_tscm_get_state(HinawaSndTscm *self,
+					 GError **exception)
 {
 	HinawaSndTscmPrivate *priv;
 	int i;
