@@ -18,7 +18,8 @@ methods = (
     'unlisten',
     'transact',
 )
+vmethods = ()
 signals = ()
 
-if not test(target, props, methods, signals):
+if not test(target, props, methods, vmethods, signals):
     exit(ENXIO)

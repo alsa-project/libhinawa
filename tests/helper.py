@@ -2,7 +2,7 @@ import gi
 gi.require_version('GObject', '2.0')
 from gi.repository import GObject
 
-def test(target, props, methods, signals) ->bool:
+def test(target, props, methods, vmethods, signals) ->bool:
     labels = [prop.name for prop in target.props]
     for prop in props:
         if prop not in labels:
@@ -11,6 +11,10 @@ def test(target, props, methods, signals) ->bool:
     for method in methods:
         if not hasattr(target, method):
             print('Method {0} is not produced.'.format(method))
+            return False
+    for vmethod in vmethods:
+        if not hasattr(target, method):
+            print('Vmethod {0} is not produced.'.format(vmethod))
             return False
     labels = GObject.signal_list_names(target)
     for signal in signals:

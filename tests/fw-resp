@@ -17,9 +17,12 @@ methods = (
     'get_req_frame',
     'set_resp_frame',
 )
+vmethods = (
+    'do_requested',
+)
 signals = (
     'requested',
 )
 
-if not test(target, props, methods, signals):
+if not test(target, props, methods, vmethods, signals):
     exit(ENXIO)

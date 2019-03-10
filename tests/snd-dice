@@ -15,9 +15,12 @@ methods = (
     'open',
     'transact',
 )
+vmethods = (
+    'do_notified',
+)
 signals = (
     'notified',
 )
 
-if not test(target, props, methods, signals):
+if not test(target, props, methods, vmethods, signals):
     exit(ENXIO)
