@@ -54,28 +54,23 @@ static GMainContext *get_my_context(enum hinawa_context_type type,
 	return ctx_data[type].ctx;
 }
 
-gpointer hinawa_context_add_src(enum hinawa_context_type type, GSource *src,
-				gint fd, GIOCondition event, GError **exception)
+void hinawa_context_add_src(enum hinawa_context_type type, GSource *src,
+			    GError **exception)
 {
 	GMainContext *ctx;
-	gpointer tag;
 
 	G_LOCK(ctx_data_lock);
 
 	ctx = get_my_context(type, exception);
 	if (*exception) {
 		G_UNLOCK(ctx_data_lock);
-		return NULL;
+		return;
 	}
 
 	/* NOTE: The returned ID is never used. */
 	g_source_attach(src, ctx);
 
-	tag = g_source_add_unix_fd(src, fd, event);
-
 	G_UNLOCK(ctx_data_lock);
-
-	return tag;
 }
 
 void hinawa_context_remove_src(enum hinawa_context_type type, GSource *src)

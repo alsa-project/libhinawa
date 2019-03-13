@@ -450,16 +450,17 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 	g_source_set_can_recurse(src, TRUE);
 
 	((FwUnitSource *)src)->unit = self;
-	priv->src = (FwUnitSource *)src;
-
 	((FwUnitSource *)src)->tag =
-		hinawa_context_add_src(HINAWA_CONTEXT_TYPE_FW, src, priv->fd,
-				       G_IO_IN, exception);
+				g_source_add_unix_fd(src, priv->fd, G_IO_IN);
+
+	hinawa_context_add_src(HINAWA_CONTEXT_TYPE_FW, src, exception);
 	if (*exception != NULL) {
 		g_source_destroy(src);
 		priv->src = NULL;
 		return;
 	}
+
+	priv->src = (FwUnitSource *)src;
 }
 
 /**
