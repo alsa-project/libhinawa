@@ -80,25 +80,17 @@ gpointer hinawa_context_add_src(enum hinawa_context_type type, GSource *src,
 
 void hinawa_context_remove_src(enum hinawa_context_type type, GSource *src)
 {
-	G_LOCK(ctx_data_lock);
-
 	if (g_atomic_int_dec_and_test(&ctx_data[type].counter)) {
+		G_LOCK(ctx_data_lock);
+
 		ctx_data[type].running = FALSE;
 		g_thread_join(ctx_data[type].thread);
 		g_thread_unref(ctx_data[type].thread);
 		ctx_data[type].thread = NULL;
 
-		// When the ctx has no source, it becomes to execute poll(2)
-		// with -1 timeout and the thread doesn't exit without any UNIX
-		// signal. To prevent this situation, desctuction of source is
-		// done here.
-		g_source_destroy(src);
-
 		g_main_context_unref(ctx_data[type].ctx);
 		ctx_data[type].ctx = NULL;
-	} else {
-		g_source_destroy(src);
-	}
 
-	G_UNLOCK(ctx_data_lock);
+		G_UNLOCK(ctx_data_lock);
+	}
 }
