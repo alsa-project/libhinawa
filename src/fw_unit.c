@@ -478,6 +478,8 @@ void hinawa_fw_unit_unlisten(HinawaFwUnit *self)
 	if (priv->src == NULL)
 		return;
 
+	g_source_remove_unix_fd((GSource *)priv->src, priv->src->tag);
+
 	hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_FW, (GSource *)priv->src);
 	g_free(priv->src);
 	priv->src = NULL;

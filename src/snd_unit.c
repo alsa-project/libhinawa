@@ -483,6 +483,8 @@ void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 	if (priv->streaming)
 		ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
 
+	g_source_remove_unix_fd((GSource *)priv->src, priv->src->tag);
+
 	hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_SND, (GSource *)priv->src);
 	g_free(priv->src);
 	priv->src = NULL;
