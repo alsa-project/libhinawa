@@ -115,6 +115,9 @@ static void snd_unit_finalize(GObject *obj)
 	close(priv->fd);
 	g_clear_object(&priv->req);
 
+	if (priv->buf != NULL)
+		g_free(priv->buf);
+
 	G_OBJECT_CLASS(hinawa_snd_unit_parent_class)->finalize(obj);
 }
 
@@ -214,10 +217,25 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 		goto end;
 	}
 
+	/*
+	 * MEMO: allocate one page because we cannot assume the size of
+	 * transaction frame.
+	 */
+	priv->len = sysconf(_SC_PAGESIZE);
+	priv->buf = g_malloc(getpagesize());
+	if (priv->buf == NULL) {
+		raise(exception, ENOMEM);
+		return;
+	}
+
 	snprintf(fw_cdev, sizeof(fw_cdev), "/dev/%s", priv->info.device_name);
 	hinawa_fw_unit_open(&self->parent_instance, fw_cdev, exception);
-	if (*exception != NULL)
+	if (*exception != NULL) {
+		g_free(priv->buf);
+		priv->buf = NULL;
+		priv->len = 0;
 		goto end;
+	}
 
 	priv->req = g_object_new(HINAWA_TYPE_FW_REQ, "timeout", 40, NULL);
 end:
@@ -404,26 +422,14 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 		.finalize	= NULL,
 	};
 	HinawaSndUnitPrivate *priv;
-	void *buf;
 	GSource *src;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
 
-	/*
-	 * MEMO: allocate one page because we cannot assume the size of
-	 * transaction frame.
-	 */
-	buf = g_malloc(getpagesize());
-	if (buf == NULL) {
-		raise(exception, ENOMEM);
-		return;
-	}
-
 	src = g_source_new(&funcs, sizeof(SndUnitSource));
 	if (src == NULL) {
 		raise(exception, ENOMEM);
-		g_free(buf);
 		return;
 	}
 
@@ -433,17 +439,12 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 
 	((SndUnitSource *)src)->unit = self;
 	priv->src = (SndUnitSource *)src;
-	priv->buf = buf;
-	priv->len = getpagesize();
 
 	((SndUnitSource *)src)->tag =
 		hinawa_context_add_src(HINAWA_CONTEXT_TYPE_SND, src, priv->fd,
 				       G_IO_IN, exception);
 	if (*exception != NULL) {
-		g_free(buf);
 		g_source_destroy(src);
-		priv->buf = NULL;
-		priv->len = 0;
 		priv->src = NULL;
 		return;
 	}
@@ -485,10 +486,6 @@ void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 	hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_SND, (GSource *)priv->src);
 	g_free(priv->src);
 	priv->src = NULL;
-
-	g_free(priv->buf);
-	priv->buf = NULL;
-	priv->len = 0;
 
 	hinawa_fw_unit_unlisten(&self->parent_instance);
 }

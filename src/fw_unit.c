@@ -138,6 +138,9 @@ static void fw_unit_finalize(GObject *obj)
 
 	g_mutex_clear(&priv->mutex);
 
+	if (priv->buf != NULL)
+		g_free(priv->buf);
+
 	G_OBJECT_CLASS(hinawa_fw_unit_parent_class)->finalize(obj);
 }
 
@@ -286,6 +289,18 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 	}
 	priv->fd = fd;
 
+	/*
+	 * MEMO: allocate one page because we cannot assume the size of
+	 * transaction frame.
+	 */
+	priv->len = sysconf(_SC_PAGESIZE);
+	priv->buf = g_malloc0(priv->len);
+	if (priv->buf == NULL) {
+	        raise(exception, ENOMEM);
+		close(fd);
+	        return;
+	}
+
 	g_mutex_lock(&priv->mutex);
 	update_info(self, exception);
 	g_mutex_unlock(&priv->mutex);
@@ -419,26 +434,14 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 		.finalize	= NULL,
 	};
 	HinawaFwUnitPrivate *priv;
-	void *buf;
 	GSource *src;
 
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
 	priv = hinawa_fw_unit_get_instance_private(self);
 
-	/*
-	 * MEMO: allocate one page because we cannot assume the size of
-	 * transaction frame.
-	 */
-	buf = g_malloc0(getpagesize());
-	if (buf == NULL) {
-		raise(exception, ENOMEM);
-		return;
-	}
-
 	src = g_source_new(&funcs, sizeof(FwUnitSource));
 	if (src == NULL) {
 		raise(exception, ENOMEM);
-		g_free(buf);
 		return;
 	}
 
@@ -448,17 +451,12 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 
 	((FwUnitSource *)src)->unit = self;
 	priv->src = (FwUnitSource *)src;
-	priv->buf = buf;
-	priv->len = getpagesize();
 
 	((FwUnitSource *)src)->tag =
 		hinawa_context_add_src(HINAWA_CONTEXT_TYPE_FW, src, priv->fd,
 				       G_IO_IN, exception);
 	if (*exception != NULL) {
-		g_free(buf);
 		g_source_destroy(src);
-		priv->buf = NULL;
-		priv->len = 0;
 		priv->src = NULL;
 		return;
 	}
@@ -483,8 +481,4 @@ void hinawa_fw_unit_unlisten(HinawaFwUnit *self)
 	hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_FW, (GSource *)priv->src);
 	g_free(priv->src);
 	priv->src = NULL;
-
-	g_free(priv->buf);
-	priv->buf = NULL;
-	priv->len = 0;
 }
