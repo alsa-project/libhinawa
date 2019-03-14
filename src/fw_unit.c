@@ -38,6 +38,8 @@ typedef struct {
 	GSource src;
 	HinawaFwUnit *unit;
 	gpointer tag;
+	unsigned int len;
+	void *buf;
 } FwUnitSource;
 
 struct _HinawaFwUnitPrivate {
@@ -48,8 +50,6 @@ struct _HinawaFwUnitPrivate {
 	unsigned int config_rom_length;
 	struct fw_cdev_event_bus_reset generation;
 
-	unsigned int len;
-	void *buf;
 	FwUnitSource *src;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwUnit, hinawa_fw_unit, G_TYPE_OBJECT)
@@ -373,11 +373,11 @@ static gboolean check_src(GSource *gsrc)
 		goto end;
 	}
 
-	len = read(priv->fd, priv->buf, priv->len);
+	len = read(priv->fd, src->buf, src->len);
 	if (len <= 0)
 		goto end;
 
-	common = (struct fw_cdev_event_common *)priv->buf;
+	common = (struct fw_cdev_event_common *)src->buf;
 
 	if (HINAWA_IS_FW_UNIT(common->closure) &&
 	    common->type == FW_CDEV_EVENT_BUS_RESET)
@@ -448,9 +448,8 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 	g_source_set_priority(src, G_PRIORITY_HIGH_IDLE);
 	g_source_set_can_recurse(src, TRUE);
 
-	priv->buf = buf;
-	priv->len = len;
-
+	((FwUnitSource *)src)->len = len;
+	((FwUnitSource *)src)->buf = buf;
 	((FwUnitSource *)src)->unit = self;
 	((FwUnitSource *)src)->tag =
 				g_source_add_unix_fd(src, priv->fd, G_IO_IN);
@@ -459,8 +458,6 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 	if (*exception != NULL) {
 		g_free(buf);
 		g_source_destroy(src);
-		priv->buf = NULL;
-		priv->len = 0;
 		priv->src = NULL;
 		return;
 	}
@@ -492,10 +489,8 @@ void hinawa_fw_unit_unlisten(HinawaFwUnit *self)
 
 	g_source_destroy(gsrc);
 
+	g_free(priv->src->buf);
+
 	g_free(priv->src);
 	priv->src = NULL;
-
-	g_free(priv->buf);
-	priv->buf = NULL;
-	priv->len = 0;
 }

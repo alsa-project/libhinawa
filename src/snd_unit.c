@@ -33,6 +33,8 @@ typedef struct {
 	GSource src;
 	HinawaSndUnit *unit;
 	gpointer tag;
+	void *buf;
+	unsigned int len;
 } SndUnitSource;
 
 struct _HinawaSndUnitPrivate {
@@ -41,8 +43,6 @@ struct _HinawaSndUnitPrivate {
 
 	gboolean streaming;
 
-	void *buf;
-	unsigned int len;
 	SndUnitSource *src;
 
 	HinawaFwReq *req;
@@ -338,43 +338,43 @@ static gboolean check_src(GSource *gsrc)
 		goto end;
 	}
 
-	len = read(priv->fd, priv->buf, priv->len);
+	len = read(priv->fd, src->buf, src->len);
 	if (len <= 0)
 		goto end;
 
-	common = (struct snd_firewire_event_common *)priv->buf;
+	common = (struct snd_firewire_event_common *)src->buf;
 
 	if (common->type == SNDRV_FIREWIRE_EVENT_LOCK_STATUS)
-		handle_lock_event(unit, priv->buf, len);
+		handle_lock_event(unit, src->buf, len);
 #if HAVE_SND_DICE
 	else if (HINAWA_IS_SND_DICE(unit) &&
 		 common->type == SNDRV_FIREWIRE_EVENT_DICE_NOTIFICATION)
 		hinawa_snd_dice_handle_notification(HINAWA_SND_DICE(unit),
-						    priv->buf, len);
+						    src->buf, len);
 #endif
 #if HAVE_SND_EFW
 	else if (HINAWA_IS_SND_EFW(unit) &&
 		 common->type == SNDRV_FIREWIRE_EVENT_EFW_RESPONSE)
 		hinawa_snd_efw_handle_response(HINAWA_SND_EFW(unit),
-					       priv->buf, len);
+					       src->buf, len);
 #endif
 #if HAVE_SND_DG00X
 	else if (HINAWA_IS_SND_DG00X(unit) &&
 		 common->type == SNDRV_FIREWIRE_EVENT_DIGI00X_MESSAGE)
 		hinawa_snd_dg00x_handle_msg(HINAWA_SND_DG00X(unit),
-					    priv->buf, len);
+					    src->buf, len);
 #endif
 #if HAVE_SND_MOTU
 	else if (HINAWA_IS_SND_MOTU(unit) &&
 		 common->type == SNDRV_FIREWIRE_EVENT_MOTU_NOTIFICATION)
 		hinawa_snd_motu_handle_notification(HINAWA_SND_MOTU(unit),
-						    priv->buf, len);
+						    src->buf, len);
 #endif
 #if HAVE_SND_TSCM
 	else if (HINAWA_IS_SND_TSCM(unit) &&
 		 common->type == SNDRV_FIREWIRE_EVENT_TASCAM_CONTROL)
 		hinawa_snd_tscm_handle_control(HINAWA_SND_TSCM(unit),
-						    priv->buf, len);
+						    src->buf, len);
 #endif
 end:
 	/* Don't go to dispatch, then continue to process this source. */
@@ -433,9 +433,8 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 	g_source_set_priority(src, G_PRIORITY_HIGH_IDLE);
 	g_source_set_can_recurse(src, TRUE);
 
-	priv->buf = buf;
-	priv->len = len;
-
+	((SndUnitSource *)src)->len = len;
+	((SndUnitSource *)src)->buf = buf;
 	((SndUnitSource *)src)->unit = self;
 	((SndUnitSource *)src)->tag =
 				g_source_add_unix_fd(src, priv->fd, G_IO_IN);
@@ -444,8 +443,6 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 	if (*exception != NULL) {
 		g_free(buf);
 		g_source_destroy(src);
-		priv->buf = NULL;
-		priv->len = 0;
 		priv->src = NULL;
 		return;
 	}
@@ -494,12 +491,10 @@ void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 
 	g_source_destroy(gsrc);
 
+	g_free(priv->src->buf);
+
 	g_free(priv->src);
 	priv->src = NULL;
-
-	g_free(priv->buf);
-	priv->buf = NULL;
-	priv->len = 0;
 
 	hinawa_fw_unit_unlisten(&self->parent_instance);
 }
