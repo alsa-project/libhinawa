@@ -44,8 +44,6 @@ struct _HinawaSndUnitPrivate {
 	gboolean streaming;
 
 	SndUnitSource *src;
-
-	HinawaFwReq *req;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndUnit, hinawa_snd_unit, HINAWA_TYPE_FW_UNIT)
 
@@ -113,7 +111,6 @@ static void snd_unit_finalize(GObject *obj)
 	hinawa_snd_unit_unlisten(self);
 
 	close(priv->fd);
-	g_clear_object(&priv->req);
 
 	G_OBJECT_CLASS(hinawa_snd_unit_parent_class)->finalize(obj);
 }
@@ -218,8 +215,6 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 	hinawa_fw_unit_open(&self->parent_instance, fw_cdev, exception);
 	if (*exception != NULL)
 		goto end;
-
-	priv->req = g_object_new(HINAWA_TYPE_FW_REQ, "timeout", 40, NULL);
 end:
 	if (*exception != NULL)
 		close(priv->fd);
