@@ -138,9 +138,6 @@ static void fw_unit_finalize(GObject *obj)
 
 	g_mutex_clear(&priv->mutex);
 
-	if (priv->buf != NULL)
-		g_free(priv->buf);
-
 	G_OBJECT_CLASS(hinawa_fw_unit_parent_class)->finalize(obj);
 }
 
@@ -289,18 +286,6 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 	}
 	priv->fd = fd;
 
-	/*
-	 * MEMO: allocate one page because we cannot assume the size of
-	 * transaction frame.
-	 */
-	priv->len = sysconf(_SC_PAGESIZE);
-	priv->buf = g_malloc0(priv->len);
-	if (priv->buf == NULL) {
-	        raise(exception, ENOMEM);
-		close(fd);
-	        return;
-	}
-
 	g_mutex_lock(&priv->mutex);
 	update_info(self, exception);
 	g_mutex_unlock(&priv->mutex);
@@ -434,14 +419,28 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 		.finalize	= NULL,
 	};
 	HinawaFwUnitPrivate *priv;
+	void *buf;
+	unsigned int len;
 	GSource *src;
 
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
 	priv = hinawa_fw_unit_get_instance_private(self);
 
+	/*
+	 * MEMO: allocate one page because we cannot assume the size of
+	 * transaction frame.
+	 */
+	len = sysconf(_SC_PAGESIZE);
+	buf = g_malloc0(len);
+	if (buf == NULL) {
+		raise(exception, ENOMEM);
+		return;
+	}
+
 	src = g_source_new(&funcs, sizeof(FwUnitSource));
 	if (src == NULL) {
 		raise(exception, ENOMEM);
+		g_free(buf);
 		return;
 	}
 
@@ -449,13 +448,19 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 	g_source_set_priority(src, G_PRIORITY_HIGH_IDLE);
 	g_source_set_can_recurse(src, TRUE);
 
+	priv->buf = buf;
+	priv->len = len;
+
 	((FwUnitSource *)src)->unit = self;
 	((FwUnitSource *)src)->tag =
 				g_source_add_unix_fd(src, priv->fd, G_IO_IN);
 
 	hinawa_context_add_src(HINAWA_CONTEXT_TYPE_FW, src, exception);
 	if (*exception != NULL) {
+		g_free(buf);
 		g_source_destroy(src);
+		priv->buf = NULL;
+		priv->len = 0;
 		priv->src = NULL;
 		return;
 	}
@@ -487,4 +492,8 @@ void hinawa_fw_unit_unlisten(HinawaFwUnit *self)
 
 	g_free(priv->src);
 	priv->src = NULL;
+
+	g_free(priv->buf);
+	priv->buf = NULL;
+	priv->len = 0;
 }
