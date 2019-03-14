@@ -388,6 +388,13 @@ static gboolean dispatch_src(GSource *src, GSourceFunc callback,
 	return TRUE;
 }
 
+static void finalize_src(GSource *gsrc)
+{
+	SndUnitSource *src = (SndUnitSource *)gsrc;
+
+	g_free(src->buf);
+}
+
 /**
  * hinawa_snd_unit_listen:
  * @self: A #HinawaSndUnit
@@ -401,7 +408,7 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 		.prepare	= prepare_src,
 		.check		= check_src,
 		.dispatch	= dispatch_src,
-		.finalize	= NULL,
+		.finalize	= finalize_src,
 	};
 	HinawaSndUnitPrivate *priv;
 	void *buf;
@@ -441,7 +448,6 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 
 	hinawa_context_add_src(HINAWA_CONTEXT_TYPE_SND, src, exception);
 	if (*exception != NULL) {
-		g_free(buf);
 		g_source_destroy(src);
 		priv->src = NULL;
 		return;
@@ -490,8 +496,6 @@ void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 	hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_SND, gsrc);
 
 	g_source_destroy(gsrc);
-
-	g_free(priv->src->buf);
 
 	g_free(priv->src);
 	priv->src = NULL;

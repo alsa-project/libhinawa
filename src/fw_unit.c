@@ -403,6 +403,13 @@ static gboolean dispatch_src(GSource *src, GSourceFunc callback,
 	return TRUE;
 }
 
+static void finalize_src(GSource *gsrc)
+{
+	FwUnitSource *src = (FwUnitSource *)gsrc;
+
+	g_free(src->buf);
+}
+
 /**
  * hinawa_fw_unit_listen:
  * @self: A #HinawaFwUnit
@@ -416,7 +423,7 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 		.prepare	= prepare_src,
 		.check		= check_src,
 		.dispatch	= dispatch_src,
-		.finalize	= NULL,
+		.finalize	= finalize_src,
 	};
 	HinawaFwUnitPrivate *priv;
 	void *buf;
@@ -456,9 +463,7 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 
 	hinawa_context_add_src(HINAWA_CONTEXT_TYPE_FW, src, exception);
 	if (*exception != NULL) {
-		g_free(buf);
 		g_source_destroy(src);
-		priv->src = NULL;
 		return;
 	}
 
@@ -488,8 +493,6 @@ void hinawa_fw_unit_unlisten(HinawaFwUnit *self)
 	hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_FW, gsrc);
 
 	g_source_destroy(gsrc);
-
-	g_free(priv->src->buf);
 
 	g_free(priv->src);
 	priv->src = NULL;
