@@ -433,7 +433,6 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 	g_source_set_priority(src, G_PRIORITY_HIGH_IDLE);
 	g_source_set_can_recurse(src, TRUE);
 
-
 	priv->buf = buf;
 	priv->len = len;
 
@@ -477,21 +476,23 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 {
 	HinawaSndUnitPrivate *priv;
+	GSource *gsrc;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
 
 	if (priv->src == NULL)
 		return;
+	gsrc = (GSource *)priv->src;
 
 	if (priv->streaming)
 		ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
 
-	g_source_remove_unix_fd((GSource *)priv->src, priv->src->tag);
+	g_source_remove_unix_fd(gsrc, priv->src->tag);
 
-	hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_SND, (GSource *)priv->src);
+	hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_SND, gsrc);
 
-	g_source_destroy((GSource *)priv->src);
+	g_source_destroy(gsrc);
 
 	g_free(priv->src);
 	priv->src = NULL;

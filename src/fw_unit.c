@@ -477,18 +477,20 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 void hinawa_fw_unit_unlisten(HinawaFwUnit *self)
 {
 	HinawaFwUnitPrivate *priv;
+	GSource *gsrc;
 
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
 	priv = hinawa_fw_unit_get_instance_private(self);
 
 	if (priv->src == NULL)
 		return;
+	gsrc = (GSource *)priv->src;
 
-	g_source_remove_unix_fd((GSource *)priv->src, priv->src->tag);
+	g_source_remove_unix_fd(gsrc, priv->src->tag);
 
-	hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_FW, (GSource *)priv->src);
+	hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_FW, gsrc);
 
-	g_source_destroy((GSource *)priv->src);
+	g_source_destroy(gsrc);
 
 	g_free(priv->src);
 	priv->src = NULL;
