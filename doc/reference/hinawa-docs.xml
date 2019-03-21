@@ -14,11 +14,16 @@
 
     <chapter id="introduction">
         <title>Introduction</title>
-        <para>This library gives some objects for abstraction of two
-            subsystems in Linux; FireWire subsystem and Sound
-            subsystem. </para>
+        <para>This library gives some objects for abstraction to operate system
+        resources in two Linux subsystems; FireWire subsystem and Sound subsystem.
+        </para>
+        <para>This library mainly supports operations for asynchronous
+        communication to units on IEEE 1394 bus. Additionally, this library
+        supports some model-specific operations for some Audio and Music units
+        on IEEE 1394 bus, supported by drivers in ALSA firewire stack. This
+        library launches two threads internally to dispatch input events.</para>
         <link linkend="Overview">
-          <inlinegraphic fileref="overview.png" format="PNG"></inlinegraphic>
+            <inlinegraphic fileref="overview.png" format="PNG"></inlinegraphic>
         </link>
         <para>libhinawa supports gobject introspection, thus this library
         is available with gobject introspection bindings of each language
