@@ -1,5 +1,5 @@
 project('libhinawa', 'c',
-  version: '1.1.2',
+  version: '1.2.0',
   license: 'LGPL-2.1+',
   meson_version: '>= 0.32.0',
 )
