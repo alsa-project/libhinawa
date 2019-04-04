@@ -59,6 +59,8 @@ struct _HinawaSndTscmClass {
 
 GType hinawa_snd_tscm_get_type(void) G_GNUC_CONST;
 
+HinawaSndTscm *hinawa_snd_tscm_new(void);
+
 void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **exception);
 
 const guint32 *hinawa_snd_tscm_get_state(HinawaSndTscm *self,

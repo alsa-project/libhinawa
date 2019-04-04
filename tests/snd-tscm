@@ -12,6 +12,7 @@ from gi.repository import Hinawa
 target = Hinawa.SndTscm()
 props = ()
 methods = (
+    'new',
     'open',
     'get_state',
 )

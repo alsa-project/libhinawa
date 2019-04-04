@@ -61,6 +61,19 @@ static void hinawa_snd_tscm_init(HinawaSndTscm *self)
 }
 
 /**
+ * hinawa_snd_tscm_new:
+ *
+ * Instantiate #HinawaSndTscm class and return the instance.
+ *
+ * Returns: an instance of #HinawaSndTscm.
+ * Since: 1.3.
+ */
+HinawaSndTscm *hinawa_snd_tscm_new(void)
+{
+	return g_object_new(HINAWA_TYPE_SND_TSCM, NULL);
+}
+
+/**
  * hinawa_snd_tscm_open:
  * @self: A #HinawaSndUnit
  * @path: A full path of a special file for ALSA hwdep character device
