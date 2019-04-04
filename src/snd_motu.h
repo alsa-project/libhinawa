@@ -56,6 +56,8 @@ struct _HinawaSndMotuClass {
 
 GType hinawa_snd_motu_get_type(void) G_GNUC_CONST;
 
+HinawaSndMotu *hinawa_snd_motu_new(void);
+
 void hinawa_snd_motu_open(HinawaSndMotu *self, gchar *path, GError **exception);
 
 G_END_DECLS

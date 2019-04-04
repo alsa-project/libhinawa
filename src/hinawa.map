@@ -90,4 +90,5 @@ HINAWA_1_3_0 {
     "hinawa_snd_dice_new";
     "hinawa_snd_efw_new";
     "hinawa_snd_dg00x_new";
+    "hinawa_snd_motu_new";
 };

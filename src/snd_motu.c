@@ -57,6 +57,19 @@ static void hinawa_snd_motu_init(HinawaSndMotu *self)
 }
 
 /**
+ * hinawa_snd_motu_new:
+ *
+ * Instantiate #HinawaSndMotu class and return the instance.
+ *
+ * Returns: an instance of #HinawaSndMotu.
+ * Since: 1.3.
+ */
+HinawaSndMotu *hinawa_snd_motu_new(void)
+{
+	return g_object_new(HINAWA_TYPE_SND_MOTU, NULL);
+}
+
+/**
  * hinawa_snd_motu_open:
  * @self: A #HinawaSndUnit
  * @path: A full path of a special file for ALSA hwdep character device
