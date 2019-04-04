@@ -382,7 +382,7 @@ static gboolean dispatch_src(GSource *src, GSourceFunc callback,
 			     gpointer user_data)
 {
 	/* Just be sure to continue to process this source. */
-	return TRUE;
+	return G_SOURCE_CONTINUE;
 }
 
 static void finalize_src(GSource *gsrc)
