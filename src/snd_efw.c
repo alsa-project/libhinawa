@@ -86,6 +86,19 @@ static void hinawa_snd_efw_init(HinawaSndEfw *self)
 }
 
 /**
+ * hinawa_snd_efw_new:
+ *
+ * Instantiate #HinawaSndEfw class and return the instance.
+ *
+ * Returns: an instance of #HinawaSndEfw.
+ * Since: 1.3.
+ */
+HinawaSndEfw *hinawa_snd_efw_new(void)
+{
+	return g_object_new(HINAWA_TYPE_SND_EFW, NULL);
+}
+
+/**
  * hinawa_snd_efw_open:
  * @self: A #HinawaSndUnit
  * @path: A full path of a special file for ALSA hwdep character device

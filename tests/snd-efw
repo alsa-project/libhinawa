@@ -12,6 +12,7 @@ from gi.repository import Hinawa
 target = Hinawa.SndEfw()
 props = ()
 methods = (
+    'new',
     'open',
     'transact',
 )
