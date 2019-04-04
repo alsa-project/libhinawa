@@ -47,6 +47,8 @@ struct _HinawaFwFcpClass {
 
 GType hinawa_fw_fcp_get_type(void) G_GNUC_CONST;
 
+HinawaFwFcp *hinawa_fw_fcp_new(void);
+
 void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
 			  GError **exception);
 void hinawa_fw_fcp_transact(HinawaFwFcp *self,

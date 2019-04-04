@@ -147,6 +147,19 @@ static void hinawa_fw_fcp_init(HinawaFwFcp *self)
 }
 
 /**
+ * hinawa_fw_fcp_new:
+ *
+ * Instantiate #HinawaFwFcp class and return the instance.
+ *
+ * Returns: an instance of #HinawaFwFcp.
+ * Since: 1.3.
+ */
+HinawaFwFcp *hinawa_fw_fcp_new(void)
+{
+	return g_object_new(HINAWA_TYPE_FW_FCP, NULL);
+}
+
+/**
  * hinawa_fw_fcp_transact:
  * @self: A #HinawaFwFcp
  * @req_frame:  (element-type guint8) (array) (in): a byte frame for request
