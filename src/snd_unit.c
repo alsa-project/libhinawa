@@ -317,7 +317,7 @@ static gboolean check_src(GSource *gsrc)
 	if (unit == NULL)
 		goto end;
 
-	condition = g_source_query_unix_fd((GSource *)src, src->tag);
+	condition = g_source_query_unix_fd(gsrc, src->tag);
 	if (condition & G_IO_ERR) {
 		/* For emitting one signal. */
 		g_value_init(&val, G_TYPE_BOOLEAN);

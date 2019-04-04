@@ -363,7 +363,7 @@ static gboolean check_src(GSource *gsrc)
 	if (unit == NULL)
 		goto end;
 
-	condition = g_source_query_unix_fd((GSource *)src, src->tag);
+	condition = g_source_query_unix_fd(gsrc, src->tag);
 	if (condition & G_IO_ERR) {
 		hinawa_fw_unit_unlisten(unit);
 		g_signal_emit(unit,
