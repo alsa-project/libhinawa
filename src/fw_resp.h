@@ -62,6 +62,8 @@ struct _HinawaFwRespClass {
 
 GType hinawa_fw_resp_get_type(void) G_GNUC_CONST;
 
+HinawaFwResp *hinawa_fw_resp_new(void);
+
 void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
 			     guint64 addr, guint width, GError **exception);
 void hinawa_fw_resp_unregister(HinawaFwResp *self);

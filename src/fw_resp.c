@@ -90,6 +90,19 @@ static void hinawa_fw_resp_init(HinawaFwResp *self)
 }
 
 /**
+ * hinawa_fw_resp_new:
+ *
+ * Instantiate #HinawaFwResp class and return the instance.
+ *
+ * Returns: a new instance of #HinawaFwResp.
+ * Since: 1.3.
+ */
+HinawaFwResp *hinawa_fw_resp_new(void)
+{
+	return g_object_new(HINAWA_TYPE_FW_RESP, NULL);
+}
+
+/**
  * hinawa_fw_resp_register:
  * @self: A #HinawaFwResp
  * @unit: A #HinawaFwUnit

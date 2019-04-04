@@ -12,6 +12,7 @@ from gi.repository import Hinawa
 target = Hinawa.FwResp()
 props = ()
 methods = (
+    'new',
     'register',
     'unregister',
     'get_req_frame',
