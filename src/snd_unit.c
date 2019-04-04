@@ -309,7 +309,6 @@ static gboolean check_src(GSource *gsrc)
 	HinawaSndUnit *unit = src->unit;
 	HinawaSndUnitPrivate *priv;
 	GIOCondition condition;
-	GValue val = G_VALUE_INIT;
 
 	struct snd_firewire_event_common *common;
 	int len;
@@ -320,6 +319,8 @@ static gboolean check_src(GSource *gsrc)
 
 	condition = g_source_query_unix_fd(gsrc, src->tag);
 	if (condition & G_IO_ERR) {
+		GValue val = G_VALUE_INIT;
+
 		/* For emitting one signal. */
 		g_value_init(&val, G_TYPE_BOOLEAN);
 		g_object_get_property(G_OBJECT(&unit->parent_instance),
