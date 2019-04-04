@@ -80,6 +80,19 @@ static void hinawa_snd_dice_init(HinawaSndDice *self)
 }
 
 /**
+ * hinawa_snd_dice_new:
+ *
+ * Instantiate #HinawaSndDice class and return the instance.
+ *
+ * Returns: an instance of #HinawaSndDice.
+ * Since: 1.3.
+ */
+HinawaSndDice *hinawa_snd_dice_new(void)
+{
+	return g_object_new(HINAWA_TYPE_SND_DICE, NULL);
+}
+
+/**
  * hinawa_snd_dice_open:
  * @self: A #HinawaSndUnit
  * @path: A full path of a special file for ALSA hwdep character device
