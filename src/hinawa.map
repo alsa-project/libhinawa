@@ -83,4 +83,5 @@ HINAWA_1_1_0 {
 
 HINAWA_1_3_0 {
     "hinawa_fw_unit_new";
+    "hinawa_fw_req_new";
 };

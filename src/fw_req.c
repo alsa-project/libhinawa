@@ -126,6 +126,19 @@ static void hinawa_fw_req_init(HinawaFwReq *self)
 	g_mutex_init(&priv->mutex);
 }
 
+/**
+ * hinawa_fw_req_new:
+ *
+ * Instantiate #HinawaFwReq class and return the instance.
+ *
+ * Returns: an instance of #HinawaFwReq.
+ * Since: 1.3.
+ */
+HinawaFwReq *hinawa_fw_req_new(void)
+{
+	return g_object_new(HINAWA_TYPE_FW_REQ, NULL);
+}
+
 static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit, int tcode,
 			    guint64 addr, guint8 *frame, guint length,
 			    GError **exception)
