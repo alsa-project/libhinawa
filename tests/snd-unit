@@ -19,6 +19,7 @@ props = (
     'listening',
 )
 methods = (
+    'new',
     'open',
     'lock',
     'unlock',

@@ -184,6 +184,19 @@ static void hinawa_snd_unit_init(HinawaSndUnit *self)
 }
 
 /**
+ * hinawa_snd_unit_new:
+ *
+ * Instantiate #HinawaSndUnit class and return the instance.
+ *
+ * Returns: an instance of #HinawaSndUnit.
+ * Since: 1.3.
+ */
+HinawaSndUnit *hinawa_snd_unit_new(void)
+{
+	return g_object_new(HINAWA_TYPE_SND_UNIT, NULL);
+}
+
+/**
  * hinawa_snd_unit_open:
  * @self: A #HinawaSndUnit
  * @path: A full path of a special file for ALSA hwdep character device
