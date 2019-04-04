@@ -53,6 +53,8 @@ struct _HinawaSndDg00xClass {
 
 GType hinawa_snd_dg00x_get_type(void) G_GNUC_CONST;
 
+HinawaSndDg00x *hinawa_snd_dg00x_new(void);
+
 void hinawa_snd_dg00x_open(HinawaSndDg00x *self, gchar *path,
 			   GError **exception);
 
