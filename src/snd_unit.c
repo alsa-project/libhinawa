@@ -306,34 +306,42 @@ static gboolean prepare_src(GSource *src, gint *timeout)
 static gboolean check_src(GSource *gsrc)
 {
 	SndUnitSource *src = (SndUnitSource *)gsrc;
-	HinawaSndUnit *unit = src->unit;
-	HinawaSndUnitPrivate *priv;
 	GIOCondition condition;
 
+	condition = g_source_query_unix_fd(gsrc, src->tag);
+	if (condition & G_IO_ERR) {
+		HinawaSndUnit *unit = src->unit;
+		if (unit != NULL) {
+			GValue val = G_VALUE_INIT;
+
+			// For emitting one signal.
+			g_value_init(&val, G_TYPE_BOOLEAN);
+			g_object_get_property(G_OBJECT(&unit->parent_instance),
+					      "listening", &val);
+
+			hinawa_snd_unit_unlisten(unit);
+
+			if (g_value_get_boolean(&val))
+				g_signal_emit_by_name(&unit->parent_instance,
+						      "disconnected", NULL);
+		}
+	}
+
+	// Don't go to dispatch if nothing available.
+	return !!(condition & G_IO_IN);
+}
+
+static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
+{
+	SndUnitSource *src = (SndUnitSource *)gsrc;
+	HinawaSndUnit *unit = src->unit;
+	HinawaSndUnitPrivate *priv;
 	struct snd_firewire_event_common *common;
 	int len;
 
 	if (unit == NULL)
 		goto end;
 	priv = hinawa_snd_unit_get_instance_private(unit);
-
-	condition = g_source_query_unix_fd(gsrc, src->tag);
-	if (condition & G_IO_ERR) {
-		GValue val = G_VALUE_INIT;
-
-		/* For emitting one signal. */
-		g_value_init(&val, G_TYPE_BOOLEAN);
-		g_object_get_property(G_OBJECT(&unit->parent_instance),
-				      "listening", &val);
-		hinawa_snd_unit_unlisten(unit);
-		if (g_value_get_boolean(&val))
-			g_signal_emit_by_name(&unit->parent_instance,
-					      "disconnected", NULL);
-		goto end;
-	/* The other events never occur. */
-	} else if (!(condition & G_IO_IN)) {
-		goto end;
-	}
 
 	len = read(priv->fd, src->buf, src->len);
 	if (len <= 0)
@@ -374,13 +382,6 @@ static gboolean check_src(GSource *gsrc)
 						    src->buf, len);
 #endif
 end:
-	/* Don't go to dispatch, then continue to process this source. */
-	return FALSE;
-}
-
-static gboolean dispatch_src(GSource *src, GSourceFunc callback,
-			     gpointer user_data)
-{
 	/* Just be sure to continue to process this source. */
 	return G_SOURCE_CONTINUE;
 }

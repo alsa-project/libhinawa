@@ -354,25 +354,34 @@ static gboolean prepare_src(GSource *src, gint *timeout)
 static gboolean check_src(GSource *gsrc)
 {
 	FwUnitSource *src = (FwUnitSource *)gsrc;
+	GIOCondition condition;
+
+	condition = g_source_query_unix_fd(gsrc, src->tag);
+	if (condition & G_IO_ERR) {
+		HinawaFwUnit *unit = src->unit;
+		if (unit != NULL) {
+			hinawa_fw_unit_unlisten(unit);
+
+			g_signal_emit(unit,
+				fw_unit_sigs[FW_UNIT_SIG_TYPE_DISCONNECTED], 0);
+		}
+	}
+
+	// Don't go to dispatch if nothing available.
+	return !!(condition & G_IO_IN);
+}
+
+static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
+{
+	FwUnitSource *src = (FwUnitSource *)gsrc;
 	HinawaFwUnit *unit = src->unit;
 	HinawaFwUnitPrivate *priv;
 	struct fw_cdev_event_common *common;
 	int len;
-	GIOCondition condition;
 
 	if (unit == NULL)
 		goto end;
 	priv = hinawa_fw_unit_get_instance_private(unit);
-
-	condition = g_source_query_unix_fd(gsrc, src->tag);
-	if (condition & G_IO_ERR) {
-		hinawa_fw_unit_unlisten(unit);
-		g_signal_emit(unit,
-			      fw_unit_sigs[FW_UNIT_SIG_TYPE_DISCONNECTED], 0);
-		goto end;
-	} else if (!(condition & G_IO_IN)) {
-		goto end;
-	}
 
 	len = read(priv->fd, src->buf, src->len);
 	if (len <= 0)
@@ -393,13 +402,6 @@ static gboolean check_src(GSource *gsrc)
 		hinawa_fw_req_handle_response(HINAWA_FW_REQ(common->closure),
 				(struct fw_cdev_event_response *)common);
 end:
-	/* Don't go to dispatch, then continue to process this source. */
-	return FALSE;
-}
-
-static gboolean dispatch_src(GSource *src, GSourceFunc callback,
-			     gpointer user_data)
-{
 	/* Just be sure to continue to process this source. */
 	return G_SOURCE_CONTINUE;
 }
