@@ -234,6 +234,19 @@ static void hinawa_fw_unit_init(HinawaFwUnit *self)
 	g_mutex_init(&priv->mutex);
 }
 
+/**
+ * hinawa_fw_unit_new:
+ *
+ * Instantiate #HinawaFwUnit class and return the instance.
+ *
+ * Returns: an instance of #HinawaFwUnit.
+ * Since: 1.3.
+ */
+HinawaFwUnit *hinawa_fw_unit_new(void)
+{
+	return g_object_new(HINAWA_TYPE_FW_UNIT, NULL);
+}
+
 static void update_info(HinawaFwUnit *self, GError **exception)
 {
 	struct fw_cdev_get_info info = {0};

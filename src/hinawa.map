@@ -80,3 +80,7 @@ HINAWA_1_1_0 {
     "hinawa_sigs_marshal_VOID__UINT_UINT_UINT";
     "hinawa_snd_tscm_get_state";
 } HINAWA_1_0_0;
+
+HINAWA_1_3_0 {
+    "hinawa_fw_unit_new";
+};

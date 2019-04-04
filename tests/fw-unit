@@ -20,6 +20,7 @@ props = (
     'listening',
 )
 methods = (
+    'new',
     'open',
     'get_config_rom',
     'listen',
