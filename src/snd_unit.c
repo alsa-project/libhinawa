@@ -307,7 +307,7 @@ static gboolean check_src(GSource *gsrc)
 {
 	SndUnitSource *src = (SndUnitSource *)gsrc;
 	HinawaSndUnit *unit = src->unit;
-	HinawaSndUnitPrivate *priv = hinawa_snd_unit_get_instance_private(unit);
+	HinawaSndUnitPrivate *priv;
 	GIOCondition condition;
 	GValue val = G_VALUE_INIT;
 
@@ -316,6 +316,7 @@ static gboolean check_src(GSource *gsrc)
 
 	if (unit == NULL)
 		goto end;
+	priv = hinawa_snd_unit_get_instance_private(unit);
 
 	condition = g_source_query_unix_fd(gsrc, src->tag);
 	if (condition & G_IO_ERR) {

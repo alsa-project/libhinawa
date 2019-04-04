@@ -355,13 +355,14 @@ static gboolean check_src(GSource *gsrc)
 {
 	FwUnitSource *src = (FwUnitSource *)gsrc;
 	HinawaFwUnit *unit = src->unit;
-	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(unit);
+	HinawaFwUnitPrivate *priv;
 	struct fw_cdev_event_common *common;
 	int len;
 	GIOCondition condition;
 
 	if (unit == NULL)
 		goto end;
+	priv = hinawa_fw_unit_get_instance_private(unit);
 
 	condition = g_source_query_unix_fd(gsrc, src->tag);
 	if (condition & G_IO_ERR) {
