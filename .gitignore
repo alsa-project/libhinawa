@@ -1,7 +1,1 @@
 /build
-
-/doc/reference/gtk-doc.make
-/doc/reference/version.xml
-
-/src/hinawa_sigs_marshal.h
-/src/hinawa_sigs_marshal.c
