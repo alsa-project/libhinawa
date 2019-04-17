@@ -149,7 +149,7 @@ static void hinawa_fw_fcp_init(HinawaFwFcp *self)
 /**
  * hinawa_fw_fcp_new:
  *
- * Instantiate #HinawaFwFcp class and return the instance.
+ * Instantiate #HinawaFwFcp object and return the instance.
  *
  * Returns: an instance of #HinawaFwFcp.
  * Since: 1.3.

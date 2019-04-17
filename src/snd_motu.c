@@ -59,7 +59,7 @@ static void hinawa_snd_motu_init(HinawaSndMotu *self)
 /**
  * hinawa_snd_motu_new:
  *
- * Instantiate #HinawaSndMotu class and return the instance.
+ * Instantiate #HinawaSndMotu object and return the instance.
  *
  * Returns: an instance of #HinawaSndMotu.
  * Since: 1.3.

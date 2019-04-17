@@ -92,7 +92,7 @@ static void hinawa_fw_resp_init(HinawaFwResp *self)
 /**
  * hinawa_fw_resp_new:
  *
- * Instantiate #HinawaFwResp class and return the instance.
+ * Instantiate #HinawaFwResp object and return the instance.
  *
  * Returns: a new instance of #HinawaFwResp.
  * Since: 1.3.

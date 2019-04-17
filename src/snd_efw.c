@@ -88,7 +88,7 @@ static void hinawa_snd_efw_init(HinawaSndEfw *self)
 /**
  * hinawa_snd_efw_new:
  *
- * Instantiate #HinawaSndEfw class and return the instance.
+ * Instantiate #HinawaSndEfw object and return the instance.
  *
  * Returns: an instance of #HinawaSndEfw.
  * Since: 1.3.

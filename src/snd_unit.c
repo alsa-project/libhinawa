@@ -186,7 +186,7 @@ static void hinawa_snd_unit_init(HinawaSndUnit *self)
 /**
  * hinawa_snd_unit_new:
  *
- * Instantiate #HinawaSndUnit class and return the instance.
+ * Instantiate #HinawaSndUnit object and return the instance.
  *
  * Returns: an instance of #HinawaSndUnit.
  * Since: 1.3.

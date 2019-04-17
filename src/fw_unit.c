@@ -237,7 +237,7 @@ static void hinawa_fw_unit_init(HinawaFwUnit *self)
 /**
  * hinawa_fw_unit_new:
  *
- * Instantiate #HinawaFwUnit class and return the instance.
+ * Instantiate #HinawaFwUnit object and return the instance.
  *
  * Returns: an instance of #HinawaFwUnit.
  * Since: 1.3.

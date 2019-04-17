@@ -129,7 +129,7 @@ static void hinawa_fw_req_init(HinawaFwReq *self)
 /**
  * hinawa_fw_req_new:
  *
- * Instantiate #HinawaFwReq class and return the instance.
+ * Instantiate #HinawaFwReq object and return the instance.
  *
  * Returns: an instance of #HinawaFwReq.
  * Since: 1.3.

@@ -63,7 +63,7 @@ static void hinawa_snd_tscm_init(HinawaSndTscm *self)
 /**
  * hinawa_snd_tscm_new:
  *
- * Instantiate #HinawaSndTscm class and return the instance.
+ * Instantiate #HinawaSndTscm object and return the instance.
  *
  * Returns: an instance of #HinawaSndTscm.
  * Since: 1.3.

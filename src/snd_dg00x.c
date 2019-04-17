@@ -56,7 +56,7 @@ static void hinawa_snd_dg00x_init(HinawaSndDg00x *self)
 /**
  * hinawa_snd_dg00x_new:
  *
- * Instantiate #HinawaSndDg00x class and return the instance.
+ * Instantiate #HinawaSndDg00x object and return the instance.
  *
  * Returns: an instance of #HinawaSndDg00x.
  * Since: 1.3.

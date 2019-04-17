@@ -82,7 +82,7 @@ static void hinawa_snd_dice_init(HinawaSndDice *self)
 /**
  * hinawa_snd_dice_new:
  *
- * Instantiate #HinawaSndDice class and return the instance.
+ * Instantiate #HinawaSndDice object and return the instance.
  *
  * Returns: an instance of #HinawaSndDice.
  * Since: 1.3.
