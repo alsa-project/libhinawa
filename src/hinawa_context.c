@@ -67,10 +67,10 @@ void hinawa_context_add_src(enum hinawa_context_type type, GSource *src,
 		return;
 	}
 
+	G_UNLOCK(ctx_data_lock);
+
 	/* NOTE: The returned ID is never used. */
 	g_source_attach(src, ctx);
-
-	G_UNLOCK(ctx_data_lock);
 }
 
 void hinawa_context_remove_src(enum hinawa_context_type type, GSource *src)
@@ -88,4 +88,6 @@ void hinawa_context_remove_src(enum hinawa_context_type type, GSource *src)
 
 		G_UNLOCK(ctx_data_lock);
 	}
+
+	g_source_destroy(src);
 }

@@ -490,26 +490,18 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 {
 	HinawaSndUnitPrivate *priv;
-	GSource *gsrc;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
 
-	if (priv->src == NULL)
-		return;
-	gsrc = (GSource *)priv->src;
+	if (priv->src != NULL) {
+		if (priv->streaming)
+			ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
 
-	if (priv->streaming)
-		ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
-
-	g_source_remove_unix_fd(gsrc, priv->src->tag);
-
-	hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_SND, gsrc);
-
-	g_source_destroy(gsrc);
-
-	g_free(priv->src);
-	priv->src = NULL;
+		hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_SND,
+					  (GSource *)priv->src);
+		priv->src = NULL;
+	}
 
 	hinawa_fw_unit_unlisten(&self->parent_instance);
 }
