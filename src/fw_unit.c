@@ -454,7 +454,7 @@ static void fw_unit_create_source(HinawaFwUnit *self, GSource **gsrc,
 	src->buf = g_malloc0(src->len);
 	if (src->buf == NULL) {
 		raise(exception, ENOMEM);
-		g_source_destroy(*gsrc);
+		g_source_unref(*gsrc);
 		return;
 	}
 
@@ -482,7 +482,8 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 
 	hinawa_context_add_src(HINAWA_CONTEXT_TYPE_FW, priv->src, exception);
 	if (*exception != NULL) {
-		g_source_destroy(priv->src);
+		g_source_unref(priv->src);
+		priv->src = NULL;
 		return;
 	}
 }
@@ -502,6 +503,7 @@ void hinawa_fw_unit_unlisten(HinawaFwUnit *self)
 
 	if (priv->src != NULL) {
 		hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_FW, priv->src);
+		g_source_unref(priv->src);
 		priv->src = NULL;
 	}
 }
