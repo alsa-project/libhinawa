@@ -479,7 +479,7 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 	if (*exception != NULL)
 		return;
 
-	hinawa_context_add_src(HINAWA_CONTEXT_TYPE_FW, priv->src, exception);
+	hinawa_context_add_src(priv->src, exception);
 	if (*exception != NULL) {
 		g_source_unref(priv->src);
 		priv->src = NULL;
@@ -501,7 +501,7 @@ void hinawa_fw_unit_unlisten(HinawaFwUnit *self)
 	priv = hinawa_fw_unit_get_instance_private(self);
 
 	if (priv->src != NULL) {
-		hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_FW, priv->src);
+		hinawa_context_remove_src(priv->src);
 		g_source_unref(priv->src);
 		priv->src = NULL;
 	}

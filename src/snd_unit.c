@@ -472,7 +472,7 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 	if (*exception != NULL)
 		return;
 
-	hinawa_context_add_src(HINAWA_CONTEXT_TYPE_SND, priv->src, exception);
+	hinawa_context_add_src(priv->src, exception);
 	if (*exception != NULL) {
 		g_source_unref(priv->src);
 		priv->src = NULL;
@@ -498,7 +498,7 @@ void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 	priv = hinawa_snd_unit_get_instance_private(self);
 
 	if (priv->src != NULL) {
-		hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_SND, priv->src);
+		hinawa_context_remove_src(priv->src);
 		g_source_unref(priv->src);
 		priv->src = NULL;
 	}

@@ -1,95 +1,105 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 #include "internal.h"
 
-static struct {
-	GMainContext *ctx;
-	GThread *thread;
-	gboolean running;
-	gint counter;
-	GMutex mutex;
-} ctx_data[HINAWA_CONTEXT_TYPE_COUNT];
+enum th_type {
+	TH_TYPE_DISPATCHER = 0,
+	TH_TYPE_COUNT,
+};
 
-static G_LOCK_DEFINE(ctx_data_lock);
+static gint counter;
 
-static gpointer run_main_loop(gpointer data)
+static GThread *th[TH_TYPE_COUNT];
+static gboolean running[TH_TYPE_COUNT];
+static G_LOCK_DEFINE(th_lock);
+
+// For dispatcher thread.
+static GMainContext *ctx;
+
+static gpointer run_dispacher(gpointer data)
 {
-	enum hinawa_context_type type = (enum hinawa_context_type)data;
-
-	while (ctx_data[type].running)
-		g_main_context_iteration(ctx_data[type].ctx, TRUE);
+	while (running[TH_TYPE_DISPATCHER])
+		g_main_context_iteration(ctx, TRUE);
 
 	g_thread_exit(NULL);
 
 	return NULL;
 }
 
-static GMainContext *get_my_context(enum hinawa_context_type type,
-				    GError **exception)
+static void create_thread(enum th_type type, GError **exception)
 {
-	const char *labels[] = {
-		[HINAWA_CONTEXT_TYPE_FW]	= "fw",
-		[HINAWA_CONTEXT_TYPE_SND]	= "snd",
+	static const struct {
+		const char *label;
+		GThreadFunc func;
+	} *entry, entries[] = {
+		[TH_TYPE_DISPATCHER] = {
+			"dispatcher",
+			run_dispacher,
+		},
 	};
+	char name[16];
 
-	if (!ctx_data[type].ctx)
-		ctx_data[type].ctx = g_main_context_new();
-
-	if (!ctx_data[type].thread) {
-		char name[16];
-
-		g_snprintf(name, sizeof(name), "libhinawa:%s", labels[type]);
-
-		ctx_data[type].thread = g_thread_try_new(name, run_main_loop,
-						(gpointer)type, exception);
-		if (*exception) {
-			g_main_context_unref(ctx_data[type].ctx);
-			return NULL;
-		} else {
-			ctx_data[type].running = TRUE;
-		}
-	}
-
-	g_atomic_int_inc(&ctx_data[type].counter);
-
-	return ctx_data[type].ctx;
-}
-
-void hinawa_context_add_src(enum hinawa_context_type type, GSource *src,
-			    GError **exception)
-{
-	GMainContext *ctx;
-
-	G_LOCK(ctx_data_lock);
-
-	ctx = get_my_context(type, exception);
-	if (*exception) {
-		G_UNLOCK(ctx_data_lock);
+	if (th[type] != NULL)
 		return;
+
+	if (type == TH_TYPE_DISPATCHER) {
+		ctx = g_main_context_new();
 	}
 
-	G_UNLOCK(ctx_data_lock);
-
-	/* NOTE: The returned ID is never used. */
-	g_source_attach(src, ctx);
+	entry = &entries[type];
+	running[type] = TRUE;
+	g_snprintf(name, sizeof(name), "hinawa:%s", entry->label);
+	th[type] = g_thread_try_new(name, entry->func, NULL, exception);
 }
 
-void hinawa_context_remove_src(enum hinawa_context_type type, GSource *src)
+static void stop_thread(enum th_type type)
 {
-	if (g_atomic_int_dec_and_test(&ctx_data[type].counter)) {
-		G_LOCK(ctx_data_lock);
+	if (th[type] == NULL)
+		return;
 
-		ctx_data[type].running = FALSE;
-		g_main_context_wakeup(ctx_data[type].ctx);
+	running[type] = FALSE;
+	if (type == TH_TYPE_DISPATCHER)
+		g_main_context_wakeup(ctx);
 
-		g_thread_join(ctx_data[type].thread);
-		g_thread_unref(ctx_data[type].thread);
-		ctx_data[type].thread = NULL;
+	g_thread_join(th[type]);
+	g_thread_unref(th[type]);
+	th[type] = NULL;
 
-		g_main_context_unref(ctx_data[type].ctx);
-		ctx_data[type].ctx = NULL;
-
-		G_UNLOCK(ctx_data_lock);
+	if (type == TH_TYPE_DISPATCHER) {
+		g_main_context_unref(ctx);
+		ctx = NULL;
 	}
+}
+
+void hinawa_context_add_src(GSource *src, GError **exception)
+{
+	G_LOCK(th_lock);
+
+	if (counter == 0) {
+		// For dispatcher thread.
+		create_thread(TH_TYPE_DISPATCHER, exception);
+		if (*exception != NULL) {
+			g_main_context_unref(ctx);
+			goto end;
+		}
+
+		++counter;
+	}
+
+	// NOTE: The returned ID is never used.
+	g_source_attach(src, ctx);
+end:
+	G_UNLOCK(th_lock);
+}
+
+void hinawa_context_remove_src(GSource *src)
+{
+	G_LOCK(th_lock);
+
+	if (--counter == 0) {
+		stop_thread(TH_TYPE_DISPATCHER);
+	}
+
+	G_UNLOCK(th_lock);
 
 	g_source_destroy(src);
 }
