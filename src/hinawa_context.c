@@ -3,6 +3,7 @@
 
 enum th_type {
 	TH_TYPE_DISPATCHER = 0,
+	TH_TYPE_NOTIFIER,
 	TH_TYPE_COUNT,
 };
 
@@ -15,10 +16,28 @@ static G_LOCK_DEFINE(th_lock);
 // For dispatcher thread.
 static GMainContext *ctx;
 
+// For notifier thread.
+static GCond cond;
+static GMutex mutex;
+
 static gpointer run_dispacher(gpointer data)
 {
 	while (running[TH_TYPE_DISPATCHER])
 		g_main_context_iteration(ctx, TRUE);
+
+	g_thread_exit(NULL);
+
+	return NULL;
+}
+
+static gpointer run_notifier(gpointer data)
+{
+	g_mutex_lock(&mutex);
+
+	while (running[TH_TYPE_NOTIFIER])
+		g_cond_wait(&cond, &mutex);
+
+	g_mutex_unlock(&mutex);
 
 	g_thread_exit(NULL);
 
@@ -35,6 +54,10 @@ static void create_thread(enum th_type type, GError **exception)
 			"dispatcher",
 			run_dispacher,
 		},
+		[TH_TYPE_NOTIFIER] = {
+			"notifier",
+			run_notifier,
+		},
 	};
 	char name[16];
 
@@ -43,6 +66,9 @@ static void create_thread(enum th_type type, GError **exception)
 
 	if (type == TH_TYPE_DISPATCHER) {
 		ctx = g_main_context_new();
+	} else {
+		g_cond_init(&cond);
+		g_mutex_init(&mutex);
 	}
 
 	entry = &entries[type];
@@ -59,6 +85,8 @@ static void stop_thread(enum th_type type)
 	running[type] = FALSE;
 	if (type == TH_TYPE_DISPATCHER)
 		g_main_context_wakeup(ctx);
+	else
+		g_cond_signal(&cond);
 
 	g_thread_join(th[type]);
 	g_thread_unref(th[type]);
@@ -67,6 +95,9 @@ static void stop_thread(enum th_type type)
 	if (type == TH_TYPE_DISPATCHER) {
 		g_main_context_unref(ctx);
 		ctx = NULL;
+	} else {
+		g_cond_clear(&cond);
+		g_mutex_clear(&mutex);
 	}
 }
 
@@ -79,6 +110,14 @@ void hinawa_context_add_src(GSource *src, GError **exception)
 		create_thread(TH_TYPE_DISPATCHER, exception);
 		if (*exception != NULL) {
 			g_main_context_unref(ctx);
+			goto end;
+		}
+
+		// For sub thread.
+		create_thread(TH_TYPE_NOTIFIER, exception);
+		if (*exception != NULL) {
+			g_main_context_unref(ctx);
+			stop_thread(TH_TYPE_DISPATCHER);
 			goto end;
 		}
 
@@ -97,6 +136,7 @@ void hinawa_context_remove_src(GSource *src)
 
 	if (--counter == 0) {
 		stop_thread(TH_TYPE_DISPATCHER);
+		stop_thread(TH_TYPE_NOTIFIER);
 	}
 
 	G_UNLOCK(th_lock);
