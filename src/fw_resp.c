@@ -239,32 +239,21 @@ void hinawa_fw_resp_set_resp_frame(HinawaFwResp *self, guint8 *frame,
 	}
 }
 
-/* NOTE: For HinawaFwUnit, internal. */
-void hinawa_fw_resp_handle_request(HinawaFwResp *self,
-				   struct fw_cdev_event_request2 *event)
+static void fw_resp_notify_requested(void *target, void *data,
+				     unsigned int length)
 {
-	HinawaFwRespPrivate *priv;
+	HinawaFwResp *self = target;
+	HinawaFwRespPrivate *priv = hinawa_fw_resp_get_instance_private(self);
+	struct fw_cdev_event_request2 *event = data;
 	struct fw_cdev_send_response resp = {0};
-	HinawaFwTcode tcode;
 	HinawaFwRcode rcode;
-	int err;
+	int err = 0;
 
-	g_return_if_fail(HINAWA_IS_FW_RESP(self));
-	priv = hinawa_fw_resp_get_instance_private(self);
-
-	if (!priv->unit || event->length > priv->width) {
-		resp.rcode = RCODE_CONFLICT_ERROR;
-		goto respond;
-	}
-
-	/* Emit signal to handlers. */
 	memcpy(priv->req_frame, event->data, event->length);
 	priv->req_length = event->length;
 
-	/* Emit signal to handlers. */
-	tcode = (HinawaFwTcode)event->tcode;
 	rcode = HINAWA_FW_RCODE_COMPLETE;
-	g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ], 0, tcode,
+	g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ], 0, event->tcode,
 		      &rcode);
 	resp.rcode = (__u32)rcode;
 
@@ -272,12 +261,41 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 		resp.length = priv->resp_length;
 		resp.data = (guint64)priv->resp_frame;
 	}
-respond:
-	resp.handle = event->handle;
 
+	resp.handle = event->handle;
 	hinawa_fw_unit_ioctl(priv->unit, FW_CDEV_IOC_SEND_RESPONSE, &resp,
 			     &err);
 
 	memset(priv->resp_frame, 0, priv->width);
 	priv->resp_length = 0;
+}
+
+/* NOTE: For HinawaFwUnit, internal. */
+void hinawa_fw_resp_handle_request(HinawaFwResp *self,
+				   struct fw_cdev_event_request2 *event)
+{
+	HinawaFwRespPrivate *priv;
+	struct fw_cdev_send_response resp = {0};
+	unsigned int length;
+	int err;
+
+	g_return_if_fail(HINAWA_IS_FW_RESP(self));
+	priv = hinawa_fw_resp_get_instance_private(self);
+
+	if (!priv->unit || event->length > priv->width) {
+		resp.rcode = RCODE_CONFLICT_ERROR;
+		goto error;
+	}
+
+	length = sizeof(*event) + event->length;
+
+	// Emit signal to handlers later.
+	hinawa_context_schedule_notification(self, event, length,
+					     fw_resp_notify_requested);
+	return;
+error:
+	resp.handle = event->handle;
+
+	hinawa_fw_unit_ioctl(priv->unit, FW_CDEV_IOC_SEND_RESPONSE,
+			     &resp, &err);
 }
