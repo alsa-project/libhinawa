@@ -12,7 +12,6 @@ dependencies = [
 ]
 
 sources = [
-  'hinawa_context.c',
   'fw_unit.h',
   'fw_unit.c',
   'fw_resp.h',
@@ -21,7 +20,6 @@ sources = [
   'fw_req.c',
   'fw_fcp.h',
   'fw_fcp.c',
-  'internal.h',
   'snd_unit.h',
   'snd_unit.c',
 ]
@@ -75,11 +73,22 @@ enums = gnome.mkenums('hinawa_enums',
 headers += 'hinawa_enum_types.h'
 sources += enums
 
+sources_to_build = [
+  'hinawa_context.c',
+  'internal.h',
+]
+
+if with_backport
+  sources_to_build += 'backport.h'
+endif
+
+sources_to_build += sources
+
 mapfile = 'hinawa.map'
 vflag = '-Wl,--version-script,' + join_paths(meson.current_source_dir(), mapfile)
 
 myself = library('hinawa',
-  sources: sources,
+  sources: sources_to_build + headers,
   version: meson.project_version(),
   soversion: meson.project_version().split('.')[0],
   install: true,
