@@ -294,16 +294,28 @@ void hinawa_snd_unit_ioctl(HinawaSndUnit *self, unsigned long request,
 		raise(exception, errno);
 }
 
-static void handle_lock_event(HinawaSndUnit *self,
-			      void *buf, unsigned int length)
+static void snd_unit_notify_lock(void *target, void *data, unsigned int length)
 {
-	struct snd_firewire_event_lock_status *event =
-			(struct snd_firewire_event_lock_status *)buf;
-
-	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	HinawaSndUnit *self = target;
+	struct snd_firewire_event_lock_status *event = data;
 
 	g_signal_emit(self, snd_unit_sigs[SND_UNIT_SIG_TYPE_LOCK_STATUS], 0,
 		      event->status);
+}
+
+static void snd_unit_notify_disconnected(void *target, void *data,
+					 unsigned int length)
+{
+	HinawaSndUnit *self = target;
+
+	g_signal_emit_by_name(&self->parent_instance, "disconnected", NULL);
+}
+
+static void handle_lock_event(HinawaSndUnit *self,
+			      void *buf, unsigned int length)
+{
+	hinawa_context_schedule_notification(self, buf, length,
+					     snd_unit_notify_lock);
 }
 
 static gboolean prepare_src(GSource *src, gint *timeout)
@@ -333,9 +345,10 @@ static gboolean check_src(GSource *gsrc)
 
 			hinawa_snd_unit_unlisten(unit);
 
-			if (g_value_get_boolean(&val))
-				g_signal_emit_by_name(&unit->parent_instance,
-						      "disconnected", NULL);
+			if (g_value_get_boolean(&val)) {
+				hinawa_context_schedule_notification(unit,
+					NULL, 0, snd_unit_notify_disconnected);
+			}
 		}
 	}
 
