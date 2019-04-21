@@ -194,6 +194,16 @@ end:
 	g_byte_array_unref(req_frame);
 }
 
+static void snd_dice_notify_notification(void *target, void *data,
+					 unsigned int length)
+{
+	HinawaSndDice *self = target;
+	struct snd_firewire_event_dice_notification *event = data;
+
+	g_signal_emit(self, dice_sigs[DICE_SIG_TYPE_NOTIFIED],
+		      0, event->notification);
+}
+
 void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 					 const void *buf, unsigned int len)
 {
@@ -208,8 +218,8 @@ void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 	g_return_if_fail(HINAWA_IS_SND_DICE(self));
 	priv = hinawa_snd_dice_get_instance_private(self);
 
-	g_signal_emit(self, dice_sigs[DICE_SIG_TYPE_NOTIFIED],
-		      0, event->notification);
+	hinawa_context_schedule_notification(self, buf, len,
+					     snd_dice_notify_notification);
 
 	g_mutex_lock(&priv->mutex);
 
