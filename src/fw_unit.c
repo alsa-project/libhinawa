@@ -339,6 +339,21 @@ void hinawa_fw_unit_ioctl(HinawaFwUnit *self, unsigned long req, void *args,
 		*err = errno;
 }
 
+static void fw_unit_notify_update(void *target, void *data, unsigned int length)
+{
+	HinawaFwUnit *self = target;
+
+	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE], 0, NULL);
+}
+
+static void fw_unit_notify_disconnected(void *target, void *data,
+					unsigned int length)
+{
+	HinawaFwUnit *self = target;
+
+	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_DISCONNECTED], 0);
+}
+
 static void handle_update(HinawaFwUnit *self,
 			  struct fw_cdev_event_bus_reset *event)
 {
@@ -351,7 +366,8 @@ static void handle_update(HinawaFwUnit *self,
 	update_info(self, NULL);
 	g_mutex_unlock(&priv->mutex);
 
-	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE], 0, NULL);
+	hinawa_context_schedule_notification(self, NULL, 0,
+					     fw_unit_notify_update);
 }
 
 static gboolean prepare_src(GSource *src, gint *timeout)
@@ -374,8 +390,8 @@ static gboolean check_src(GSource *gsrc)
 		if (unit != NULL) {
 			hinawa_fw_unit_unlisten(unit);
 
-			g_signal_emit(unit,
-				fw_unit_sigs[FW_UNIT_SIG_TYPE_DISCONNECTED], 0);
+			hinawa_context_schedule_notification(unit, NULL, 0,
+						fw_unit_notify_disconnected);
 		}
 	}
 
