@@ -426,6 +426,42 @@ static void finalize_src(GSource *gsrc)
 	g_free(src->buf);
 }
 
+static void fw_unit_create_source(HinawaFwUnit *self, GSource **gsrc,
+				  GError **exception)
+{
+	static GSourceFuncs funcs = {
+		.prepare	= prepare_src,
+		.check		= check_src,
+		.dispatch	= dispatch_src,
+		.finalize	= finalize_src,
+	};
+	HinawaFwUnitPrivate *priv;
+	FwUnitSource *src;
+
+	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
+	priv = hinawa_fw_unit_get_instance_private(self);
+
+	*gsrc = g_source_new(&funcs, sizeof(FwUnitSource));
+
+	g_source_set_name(*gsrc, "HinawaFwUnit");
+	g_source_set_priority(*gsrc, G_PRIORITY_HIGH_IDLE);
+	g_source_set_can_recurse(*gsrc, TRUE);
+
+	// MEMO: allocate one page because we cannot assume the size of
+	// transaction frame.
+	src = (FwUnitSource *)(*gsrc);
+	src->len = sysconf(_SC_PAGESIZE);
+	src->buf = g_malloc0(src->len);
+	if (src->buf == NULL) {
+		raise(exception, ENOMEM);
+		g_source_destroy(*gsrc);
+		return;
+	}
+
+	src->unit = self;
+	src->tag = g_source_add_unix_fd(*gsrc, priv->fd, G_IO_IN);
+}
+
 /**
  * hinawa_fw_unit_listen:
  * @self: A #HinawaFwUnit
@@ -435,55 +471,23 @@ static void finalize_src(GSource *gsrc)
  */
 void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 {
-	static GSourceFuncs funcs = {
-		.prepare	= prepare_src,
-		.check		= check_src,
-		.dispatch	= dispatch_src,
-		.finalize	= finalize_src,
-	};
 	HinawaFwUnitPrivate *priv;
-	void *buf;
-	unsigned int len;
-	GSource *src;
+	GSource *gsrc;
 
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
 	priv = hinawa_fw_unit_get_instance_private(self);
 
-	/*
-	 * MEMO: allocate one page because we cannot assume the size of
-	 * transaction frame.
-	 */
-	len = sysconf(_SC_PAGESIZE);
-	buf = g_malloc0(len);
-	if (buf == NULL) {
-		raise(exception, ENOMEM);
+	fw_unit_create_source(self, &gsrc, exception);
+	if (*exception != NULL)
 		return;
-	}
 
-	src = g_source_new(&funcs, sizeof(FwUnitSource));
-	if (src == NULL) {
-		raise(exception, ENOMEM);
-		g_free(buf);
-		return;
-	}
-
-	g_source_set_name(src, "HinawaFwUnit");
-	g_source_set_priority(src, G_PRIORITY_HIGH_IDLE);
-	g_source_set_can_recurse(src, TRUE);
-
-	((FwUnitSource *)src)->len = len;
-	((FwUnitSource *)src)->buf = buf;
-	((FwUnitSource *)src)->unit = self;
-	((FwUnitSource *)src)->tag =
-				g_source_add_unix_fd(src, priv->fd, G_IO_IN);
-
-	hinawa_context_add_src(HINAWA_CONTEXT_TYPE_FW, src, exception);
+	hinawa_context_add_src(HINAWA_CONTEXT_TYPE_FW, gsrc, exception);
 	if (*exception != NULL) {
-		g_source_destroy(src);
+		g_source_destroy(gsrc);
 		return;
 	}
 
-	priv->src = (FwUnitSource *)src;
+	priv->src = (FwUnitSource *)gsrc;
 }
 
 /**
