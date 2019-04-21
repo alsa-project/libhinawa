@@ -402,6 +402,11 @@ end:
 static void finalize_src(GSource *gsrc)
 {
 	SndUnitSource *src = (SndUnitSource *)gsrc;
+	HinawaSndUnitPrivate *priv =
+				hinawa_snd_unit_get_instance_private(src->unit);
+
+	if (priv->streaming)
+		ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
 
 	g_free(src->buf);
 }
@@ -494,9 +499,6 @@ void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 	priv = hinawa_snd_unit_get_instance_private(self);
 
 	if (priv->src != NULL) {
-		if (priv->streaming)
-			ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
-
 		hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_SND, priv->src);
 		priv->src = NULL;
 	}
