@@ -29,6 +29,16 @@ G_DEFINE_QUARK("HinawaSndUnit", hinawa_snd_unit)
 	g_set_error(exception, hinawa_snd_unit_quark(), errno,		\
 		    "%d: %s", __LINE__, strerror(errno))
 
+struct _HinawaSndUnitPrivate {
+	int fd;
+	struct snd_firewire_get_info info;
+
+	gboolean streaming;
+
+	GSource *src;
+};
+G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndUnit, hinawa_snd_unit, HINAWA_TYPE_FW_UNIT)
+
 typedef struct {
 	GSource src;
 	HinawaSndUnit *unit;
@@ -36,16 +46,6 @@ typedef struct {
 	void *buf;
 	unsigned int len;
 } SndUnitSource;
-
-struct _HinawaSndUnitPrivate {
-	int fd;
-	struct snd_firewire_get_info info;
-
-	gboolean streaming;
-
-	SndUnitSource *src;
-};
-G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndUnit, hinawa_snd_unit, HINAWA_TYPE_FW_UNIT)
 
 enum snd_unit_prop_type {
 	SND_UNIT_PROP_TYPE_FW_TYPE = 1,
@@ -460,21 +460,20 @@ static void snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
 void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
-	GSource *gsrc;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
 
-	snd_unit_create_source(self, &gsrc, exception);
+	snd_unit_create_source(self, &priv->src, exception);
 	if (*exception != NULL)
 		return;
 
-	hinawa_context_add_src(HINAWA_CONTEXT_TYPE_SND, gsrc, exception);
+	hinawa_context_add_src(HINAWA_CONTEXT_TYPE_SND, priv->src, exception);
 	if (*exception != NULL) {
-		g_source_destroy(gsrc);
+		g_source_destroy(priv->src);
+		priv->src = NULL;
 		return;
 	}
-	priv->src = (SndUnitSource *)gsrc;
 
 	hinawa_fw_unit_listen(&self->parent_instance, exception);
 	if (*exception != NULL)
@@ -498,8 +497,7 @@ void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 		if (priv->streaming)
 			ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
 
-		hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_SND,
-					  (GSource *)priv->src);
+		hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_SND, priv->src);
 		priv->src = NULL;
 	}
 
