@@ -19,6 +19,14 @@ static GMainContext *ctx;
 // For notifier thread.
 static GCond cond;
 static GMutex mutex;
+static GList *works;
+
+struct notifier_work {
+	void *target;
+	void *data;
+	unsigned int length;
+	NotifierWorkFunc func;
+};
 
 static gpointer run_dispacher(gpointer data)
 {
@@ -34,8 +42,32 @@ static gpointer run_notifier(gpointer data)
 {
 	g_mutex_lock(&mutex);
 
-	while (running[TH_TYPE_NOTIFIER])
+	while (running[TH_TYPE_NOTIFIER]) {
+		GList *entry;
+
 		g_cond_wait(&cond, &mutex);
+
+		entry = works;
+		while (entry != NULL) {
+			struct notifier_work *work =
+					(struct notifier_work *)entry->data;
+
+			works = g_list_delete_link(works, entry);
+
+			g_mutex_unlock(&mutex);
+
+			// NOTE: Allow to enqueue new works here.
+
+			work->func(work->target, work->data, work->length);
+			free(work->data);
+			free(work);
+
+			g_mutex_lock(&mutex);
+
+			// NOTE: So this should not be assigned to .next.
+			entry = works;
+		}
+	}
 
 	g_mutex_unlock(&mutex);
 
@@ -142,4 +174,27 @@ void hinawa_context_remove_src(GSource *src)
 	G_UNLOCK(th_lock);
 
 	g_source_destroy(src);
+}
+
+void hinawa_context_schedule_notification(void *target, const void *data,
+				unsigned int length, NotifierWorkFunc func)
+{
+	struct notifier_work *work;
+
+	work = g_malloc0(sizeof(*work));
+	if (work == NULL)
+		return;
+
+	work->target = target;
+	work->func = func;
+
+	if (data != NULL && length > 0) {
+		work->data = malloc(length);
+		memcpy(work->data, data, length);
+	}
+
+	g_mutex_lock(&mutex);
+	works = g_list_append(works, work);
+	g_cond_signal(&cond);
+	g_mutex_unlock(&mutex);
 }
