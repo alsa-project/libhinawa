@@ -34,14 +34,6 @@ G_DEFINE_QUARK("HinawaFwUnit", hinawa_fw_unit)
 #define MAX_CONFIG_ROM_SIZE	256
 #define MAX_CONFIG_ROM_LENGTH	(MAX_CONFIG_ROM_SIZE * 4)
 
-typedef struct {
-	GSource src;
-	HinawaFwUnit *unit;
-	gpointer tag;
-	unsigned int len;
-	void *buf;
-} FwUnitSource;
-
 struct _HinawaFwUnitPrivate {
 	int fd;
 
@@ -50,9 +42,17 @@ struct _HinawaFwUnitPrivate {
 	unsigned int config_rom_length;
 	struct fw_cdev_event_bus_reset generation;
 
-	FwUnitSource *src;
+	GSource *src;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwUnit, hinawa_fw_unit, G_TYPE_OBJECT)
+
+typedef struct {
+	GSource src;
+	HinawaFwUnit *unit;
+	gpointer tag;
+	unsigned int len;
+	void *buf;
+} FwUnitSource;
 
 /* This object has properties. */
 enum fw_unit_prop_type {
@@ -472,22 +472,19 @@ static void fw_unit_create_source(HinawaFwUnit *self, GSource **gsrc,
 void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 {
 	HinawaFwUnitPrivate *priv;
-	GSource *gsrc;
 
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
 	priv = hinawa_fw_unit_get_instance_private(self);
 
-	fw_unit_create_source(self, &gsrc, exception);
+	fw_unit_create_source(self, &priv->src, exception);
 	if (*exception != NULL)
 		return;
 
-	hinawa_context_add_src(HINAWA_CONTEXT_TYPE_FW, gsrc, exception);
+	hinawa_context_add_src(HINAWA_CONTEXT_TYPE_FW, priv->src, exception);
 	if (*exception != NULL) {
-		g_source_destroy(gsrc);
+		g_source_destroy(priv->src);
 		return;
 	}
-
-	priv->src = (FwUnitSource *)gsrc;
 }
 
 /**
@@ -504,8 +501,7 @@ void hinawa_fw_unit_unlisten(HinawaFwUnit *self)
 	priv = hinawa_fw_unit_get_instance_private(self);
 
 	if (priv->src != NULL) {
-		hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_FW,
-					  (GSource *)priv->src);
+		hinawa_context_remove_src(HINAWA_CONTEXT_TYPE_FW, priv->src);
 		priv->src = NULL;
 	}
 }
