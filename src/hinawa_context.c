@@ -79,6 +79,8 @@ void hinawa_context_remove_src(enum hinawa_context_type type, GSource *src)
 		G_LOCK(ctx_data_lock);
 
 		ctx_data[type].running = FALSE;
+		g_main_context_wakeup(ctx_data[type].ctx);
+
 		g_thread_join(ctx_data[type].thread);
 		g_thread_unref(ctx_data[type].thread);
 		ctx_data[type].thread = NULL;

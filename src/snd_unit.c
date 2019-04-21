@@ -308,8 +308,8 @@ static void handle_lock_event(HinawaSndUnit *self,
 
 static gboolean prepare_src(GSource *src, gint *timeout)
 {
-	// Use 500 msec for safe cancellation of thread.
-	*timeout = 500;
+	// Use blocking poll(2) to save CPU usage.
+	*timeout = -1;
 
 	/* This source is not ready, let's poll(2) */
 	return FALSE;
