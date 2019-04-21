@@ -12,7 +12,6 @@ private_headers = [
   'internal.h',
   'backport.h',
   'hinawa_context.c',
-  'hinawa_context.h',
 ]
 
 gnome.gtkdoc('hinawa',

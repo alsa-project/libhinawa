@@ -23,6 +23,16 @@
 #include "snd_motu.h"
 #include "snd_tscm.h"
 
+enum hinawa_context_type {
+	HINAWA_CONTEXT_TYPE_FW = 0,
+	HINAWA_CONTEXT_TYPE_SND,
+	HINAWA_CONTEXT_TYPE_COUNT,
+};
+
+void hinawa_context_add_src(enum hinawa_context_type type, GSource *src,
+			    GError **exception);
+void hinawa_context_remove_src(enum hinawa_context_type type, GSource *src);
+
 void hinawa_fw_unit_ioctl(HinawaFwUnit *self, unsigned long req, void *args,
 			  int *err);
 void hinawa_fw_resp_handle_request(HinawaFwResp *self,

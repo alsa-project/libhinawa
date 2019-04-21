@@ -8,7 +8,6 @@
 #include <unistd.h>
 
 #include "internal.h"
-#include "hinawa_context.h"
 
 /* For error handling. */
 G_DEFINE_QUARK("HinawaFwUnit", hinawa_fw_unit)

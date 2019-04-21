@@ -12,7 +12,6 @@ dependencies = [
 ]
 
 sources = [
-  'hinawa_context.h',
   'hinawa_context.c',
   'fw_unit.h',
   'fw_unit.c',

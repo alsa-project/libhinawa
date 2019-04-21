@@ -12,7 +12,6 @@
 
 #include "internal.h"
 #include "hinawa_enums.h"
-#include "hinawa_context.h"
 
 /**
  * SECTION:snd_unit

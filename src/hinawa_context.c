@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
-#include "hinawa_context.h"
+#include "internal.h"
 
 static struct {
 	GMainContext *ctx;
