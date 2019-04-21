@@ -91,14 +91,20 @@ void hinawa_snd_dg00x_open(HinawaSndDg00x *self, gchar *path, GError **exception
 	}
 }
 
+static void snd_dg00x_notify_msg(void *target, void *data, unsigned int length)
+{
+	HinawaSndDg00x *self = target;
+	struct snd_firewire_event_digi00x_message *event = data;
+
+	g_signal_emit(self, dg00x_sigs[DG00X_SIG_TYPE_MESSAGE], 0,
+		      event->message);
+}
+
 void hinawa_snd_dg00x_handle_msg(HinawaSndDg00x *self, const void *buf,
 				 unsigned int len)
 {
-	struct snd_firewire_event_digi00x_message *event =
-			(struct snd_firewire_event_digi00x_message *)buf;
-
 	g_return_if_fail(HINAWA_IS_SND_DG00X(self));
 
-	g_signal_emit(self, dg00x_sigs[DG00X_SIG_TYPE_MESSAGE],
-		      0, event->message);
+	hinawa_context_schedule_notification(self, buf, len,
+					     snd_dg00x_notify_msg);
 }
