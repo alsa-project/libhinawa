@@ -406,6 +406,50 @@ static void finalize_src(GSource *gsrc)
 	g_free(src->buf);
 }
 
+static void snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
+				   GError **exception)
+{
+	static GSourceFuncs funcs = {
+		.prepare	= prepare_src,
+		.check		= check_src,
+		.dispatch	= dispatch_src,
+		.finalize	= finalize_src,
+	};
+	HinawaSndUnitPrivate *priv;
+	SndUnitSource *src;
+
+	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	priv = hinawa_snd_unit_get_instance_private(self);
+
+	*gsrc = g_source_new(&funcs, sizeof(SndUnitSource));
+
+	g_source_set_name(*gsrc, "HinawaSndUnit");
+	g_source_set_priority(*gsrc, G_PRIORITY_HIGH_IDLE);
+	g_source_set_can_recurse(*gsrc, TRUE);
+
+	// MEMO: allocate one page because we cannot assume the size of
+	// transaction frame.
+	src = (SndUnitSource *)(*gsrc);
+	src->len = sysconf(_SC_PAGESIZE);
+	src->buf = g_malloc(src->len);
+	if (src->buf == NULL) {
+		raise(exception, ENOMEM);
+		g_source_destroy(*gsrc);
+		return;
+	}
+
+	src->unit = self;
+	src->tag = g_source_add_unix_fd(*gsrc, priv->fd, G_IO_IN);
+
+	// Check locked or not.
+	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_LOCK, NULL) < 0) {
+		if (errno == EBUSY)
+			priv->streaming = true;
+		return;
+	}
+	ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
+}
+
 /**
  * hinawa_snd_unit_listen:
  * @self: A #HinawaSndUnit
@@ -415,70 +459,26 @@ static void finalize_src(GSource *gsrc)
  */
 void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 {
-	static GSourceFuncs funcs = {
-		.prepare	= prepare_src,
-		.check		= check_src,
-		.dispatch	= dispatch_src,
-		.finalize	= finalize_src,
-	};
 	HinawaSndUnitPrivate *priv;
-	void *buf;
-	unsigned int len;
-	GSource *src;
+	GSource *gsrc;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
 
-	/*
-	 * MEMO: allocate one page because we cannot assume the size of
-	 * transaction frame.
-	 */
-	len = sysconf(_SC_PAGESIZE);
-	buf = g_malloc(len);
-	if (buf == NULL) {
-		raise(exception, ENOMEM);
+	snd_unit_create_source(self, &gsrc, exception);
+	if (*exception != NULL)
 		return;
-	}
 
-	src = g_source_new(&funcs, sizeof(SndUnitSource));
-	if (src == NULL) {
-		raise(exception, ENOMEM);
-		g_free(buf);
-		return;
-	}
-
-	g_source_set_name(src, "HinawaSndUnit");
-	g_source_set_priority(src, G_PRIORITY_HIGH_IDLE);
-	g_source_set_can_recurse(src, TRUE);
-
-	((SndUnitSource *)src)->len = len;
-	((SndUnitSource *)src)->buf = buf;
-	((SndUnitSource *)src)->unit = self;
-	((SndUnitSource *)src)->tag =
-				g_source_add_unix_fd(src, priv->fd, G_IO_IN);
-
-	hinawa_context_add_src(HINAWA_CONTEXT_TYPE_SND, src, exception);
+	hinawa_context_add_src(HINAWA_CONTEXT_TYPE_SND, gsrc, exception);
 	if (*exception != NULL) {
-		g_source_destroy(src);
-		priv->src = NULL;
+		g_source_destroy(gsrc);
 		return;
 	}
-
-	priv->src = (SndUnitSource *)src;
+	priv->src = (SndUnitSource *)gsrc;
 
 	hinawa_fw_unit_listen(&self->parent_instance, exception);
-	if (*exception != NULL) {
+	if (*exception != NULL)
 		hinawa_snd_unit_unlisten(self);
-		return;
-	}
-
-	/* Check locked or not. */
-	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_LOCK, NULL) < 0) {
-		if (errno == EBUSY)
-			priv->streaming = true;
-		return;
-	}
-	ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
 }
 
 /**
