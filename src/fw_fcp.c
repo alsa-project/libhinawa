@@ -176,7 +176,7 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	HinawaFwFcpPrivate *priv;
 	HinawaFwReq *req;
 	struct fcp_transaction trans = {0};
-	GValue timeout_ms = G_VALUE_INIT;
+	guint timeout_ms;
 	gint64 expiration;
 
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
@@ -194,8 +194,7 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	trans.req_frame = req_frame;
 	trans.resp_frame = resp_frame;
 
-	g_value_init(&timeout_ms, G_TYPE_UINT);
-	g_object_get_property(G_OBJECT(self), "timeout", &timeout_ms);
+	g_object_get(G_OBJECT(self), "timeout", &timeout_ms, NULL);
 
 	// This predicates against suprious wakeup.
 	g_byte_array_remove_range(trans.resp_frame, 0, trans.resp_frame->len);
@@ -215,7 +214,7 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 		goto end;
 deferred:
 	expiration = g_get_monotonic_time() +
-		     g_value_get_uint(&timeout_ms) * G_TIME_SPAN_MILLISECOND;
+		     timeout_ms * G_TIME_SPAN_MILLISECOND;
 
 	while (trans.resp_frame->len == 0) {
 		// NOTE: Timeout at bus-reset, illegally.

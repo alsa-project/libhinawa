@@ -336,16 +336,15 @@ static gboolean check_src(GSource *gsrc)
 	if (condition & G_IO_ERR) {
 		HinawaSndUnit *unit = src->unit;
 		if (unit != NULL) {
-			GValue val = G_VALUE_INIT;
+			gboolean listening;
 
 			// For emitting one signal.
-			g_value_init(&val, G_TYPE_BOOLEAN);
-			g_object_get_property(G_OBJECT(&unit->parent_instance),
-					      "listening", &val);
+			g_object_get(G_OBJECT(&unit->parent_instance),
+				     "listening", &listening, NULL);
 
 			hinawa_snd_unit_unlisten(unit);
 
-			if (g_value_get_boolean(&val)) {
+			if (listening) {
 				hinawa_context_schedule_notification(unit,
 					NULL, 0, snd_unit_notify_disconnected);
 			}
