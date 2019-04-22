@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 #include "internal.h"
+#include <errno.h>
 
 enum th_type {
 	TH_TYPE_DISPATCHER = 0,
@@ -176,12 +177,14 @@ void hinawa_context_remove_src(GSource *src)
 }
 
 void hinawa_context_schedule_notification(void *target, const void *data,
-				unsigned int length, NotifierWorkFunc func)
+				unsigned int length, NotifierWorkFunc func,
+				int *err)
 {
 	struct notifier_work *work;
 
 	work = g_malloc0(sizeof(*work) + length);
 	if (work == NULL) {
+		*err = -ENOMEM;
 		return;
 	}
 

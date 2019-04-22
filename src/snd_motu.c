@@ -107,8 +107,10 @@ static void snd_motu_notify_notification(void *target, void *data,
 void hinawa_snd_motu_handle_notification(HinawaSndMotu *self,
 					 const void *buf, unsigned int len)
 {
+	int err = 0;
+
 	g_return_if_fail(HINAWA_IS_SND_MOTU(self));
 
 	hinawa_context_schedule_notification(self, buf, len,
-					     snd_motu_notify_notification);
+					     snd_motu_notify_notification, &err);
 }

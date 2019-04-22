@@ -103,8 +103,10 @@ static void snd_dg00x_notify_msg(void *target, void *data, unsigned int length)
 void hinawa_snd_dg00x_handle_msg(HinawaSndDg00x *self, const void *buf,
 				 unsigned int len)
 {
+	int err = 0;
+
 	g_return_if_fail(HINAWA_IS_SND_DG00X(self));
 
 	hinawa_context_schedule_notification(self, buf, len,
-					     snd_dg00x_notify_msg);
+					     snd_dg00x_notify_msg, &err);
 }

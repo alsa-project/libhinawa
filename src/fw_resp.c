@@ -291,7 +291,7 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 
 	// Emit signal to handlers later.
 	hinawa_context_schedule_notification(self, event, length,
-					     fw_resp_notify_requested);
+					     fw_resp_notify_requested, &err);
 	return;
 error:
 	resp.handle = event->handle;

@@ -211,6 +211,7 @@ void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 
 	GList *entry;
 	struct notification_waiter *waiter;
+	int err = 0;
 
 	struct snd_firewire_event_dice_notification *event =
 			(struct snd_firewire_event_dice_notification *)buf;
@@ -219,7 +220,7 @@ void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 	priv = hinawa_snd_dice_get_instance_private(self);
 
 	hinawa_context_schedule_notification(self, buf, len,
-					     snd_dice_notify_notification);
+					snd_dice_notify_notification, &err);
 
 	g_mutex_lock(&priv->mutex);
 

@@ -314,8 +314,10 @@ static void snd_unit_notify_disconnected(void *target, void *data,
 static void handle_lock_event(HinawaSndUnit *self,
 			      void *buf, unsigned int length)
 {
+	int err = 0;
+
 	hinawa_context_schedule_notification(self, buf, length,
-					     snd_unit_notify_lock);
+					     snd_unit_notify_lock, &err);
 }
 
 static gboolean prepare_src(GSource *src, gint *timeout)
@@ -337,6 +339,7 @@ static gboolean check_src(GSource *gsrc)
 		HinawaSndUnit *unit = src->unit;
 		if (unit != NULL) {
 			gboolean listening;
+			int err = 0;
 
 			// For emitting one signal.
 			g_object_get(G_OBJECT(&unit->parent_instance),
@@ -346,7 +349,8 @@ static gboolean check_src(GSource *gsrc)
 
 			if (listening) {
 				hinawa_context_schedule_notification(unit,
-					NULL, 0, snd_unit_notify_disconnected);
+					NULL, 0, snd_unit_notify_disconnected,
+					&err);
 			}
 		}
 	}

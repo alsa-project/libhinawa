@@ -152,6 +152,7 @@ void hinawa_snd_tscm_handle_control(HinawaSndTscm *self, const void *buf,
 {
 	struct snd_firewire_event_tascam_control *event =
 			(struct snd_firewire_event_tascam_control *)buf;
+	int err = 0;
 
 	g_return_if_fail(HINAWA_IS_SND_TSCM(self));
 
@@ -159,5 +160,5 @@ void hinawa_snd_tscm_handle_control(HinawaSndTscm *self, const void *buf,
 		return;
 
 	hinawa_context_schedule_notification(self, buf, len,
-					     snd_tscm_notify_control);
+					     snd_tscm_notify_control, &err);
 }

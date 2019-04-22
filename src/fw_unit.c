@@ -358,6 +358,7 @@ static void handle_update(HinawaFwUnit *self,
 			  struct fw_cdev_event_bus_reset *event)
 {
 	HinawaFwUnitPrivate *priv;
+	int err = 0;
 
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
 	priv = hinawa_fw_unit_get_instance_private(self);
@@ -367,7 +368,7 @@ static void handle_update(HinawaFwUnit *self,
 	g_mutex_unlock(&priv->mutex);
 
 	hinawa_context_schedule_notification(self, NULL, 0,
-					     fw_unit_notify_update);
+					     fw_unit_notify_update, &err);
 }
 
 static gboolean prepare_src(GSource *src, gint *timeout)
@@ -387,11 +388,14 @@ static gboolean check_src(GSource *gsrc)
 	condition = g_source_query_unix_fd(gsrc, src->tag);
 	if (condition & G_IO_ERR) {
 		HinawaFwUnit *unit = src->unit;
+		int err = 0;
+
 		if (unit != NULL) {
 			hinawa_fw_unit_unlisten(unit);
 
 			hinawa_context_schedule_notification(unit, NULL, 0,
-						fw_unit_notify_disconnected);
+						fw_unit_notify_disconnected,
+						&err);
 		}
 	}
 
