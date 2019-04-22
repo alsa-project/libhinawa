@@ -23,9 +23,9 @@ static GList *works;
 
 struct notifier_work {
 	void *target;
-	void *data;
-	unsigned int length;
 	NotifierWorkFunc func;
+	unsigned int length;
+	char data[0];
 };
 
 static gpointer run_dispacher(gpointer data)
@@ -59,7 +59,6 @@ static gpointer run_notifier(gpointer data)
 			// NOTE: Allow to enqueue new works here.
 
 			work->func(work->target, work->data, work->length);
-			free(work->data);
 			free(work);
 
 			g_mutex_lock(&mutex);
@@ -181,15 +180,16 @@ void hinawa_context_schedule_notification(void *target, const void *data,
 {
 	struct notifier_work *work;
 
-	work = g_malloc0(sizeof(*work));
-	if (work == NULL)
+	work = g_malloc0(sizeof(*work) + length);
+	if (work == NULL) {
 		return;
+	}
 
 	work->target = target;
 	work->func = func;
 
-	if (data != NULL && length > 0) {
-		work->data = malloc(length);
+	if (length > 0) {
+		work->length = length;
 		memcpy(work->data, data, length);
 	}
 
