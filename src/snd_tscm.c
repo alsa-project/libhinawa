@@ -4,6 +4,7 @@
 
 #include "internal.h"
 #include "snd_tscm.h"
+#include "hinawa_sigs_marshal.h"
 
 /**
  * SECTION:snd_tscm

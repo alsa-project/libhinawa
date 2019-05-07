@@ -5,7 +5,6 @@
 #include <glib.h>
 #include <glib-object.h>
 #include "snd_unit.h"
-#include "hinawa_sigs_marshal.h"
 
 G_BEGIN_DECLS
 
