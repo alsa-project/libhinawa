@@ -225,8 +225,6 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 
 	snprintf(fw_cdev, sizeof(fw_cdev), "/dev/%s", priv->info.device_name);
 	hinawa_fw_unit_open(&self->parent_instance, fw_cdev, exception);
-	if (*exception != NULL)
-		goto end;
 end:
 	if (*exception != NULL)
 		close(priv->fd);
