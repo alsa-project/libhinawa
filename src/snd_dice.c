@@ -140,8 +140,9 @@ void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
 {
 	HinawaSndDicePrivate *priv;
 	HinawaSndUnit *unit;
+	HinawaFwTcode tcode;
 	unsigned int length;
-	GByteArray *req_frame;
+	guint8 *req_frame;
 	gint i;
 
 	struct notification_waiter waiter = {0};
@@ -151,13 +152,21 @@ void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
 	priv = hinawa_snd_dice_get_instance_private(self);
 	unit = &self->parent_instance;
 
-	/* Alignment data on given buffer to local buffer for transaction. */
 	length = g_array_get_element_size(frame) * frame->len;
-	req_frame = g_byte_array_sized_new(length);
+	if (length == 4)
+		tcode = HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST;
+	else
+		tcode = HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST;
+
+	// Alignment data on given buffer to local buffer for transaction.
+	req_frame = g_malloc0(length);
+	if (req_frame == NULL) {
+		raise(exception, ENOMEM);
+		return;
+	}
 	for (i = 0; i < frame->len; ++i) {
-		guint32 datum;
-		datum = GUINT32_TO_BE(g_array_index(frame, guint32, i));
-		g_byte_array_append(req_frame, (guint8 *)&datum, sizeof(datum));
+		guint32 datum = GUINT32_TO_BE(g_array_index(frame, guint32, i));
+		memcpy(req_frame, &datum, sizeof(datum));
 	}
 
 	// This predicates against suprious wakeup.
@@ -165,18 +174,17 @@ void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
 	g_cond_init(&waiter.cond);
 	g_mutex_lock(&priv->mutex);
 
-	/* Insert this entry to list and enter critical section. */
+	// Insert this entry to list and enter critical section.
 	waiter.bit_flag = bit_flag;
 	priv->waiters = g_list_append(priv->waiters, &waiter);
 
 	expiration = g_get_monotonic_time() + 200 * G_TIME_SPAN_MILLISECOND;
 
-	/*
-	 * NOTE: I believe that a pair of this action/subaction is done within
-	 * default timeout of HinawaFwReq.
-	 */
-	hinawa_fw_req_write(priv->req, &unit->parent_instance, addr, req_frame,
-			    exception);
+	// NOTE: I believe that a pair of this action/subaction is done within
+	// default timeout of HinawaFwReq.
+	hinawa_fw_req_transaction(priv->req, &unit->parent_instance, tcode,
+				  addr, length, &req_frame, &length, exception);
+	g_free(req_frame);
 	if (*exception)
 		goto end;
 
@@ -191,7 +199,6 @@ end:
 
 	g_mutex_unlock(&priv->mutex);
 	g_cond_clear(&waiter.cond);
-	g_byte_array_unref(req_frame);
 }
 
 static void snd_dice_notify_notification(void *target, void *data,
@@ -226,12 +233,10 @@ void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 
 	for (entry = priv->waiters; entry != NULL; entry = entry->next) {
 		waiter = (struct notification_waiter *)entry->data;
-		if (waiter->bit_flag & event->notification)
-			break;
-	}
-	if (entry) {
-		waiter->awakened = TRUE;
-		g_cond_signal(&waiter->cond);
+		if (waiter->bit_flag & event->notification) {
+			waiter->awakened = TRUE;
+			g_cond_signal(&waiter->cond);
+		}
 	}
 
 	g_mutex_unlock(&priv->mutex);
