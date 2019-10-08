@@ -108,6 +108,12 @@ install_headers(headers,
 
 pkg = import('pkgconfig')
 pkg.generate(myself,
+  name: 'hinawa',
+  description: 'Input/Output library to audio and music units on IEEE 1394 bus',
+  subdirs: meson.project_name(),
+)
+# For backward compatibility.
+pkg.generate(myself,
   name: meson.project_name(),
   description: 'Input/Output library to audio and music units on IEEE 1394 bus',
   subdirs: meson.project_name(),
