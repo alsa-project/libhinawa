@@ -96,4 +96,5 @@ HINAWA_1_3_0 {
 
 HINAWA_1_4_0 {
     "hinawa_fw_req_transaction";
+    "hinawa_fw_fcp_transaction";
 };

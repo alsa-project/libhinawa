@@ -162,18 +162,28 @@ HinawaFwFcp *hinawa_fw_fcp_new(void)
 }
 
 /**
- * hinawa_fw_fcp_transact:
- * @self: A #HinawaFwFcp
- * @req_frame:  (element-type guint8) (array) (in): a byte frame for request
- * @resp_frame: (element-type guint8) (array) (out caller-allocates): a byte
- *		frame for response
- * @exception: A #GError
+ * hinawa_fw_fcp_transaction:
+ * @self: A #HinawaFwFcp.
+ * @req_frame: (array length=req_frame_size)(in): An array with elements for
+ *	       request byte data. The value of this argument should point to
+ *	       the array and immutable.
+ * @req_frame_size: The size of array for request in byte unit.
+ * @resp_frame: (array length=resp_frame_size)(inout): An array with elements
+ *		for response byte data. The value of this argument should point
+ *		to the pointer to the array and immutable. The content of array
+ *		is mutable.
+ * @resp_frame_size: The size of array for response in byte unit. The value of
+ *		     this argument should point to the numerical number and
+ *		     mutable.
+ * @exception: A #GError.
  *
- * Execute fCP transaction.
+ * Execute FCP transaction.
+ * Since: 1.4.
  */
-void hinawa_fw_fcp_transact(HinawaFwFcp *self,
-			    GByteArray *req_frame, GByteArray *resp_frame,
-			    GError **exception)
+void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
+			       const guint8 *req_frame, guint req_frame_size,
+			       guint8 *const *resp_frame, guint *resp_frame_size,
+			       GError **exception)
 {
 	HinawaFwFcpPrivate *priv;
 	HinawaFwReq *req;
@@ -184,8 +194,9 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
 	priv = hinawa_fw_fcp_get_instance_private(self);
 
-	if (!req_frame || !resp_frame ||
-	    req_frame->len > FCP_MAXIMUM_FRAME_BYTES) {
+	if (req_frame == NULL || *resp_frame == NULL ||
+	    req_frame_size == 0 || *resp_frame_size == 0 ||
+	    req_frame_size > FCP_MAXIMUM_FRAME_BYTES) {
 		raise(exception, EINVAL);
 		return;
 	}
@@ -193,10 +204,10 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
 
 	// Prepare for an entry of FCP transaction.
-	trans.req_frame = req_frame->data;
-	trans.req_frame_size = req_frame->len;
-	trans.resp_frame = resp_frame->data;
-	trans.resp_frame_size = resp_frame->len;
+	trans.req_frame = req_frame;
+	trans.req_frame_size = req_frame_size;
+	trans.resp_frame = *resp_frame;
+	trans.resp_frame_size = *resp_frame_size;
 
 	g_object_get(G_OBJECT(self), "timeout", &timeout_ms, NULL);
 
@@ -235,6 +246,8 @@ deferred:
 		trans.resp_frame[0] = 0x00;
 		goto deferred;
 	}
+
+	*resp_frame_size = trans.resp_frame_size;
 end:
 	g_mutex_unlock(&trans.mutex);
 	g_cond_clear(&trans.cond);
@@ -247,6 +260,30 @@ end:
 
 	g_mutex_clear(&trans.mutex);
 	g_clear_object(&req);
+}
+
+/**
+ * hinawa_fw_fcp_transact:
+ * @self: A #HinawaFwFcp
+ * @req_frame:  (element-type guint8) (array) (in): a byte frame for request
+ * @resp_frame: (element-type guint8) (array) (out caller-allocates): a byte
+ *		frame for response
+ * @exception: A #GError
+ *
+ * Execute fCP transaction.
+ * Deprecated: 1.4.0: Use hinawa_fw_fcp_transaction() instead,
+ */
+void hinawa_fw_fcp_transact(HinawaFwFcp *self,
+			    GByteArray *req_frame, GByteArray *resp_frame,
+			    GError **exception)
+{
+	// Some vendor specific FCP transaction has such response that the
+	// size does not equal to the size of request...
+	g_byte_array_set_size(resp_frame, FCP_MAXIMUM_FRAME_BYTES);
+
+	hinawa_fw_fcp_transaction(self, req_frame->data, req_frame->len,
+				  &(resp_frame->data), &(resp_frame->len),
+				  exception);
 }
 
 static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode)
@@ -274,6 +311,7 @@ static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode)
 
 			g_mutex_lock(&trans->mutex);
 			memcpy((void *)trans->resp_frame, req_frame, length);
+			trans->resp_frame_size = length;
 			g_cond_signal(&trans->cond);
 			g_mutex_unlock(&trans->mutex);
 			break;
