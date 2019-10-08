@@ -139,38 +139,92 @@ HinawaFwReq *hinawa_fw_req_new(void)
 	return g_object_new(HINAWA_TYPE_FW_REQ, NULL);
 }
 
-static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit, int tcode,
-			    guint64 addr, guint8 *frame, guint length,
-			    GError **exception)
+/**
+ * hinawa_fw_req_transaction:
+ * @self: A #HinawaFwReq.
+ * @unit: A #HinawaFwUnit.
+ * @tcode: A transaction code of HinawaFwTcode.
+ * @addr: A destination address of target device
+ * @length: The range of address in byte unit.
+ * @frame: (array length=frame_size)(inout): An array with elements for byte
+ *	   data. The value of this argument should point to the pointer to the
+ *	   array and immutable. The content of array is mutable for read and
+ *	   lock transaction.
+ * @frame_size: The size of array in byte unit. The value of this argument
+ *		should point to the numerical number and mutable for read and
+ *		lock transaction.
+ * @exception: A #GError.
+ *
+ * Execute transactions to the given unit according to given code.
+ * Since: 1.4.
+ */
+void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwUnit *unit,
+			       HinawaFwTcode tcode, guint64 addr, guint length,
+			       guint8 *const *frame, guint *frame_size,
+			       GError **exception)
 {
 	struct fw_cdev_send_request req = {0};
-	HinawaFwReqPrivate *priv = hinawa_fw_req_get_instance_private(self);
+	HinawaFwReqPrivate *priv;
 	guint64 generation;
 	guint64 expiration;
 	int err = 0;
 
-	/* Setup a private structure. */
+	g_return_if_fail(HINAWA_IS_FW_REQ(self));
+	priv = hinawa_fw_req_get_instance_private(self);
+
+	if (length == 0 || *frame == NULL || *frame_size == 0) {
+		raise(exception, EINVAL);
+		return;
+	}
+
+	if (tcode == HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST ||
+	    tcode == HINAWA_FW_TCODE_READ_QUADLET_REQUEST) {
+		if ((addr & 0x3) || length != 4 || *frame_size < length) {
+			raise(exception, EINVAL);
+			return;
+		}
+	} else if (tcode == HINAWA_FW_TCODE_LOCK_MASK_SWAP ||
+		   tcode == HINAWA_FW_TCODE_LOCK_COMPARE_SWAP ||
+		   tcode == HINAWA_FW_TCODE_LOCK_FETCH_ADD ||
+		   tcode == HINAWA_FW_TCODE_LOCK_LITTLE_ADD ||
+		   tcode == HINAWA_FW_TCODE_LOCK_BOUNDED_ADD ||
+		   tcode == HINAWA_FW_TCODE_LOCK_WRAP_ADD ||
+		   tcode == HINAWA_FW_TCODE_LOCK_VENDOR_DEPENDENT) {
+		if (length & 0x3 || *frame_size < length * 2) {
+			raise(exception, EINVAL);
+			return;
+		}
+		length *= 2;
+	} else if (tcode != HINAWA_FW_TCODE_READ_BLOCK_REQUEST &&
+		   tcode != HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST){
+		// Not supported.
+		raise(exception, EINVAL);
+		return;
+	}
+
+	// Setup a private structure.
 	if (tcode == TCODE_READ_QUADLET_REQUEST ||
 	    tcode == TCODE_READ_BLOCK_REQUEST) {
-		priv->frame = frame;
+		priv->frame = *frame;
 		priv->length = length;
 		req.data = (guint64)NULL;
 	} else {
 		priv->frame = NULL;
-		req.data = (guint64)frame;
+		req.data = (guint64)(*frame);
 	}
 
-	/* Get unit properties. */
+	// Get unit properties.
+	g_object_ref(unit);
 	g_object_get(G_OBJECT(unit), "generation", &generation, NULL);
 
-	/* Setup a transaction structure. */
+	// Setup a transaction structure.
 	req.tcode = tcode;
 	req.length = length;
 	req.offset = addr;
 	req.closure = (guint64)self;
 	req.generation = generation;
 
-	/* Timeout is set in advance as a parameter of this object. */
+	// Timeout is set in advance as a parameter of this object.
 	expiration = g_get_monotonic_time() +
 					priv->timeout * G_TIME_SPAN_MILLISECOND;
 
@@ -179,13 +233,13 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit, int tcode,
 	g_cond_init(&priv->cond);
 	g_mutex_lock(&priv->mutex);
 
-	/* Send this transaction. */
+	// Send this transaction.
 	hinawa_fw_unit_ioctl(unit, FW_CDEV_IOC_SEND_REQUEST, &req, &err);
 	if (err < 0) {
 		g_mutex_unlock(&priv->mutex);
 		g_cond_clear(&priv->cond);
 		raise(exception, err);
-		return;
+		goto end;
 	}
 
 	while (priv->rcode == G_MAXUINT) {
@@ -200,7 +254,7 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit, int tcode,
 
 	if (priv->rcode == G_MAXUINT) {
 		raise(exception, ETIMEDOUT);
-		return;
+		goto end;
 	}
 
 	if (priv->rcode != RCODE_COMPLETE) {
@@ -211,6 +265,12 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit, int tcode,
 				"%d: %s", __LINE__, rcode_labels[priv->rcode]);
 		}
 	}
+
+	if (tcode == HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST &&
+	    tcode == HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST)
+		*frame_size = length;
+end:
+	g_object_unref(unit);
 }
 
 /**
@@ -222,28 +282,20 @@ static void fw_req_transact(HinawaFwReq *self, HinawaFwUnit *unit, int tcode,
  * @exception: A #GError
  *
  * Execute write transactions to the given unit.
+ * Deprecated: 1.4.0: Use hinawa_fw_req_transaction() instead,
  */
 void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 			 GByteArray *frame, GError **exception)
 {
 	int tcode;
 
-	g_return_if_fail(HINAWA_IS_FW_REQ(self));
-
-	if (!frame) {
-		raise(exception, EINVAL);
-		return;
-	}
-
 	if (frame->len == 4 && !(addr & 0x03))
 		tcode = TCODE_WRITE_QUADLET_REQUEST;
 	else
 		tcode = TCODE_WRITE_BLOCK_REQUEST;
 
-	g_object_ref(unit);
-	fw_req_transact(self, unit, tcode, addr, frame->data, frame->len,
-			exception);
-	g_object_unref(unit);
+	hinawa_fw_req_transaction(self, unit, tcode, addr, frame->len,
+				  &(frame->data), &(frame->len), exception);
 }
 
 /**
@@ -256,30 +308,22 @@ void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
  * @exception: A #GError
  *
  * Execute read transaction to the given unit.
+ * Deprecated: 1.4.0: Use hinawa_fw_req_transaction() instead,
  */
 void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 			GByteArray *frame, guint length, GError **exception)
 {
 	int tcode;
 
-	g_return_if_fail(HINAWA_IS_FW_REQ(self));
-
-	if (!frame) {
-		raise(exception, EINVAL);
-		return;
-	}
-
-	g_byte_array_set_size(frame, length);
-
-	if (frame->len == 4 && !(addr & 0x03))
+	if (length == 4 && !(addr & 0x03))
 		tcode = TCODE_READ_QUADLET_REQUEST;
 	else
 		tcode = TCODE_READ_BLOCK_REQUEST;
 
-	g_object_ref(unit);
-	fw_req_transact(self, unit, tcode, addr, frame->data, frame->len,
-			exception);
-	g_object_unref(unit);
+	g_byte_array_set_size(frame, length);
+
+	hinawa_fw_req_transaction(self, unit, tcode, addr, frame->len,
+				  &(frame->data), &(frame->len), exception);
 }
 
 /**
@@ -292,44 +336,16 @@ void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
  * @exception: A #GError
  *
  * Execute lock transaction to the given unit.
+ * Deprecated: 1.4.0: Use hinawa_fw_req_transaction() instead,
  */
 void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit,
 			guint64 addr, GByteArray **frame,
 			HinawaFwTcode lock_tcode, GError **exception)
 {
-	static const HinawaFwTcode lock_tcodes[] = {
-		HINAWA_FW_TCODE_LOCK_RESPONSE,
-		HINAWA_FW_TCODE_LOCK_MASK_SWAP,
-		HINAWA_FW_TCODE_LOCK_COMPARE_SWAP,
-		HINAWA_FW_TCODE_LOCK_FETCH_ADD,
-		HINAWA_FW_TCODE_LOCK_LITTLE_ADD,
-		HINAWA_FW_TCODE_LOCK_BOUNDED_ADD,
-		HINAWA_FW_TCODE_LOCK_WRAP_ADD,
-		HINAWA_FW_TCODE_LOCK_VENDOR_DEPENDENT,
-	};
-	int i;
+	guint length = (*frame)->len / 2;
 
-	g_return_if_fail(HINAWA_IS_FW_REQ(self));
-
-	if (!(*frame) || (*frame)->len == 0 || (*frame)->len % 8 > 0 ||
-	    (addr & 0x03)) {
-		raise(exception, EINVAL);
-		return;
-	}
-
-	for (i = 0; i < sizeof(lock_tcodes) / sizeof(lock_tcodes[0]); ++i) {
-		if (lock_tcodes[i] == lock_tcode)
-			break;
-	}
-	if (i == sizeof(lock_tcodes) / sizeof(lock_tcodes[0])) {
-		raise(exception, EINVAL);
-		return;
-	}
-
-	g_object_ref(unit);
-	fw_req_transact(self, unit, lock_tcode, addr, (*frame)->data,
-			(*frame)->len, exception);
-	g_object_unref(unit);
+	hinawa_fw_req_transaction(self, unit, lock_tcode, addr, length,
+				&((*frame)->data), &((*frame)->len), exception);
 }
 
 /* NOTE: For HinawaFwUnit, internal. */
