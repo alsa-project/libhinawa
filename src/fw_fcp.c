@@ -52,8 +52,10 @@ enum avc_status {
 };
 
 struct fcp_transaction {
-	GByteArray *req_frame;	/* Request frame */
-	GByteArray *resp_frame;	/* Response frame */
+	const guint8 *req_frame;
+	guint req_frame_size;
+	guint8 *resp_frame;
+	guint resp_frame_size;
 	GCond cond;
 	GMutex mutex;
 };
@@ -190,14 +192,16 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 
 	req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
 
-	/* Prepare for an entry of FCP transaction. */
-	trans.req_frame = req_frame;
-	trans.resp_frame = resp_frame;
+	// Prepare for an entry of FCP transaction.
+	trans.req_frame = req_frame->data;
+	trans.req_frame_size = req_frame->len;
+	trans.resp_frame = resp_frame->data;
+	trans.resp_frame_size = resp_frame->len;
 
 	g_object_get(G_OBJECT(self), "timeout", &timeout_ms, NULL);
 
 	// This predicates against suprious wakeup.
-	g_byte_array_remove_range(trans.resp_frame, 0, trans.resp_frame->len);
+	trans.resp_frame[0] = 0x00;
 	g_cond_init(&trans.cond);
 	g_mutex_init(&trans.mutex);
 	g_mutex_lock(&trans.mutex);
@@ -210,8 +214,8 @@ void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 	// Send this request frame.
 	hinawa_fw_req_transaction(req, priv->unit,
 			HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST,
-			FCP_REQUEST_ADDR, trans.req_frame->len,
-			&(trans.req_frame->data), &(trans.req_frame->len),
+			FCP_REQUEST_ADDR, trans.req_frame_size,
+			(guint8 *const *)&trans.req_frame, &trans.req_frame_size,
 			exception);
 	if (*exception)
 		goto end;
@@ -219,17 +223,16 @@ deferred:
 	expiration = g_get_monotonic_time() +
 		     timeout_ms * G_TIME_SPAN_MILLISECOND;
 
-	while (trans.resp_frame->len == 0) {
+	while (trans.resp_frame[0] == 0x00) {
 		// NOTE: Timeout at bus-reset, illegally.
 		if (!g_cond_wait_until(&trans.cond, &trans.mutex, expiration))
 			break;
 	}
-	if (trans.resp_frame->len == 0) {
+	if (trans.resp_frame[0] == 0x00) {
 		raise(exception, ETIMEDOUT);
-	} else if (trans.resp_frame->data[0] == AVC_STATUS_INTERIM) {
-		/* It's a deffered transaction, wait again. */
-		g_byte_array_remove_range(trans.resp_frame, 0,
-					  trans.resp_frame->len);
+	} else if (trans.resp_frame[0] == AVC_STATUS_INTERIM) {
+		// It's a deffered transaction, wait again.
+		trans.resp_frame[0] = 0x00;
 		goto deferred;
 	}
 end:
@@ -265,11 +268,12 @@ static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode)
 	for (entry = priv->transactions; entry != NULL; entry = entry->next) {
 		trans = (struct fcp_transaction *)entry->data;
 
-		if (g_array_index(trans->req_frame, guint8, 1) == req_frame[1] &&
-		    g_array_index(trans->req_frame, guint8, 2) == req_frame[2]) {
+		if (trans->req_frame[1] == req_frame[1] &&
+		    trans->req_frame[2] == req_frame[2]) {
+			length = MIN(length, trans->resp_frame_size);
+
 			g_mutex_lock(&trans->mutex);
-			g_byte_array_append(trans->resp_frame,
-					    (guint8 *)req_frame, length);
+			memcpy((void *)trans->resp_frame, req_frame, length);
 			g_cond_signal(&trans->cond);
 			g_mutex_unlock(&trans->mutex);
 			break;
