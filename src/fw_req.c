@@ -8,12 +8,10 @@
 /**
  * SECTION:fw_req
  * @Title: HinawaFwReq
- * @Short_description: A transaction executor to a FireWire unit
+ * @Short_description: A transaction executor to a FireWire unit.
  *
- * A HinawaFwReq supports three types of transactions in IEEE 1212:
- *  - read
- *  - write
- *  - lock
+ * A HinawaFwReq supports some types of transactions in IEEE 1212. Mainly for
+ * read, write and lock operations.
  *
  * This class is an application of Linux FireWire subsystem. All of operations
  * utilize ioctl(2) with subsystem specific request commands.
