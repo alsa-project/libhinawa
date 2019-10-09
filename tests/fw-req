@@ -18,6 +18,7 @@ methods = (
     'write',
     'read',
     'lock',
+    'transaction',
 )
 vmethods = ()
 signals = ()
