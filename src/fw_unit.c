@@ -28,9 +28,6 @@ G_DEFINE_QUARK("HinawaFwUnit", hinawa_fw_unit)
 struct _HinawaFwUnitPrivate {
 	HinawaFwNode *node;
 	GSource *src;
-	int fd;
-
-	GSource *unit_src;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwUnit, hinawa_fw_unit, G_TYPE_OBJECT)
 
@@ -100,8 +97,6 @@ static void fw_unit_finalize(GObject *obj)
 	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(self);
 
 	hinawa_fw_unit_unlisten(self);
-
-	close(priv->fd);
 
 	g_object_unref(priv->node);
 
@@ -238,33 +233,14 @@ static void handle_disconnected(HinawaFwNode *node, gpointer arg)
  */
 void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 {
-	struct fw_cdev_get_info info = {0};
 	HinawaFwUnitPrivate *priv;
-	int fd;
 
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
 	priv = hinawa_fw_unit_get_instance_private(self);
 
-	fd = open(path, O_RDONLY);
-	if (fd < 0) {
-		raise(exception, errno);
-		return;
-	}
-	priv->fd = fd;
-
-	info.version = 4;
-	if (ioctl(priv->fd, FW_CDEV_IOC_GET_INFO, &info) < 0) {
-		raise(exception, errno);
-		close(priv->fd);
-		priv->fd = -1;
-		return;
-	}
-
 	hinawa_fw_node_open(priv->node, path, exception);
-	if (*exception != NULL) {
-		close(priv->fd);
-		priv->fd = -1;
-	}
+	if (*exception != NULL)
+		return;
 
 	g_signal_connect(G_OBJECT(priv->node), "bus_update",
 			 G_CALLBACK(handle_bus_update), self);
@@ -298,97 +274,6 @@ const guint8 *hinawa_fw_unit_get_config_rom(HinawaFwUnit *self, guint *length)
 	return image;
 }
 
-static gboolean prepare_src(GSource *src, gint *timeout)
-{
-	// Use blocking poll(2) to save CPU usage.
-	*timeout = -1;
-
-	/* This source is not ready, let's poll(2) */
-	return FALSE;
-}
-
-static gboolean check_src(GSource *gsrc)
-{
-	FwUnitSource *src = (FwUnitSource *)gsrc;
-	GIOCondition condition;
-
-	condition = g_source_query_unix_fd(gsrc, src->tag);
-	if (condition & G_IO_ERR) {
-		HinawaFwUnit *unit = src->unit;
-
-		if (unit != NULL)
-			hinawa_fw_unit_unlisten(unit);
-	}
-
-	// Don't go to dispatch if nothing available.
-	return !!(condition & G_IO_IN);
-}
-
-static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
-{
-	FwUnitSource *src = (FwUnitSource *)gsrc;
-	HinawaFwUnit *unit = src->unit;
-	HinawaFwUnitPrivate *priv;
-	struct fw_cdev_event_common *common;
-	int len;
-
-	if (unit == NULL)
-		goto end;
-	priv = hinawa_fw_unit_get_instance_private(unit);
-
-	len = read(priv->fd, src->buf, src->len);
-	if (len <= 0)
-		goto end;
-
-	common = (struct fw_cdev_event_common *)src->buf;
-end:
-	/* Just be sure to continue to process this source. */
-	return G_SOURCE_CONTINUE;
-}
-
-static void finalize_src(GSource *gsrc)
-{
-	FwUnitSource *src = (FwUnitSource *)gsrc;
-
-	g_free(src->buf);
-}
-
-static void fw_unit_create_source(HinawaFwUnit *self, GSource **gsrc,
-				  GError **exception)
-{
-	static GSourceFuncs funcs = {
-		.prepare	= prepare_src,
-		.check		= check_src,
-		.dispatch	= dispatch_src,
-		.finalize	= finalize_src,
-	};
-	HinawaFwUnitPrivate *priv;
-	FwUnitSource *src;
-
-	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
-	priv = hinawa_fw_unit_get_instance_private(self);
-
-	*gsrc = g_source_new(&funcs, sizeof(FwUnitSource));
-
-	g_source_set_name(*gsrc, "HinawaFwUnit");
-	g_source_set_priority(*gsrc, G_PRIORITY_HIGH_IDLE);
-	g_source_set_can_recurse(*gsrc, TRUE);
-
-	// MEMO: allocate one page because we cannot assume the size of
-	// transaction frame.
-	src = (FwUnitSource *)(*gsrc);
-	src->len = sysconf(_SC_PAGESIZE);
-	src->buf = g_malloc0(src->len);
-	if (src->buf == NULL) {
-		raise(exception, ENOMEM);
-		g_source_unref(*gsrc);
-		return;
-	}
-
-	src->unit = self;
-	src->tag = g_source_add_unix_fd(*gsrc, priv->fd, G_IO_IN);
-}
-
 /**
  * hinawa_fw_unit_listen:
  * @self: A #HinawaFwUnit
@@ -402,18 +287,6 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
 	priv = hinawa_fw_unit_get_instance_private(self);
-
-	if (priv->unit_src == NULL) {
-		fw_unit_create_source(self, &priv->unit_src, exception);
-		if (*exception != NULL)
-			return;
-
-		hinawa_context_add_src(priv->unit_src, exception);
-		if (*exception != NULL) {
-			hinawa_fw_unit_unlisten(self);
-			return;
-		}
-	}
 
 	if (priv->src == NULL) {
 		hinawa_fw_node_create_source(priv->node, &priv->src, exception);
@@ -442,12 +315,6 @@ void hinawa_fw_unit_unlisten(HinawaFwUnit *self)
 
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
 	priv = hinawa_fw_unit_get_instance_private(self);
-
-	if (priv->unit_src != NULL) {
-		hinawa_context_remove_src(priv->unit_src);
-		g_source_unref(priv->unit_src);
-		priv->unit_src = NULL;
-	}
 
 	if (priv->src != NULL) {
 		hinawa_context_remove_src(priv->src);
