@@ -165,7 +165,7 @@ if unit.get_property('type') is Hinawa.SndUnitType.DICE:
     args.append(0x0000030c)
     try:
         # The address of clock in Impact Twin
-        unit.transact(0xffffe0000074, args, 0x00000020)
+        unit.transaction(0xffffe0000074, args, 0x00000020)
     except Exception as e:
         print(e)
         exit()
