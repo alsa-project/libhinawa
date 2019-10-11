@@ -80,36 +80,17 @@ static void fw_unit_get_property(GObject *obj, guint id,
 {
 	HinawaFwUnit *self = HINAWA_FW_UNIT(obj);
 	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(self);
+	GObject *node = G_OBJECT(priv->node);
 
 	switch (id) {
 	case FW_UNIT_PROP_TYPE_NODE_ID:
-		g_mutex_lock(&priv->mutex);
-		g_value_set_ulong(val, priv->generation.node_id);
-		g_mutex_unlock(&priv->mutex);
-		break;
 	case FW_UNIT_PROP_TYPE_LOCAL_NODE_ID:
-		g_mutex_lock(&priv->mutex);
-		g_value_set_ulong(val, priv->generation.local_node_id);
-		g_mutex_unlock(&priv->mutex);
-		break;
 	case FW_UNIT_PROP_TYPE_BUS_MANAGER_NODE_ID:
-		g_mutex_lock(&priv->mutex);
-		g_value_set_ulong(val, priv->generation.bm_node_id);
-		g_mutex_unlock(&priv->mutex);
-		break;
 	case FW_UNIT_PROP_TYPE_IR_MANAGER_NODE_ID:
-		g_mutex_lock(&priv->mutex);
-		g_value_set_ulong(val, priv->generation.irm_node_id);
-		g_mutex_unlock(&priv->mutex);
-		break;
 	case FW_UNIT_PROP_TYPE_ROOT_NODE_ID:
-		g_mutex_lock(&priv->mutex);
-		g_value_set_ulong(val, priv->generation.root_node_id);
-		g_mutex_unlock(&priv->mutex);
-		break;
 	case FW_UNIT_PROP_TYPE_GENERATION:
 		g_mutex_lock(&priv->mutex);
-		g_value_set_ulong(val, priv->generation.generation);
+		g_object_get_property(node, fw_unit_props[id]->name, val);
 		g_mutex_unlock(&priv->mutex);
 		break;
 	case FW_UNIT_PROP_TYPE_LISTENING:
