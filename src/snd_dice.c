@@ -125,18 +125,23 @@ void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
 }
 
 /**
- * hinawa_snd_dice_transact:
+ * hinawa_snd_dice_transaction:
  * @self: A #HinawaSndDice
  * @addr: A destination address of target device
- * @frame: (element-type guint32) (array) (in): a 32bit array
+ * @frame: (array length=frame_count)(in): An array with elements for quadlet
+ *	   data to transmit.
+ * @frame_count: The number of quadlets in the frame.
  * @bit_flag: bit flag to wait
  * @exception: A #GError
  *
  * Execute write transactions to the given address, then wait and check
  * notification.
+ *
+ * Since: 1.4.0.
  */
-void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
-			      guint32 bit_flag, GError **exception)
+void hinawa_snd_dice_transaction(HinawaSndDice *self, guint64 addr,
+			         const guint32 *frame, gsize frame_count,
+				 guint32 bit_flag, GError **exception)
 {
 	HinawaSndDicePrivate *priv;
 	HinawaSndUnit *unit;
@@ -151,23 +156,22 @@ void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
 
 	g_return_if_fail(HINAWA_IS_SND_DICE(self));
 	priv = hinawa_snd_dice_get_instance_private(self);
-	unit = &self->parent_instance;
 
-	length = g_array_get_element_size(frame) * frame->len;
-	if (length == 4)
+	if (frame_count == 1)
 		tcode = HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST;
 	else
 		tcode = HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST;
 
 	// Alignment data on given buffer to local buffer for transaction.
+	length = frame_count * sizeof(*frame);
 	req_frame = g_malloc0(length);
 	if (req_frame == NULL) {
 		raise(exception, ENOMEM);
 		return;
 	}
-	for (i = 0; i < frame->len; ++i) {
-		guint32 datum = GUINT32_TO_BE(g_array_index(frame, guint32, i));
-		memcpy(req_frame, &datum, sizeof(datum));
+	for (i = 0; i < frame_count; ++i) {
+		__be32 quad = GUINT32_TO_BE(frame[i]);
+		memcpy(req_frame + i * sizeof(quad), &quad, sizeof(quad));
 	}
 
 	// This predicates against suprious wakeup.
@@ -183,6 +187,7 @@ void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
 
 	// NOTE: I believe that a pair of this action/subaction is done within
 	// default timeout of HinawaFwReq.
+	unit = &self->parent_instance;
 	hinawa_fw_unit_get_node(&unit->parent_instance, &node);
 	hinawa_fw_req_transaction(priv->req, node, tcode, addr, length,
 				  &req_frame, &length, exception);
@@ -201,6 +206,27 @@ end:
 
 	g_mutex_unlock(&priv->mutex);
 	g_cond_clear(&waiter.cond);
+}
+
+/**
+ * hinawa_snd_dice_transact:
+ * @self: A #HinawaSndDice
+ * @addr: A destination address of target device
+ * @frame: (element-type guint32) (array) (in): a 32bit array
+ * @bit_flag: bit flag to wait
+ * @exception: A #GError
+ *
+ * Execute write transactions to the given address, then wait and check
+ * notification.
+ *
+ * Deprecated: 1.4.0: Use hinawa_snd_dice_transaction(), instead.
+ */
+void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
+			      guint32 bit_flag, GError **exception)
+{
+	hinawa_snd_dice_transaction(self, addr,
+				    (const guint32 *)frame->data, frame->len,
+				    bit_flag, exception);
 }
 
 static void snd_dice_notify_notification(void *target, void *data,

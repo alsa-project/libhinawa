@@ -116,4 +116,5 @@ HINAWA_1_4_0 {
     "hinawa_fw_fcp_unbind";
 
     "hinawa_snd_efw_transaction";
+    "hinawa_snd_dice_transaction";
 };
