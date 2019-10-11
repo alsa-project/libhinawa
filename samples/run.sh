@@ -6,9 +6,7 @@
 # LD_LIBRARY_PATH and GI_TYPELIB_PATH environments variables should be se
 # in advance.
 
-if [[ $1 == 'qt4' ]] ; then
-	./samples/qt4.py
-elif [[ $1 == 'qt5' ]] ; then
+if [[ $1 == 'qt5' ]] ; then
 	./samples/qt5.py
 elif [[ $1 == 'gtk' ]] ; then
 	./samples/gtk3.py
