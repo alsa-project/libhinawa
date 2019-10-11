@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
-import sys
+from sys import exit
 
 # Gtk+3 gir
 import gi
@@ -55,7 +55,7 @@ for p in Path('/dev/snd/').glob('hw*'):
 
 if 'snd_unit' not in locals():
     print('No sound FireWire devices found.')
-    sys.exit()
+    exit()
 
 # create sound unit
 def handle_lock_status(snd_unit, status):
@@ -98,7 +98,7 @@ try:
     snd_unit.listen()
 except Exception as e:
     print(e)
-    sys.exit()
+    exit()
 print(" listening:\t{0}".format(snd_unit.get_property('listening')))
 
 # create firewire responder
@@ -114,7 +114,7 @@ try:
     resp.connect('requested', handle_request)
 except Exception as e:
     print(e)
-    sys.exit()
+    exit()
 
 # create firewire requester
 req = Hinawa.FwReq()
@@ -131,13 +131,13 @@ if snd_unit.get_property('type') in fcp_types:
         fcp.listen(snd_unit)
     except Exception as e:
         print(e)
-        sys.exit()
+        exit()
     request = bytes([0x01, 0xff, 0x19, 0x00, 0xff, 0xff, 0xff, 0xff])
     try:
         response = fcp.transact(request)
     except Exception as e:
         print(e)
-        sys.exit()
+        exit()
     print('FCP Response:')
     for i in range(len(response)):
         print(' [{0:02d}]: 0x{1:02x}'.format(i, response[i]))
@@ -152,7 +152,7 @@ if snd_unit.get_property("type") is 2:
         params = snd_unit.transact(6, 1, args)
     except Exception as e:
         print(e)
-        sys.exit()
+        exit()
     print('Echo Fireworks Transaction Response:')
     for i in range(len(params)):
         print(" [{0:02d}]: {1:08x}".format(i, params[i]))
@@ -169,7 +169,7 @@ if snd_unit.get_property('type') is Hinawa.SndUnitType.DICE:
         snd_unit.transact(0xffffe0000074, args, 0x00000020)
     except Exception as e:
         print(e)
-        sys.exit()
+        exit()
 
 # Dg00x message
 def handle_message(self, message):
@@ -254,4 +254,4 @@ print('delete fw_resp object')
 del req
 print('delete fw_req object')
 
-sys.exit()
+exit()
