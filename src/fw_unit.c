@@ -261,6 +261,25 @@ static void update_info(HinawaFwUnit *self, GError **exception)
 	priv->config_rom_length = info.rom_length;
 }
 
+static void handle_bus_update(HinawaFwNode *node, gpointer arg)
+{
+	HinawaFwUnit *self = (HinawaFwUnit *)arg;
+	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(self);
+
+	g_mutex_lock(&priv->mutex);
+	update_info(self, NULL);
+	g_mutex_unlock(&priv->mutex);
+
+	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE], 0, NULL);
+}
+
+static void handle_disconnected(HinawaFwNode *node, gpointer arg)
+{
+	HinawaFwUnit *self = (HinawaFwUnit *)arg;
+
+	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_DISCONNECTED], 0);
+}
+
 /**
  * hinawa_fw_unit_open:
  * @self: A #HinawaFwUnit
@@ -293,6 +312,11 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 		close(priv->fd);
 		priv->fd = -1;
 	}
+
+	g_signal_connect(G_OBJECT(priv->node), "bus_update",
+			 G_CALLBACK(handle_bus_update), self);
+	g_signal_connect(G_OBJECT(priv->node), "disconnected",
+			 G_CALLBACK(handle_disconnected), self);
 }
 
 /**
@@ -331,38 +355,6 @@ void hinawa_fw_unit_ioctl(HinawaFwUnit *self, unsigned long req, void *args,
 		*err = errno;
 }
 
-static void fw_unit_notify_update(void *target, void *data, unsigned int length)
-{
-	HinawaFwUnit *self = target;
-
-	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE], 0, NULL);
-}
-
-static void fw_unit_notify_disconnected(void *target, void *data,
-					unsigned int length)
-{
-	HinawaFwUnit *self = target;
-
-	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_DISCONNECTED], 0);
-}
-
-static void handle_update(HinawaFwUnit *self,
-			  struct fw_cdev_event_bus_reset *event)
-{
-	HinawaFwUnitPrivate *priv;
-	int err = 0;
-
-	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
-	priv = hinawa_fw_unit_get_instance_private(self);
-
-	g_mutex_lock(&priv->mutex);
-	update_info(self, NULL);
-	g_mutex_unlock(&priv->mutex);
-
-	hinawa_context_schedule_notification(self, NULL, 0,
-					     fw_unit_notify_update, &err);
-}
-
 static gboolean prepare_src(GSource *src, gint *timeout)
 {
 	// Use blocking poll(2) to save CPU usage.
@@ -380,15 +372,9 @@ static gboolean check_src(GSource *gsrc)
 	condition = g_source_query_unix_fd(gsrc, src->tag);
 	if (condition & G_IO_ERR) {
 		HinawaFwUnit *unit = src->unit;
-		int err = 0;
 
-		if (unit != NULL) {
+		if (unit != NULL)
 			hinawa_fw_unit_unlisten(unit);
-
-			hinawa_context_schedule_notification(unit, NULL, 0,
-						fw_unit_notify_disconnected,
-						&err);
-		}
 	}
 
 	// Don't go to dispatch if nothing available.
@@ -413,11 +399,7 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 
 	common = (struct fw_cdev_event_common *)src->buf;
 
-	if (HINAWA_IS_FW_UNIT(common->closure) &&
-	    common->type == FW_CDEV_EVENT_BUS_RESET)
-		handle_update(HINAWA_FW_UNIT(common->closure),
-				(struct fw_cdev_event_bus_reset *)common);
-	else if (HINAWA_IS_FW_RESP(common->closure) &&
+	if (HINAWA_IS_FW_RESP(common->closure) &&
 		 common->type == FW_CDEV_EVENT_REQUEST2)
 		hinawa_fw_resp_handle_request(HINAWA_FW_RESP(common->closure),
 				(struct fw_cdev_event_request2 *)common);
