@@ -4,6 +4,7 @@ from pathlib import Path
 from sys import exit
 from array import array
 from signal import SIGINT
+from struct import unpack
 
 import gi
 gi.require_version('GLib', '2.0')
@@ -72,10 +73,9 @@ print('  ir-manager:\t{0:04x}'.format(unit.get_property('ir-manager-node-id')))
 print('  generation:\t{0}'.format(unit.get_property('generation')))
 print(' Config ROM:')
 config_rom = unit.get_config_rom()
-for i in range(len(config_rom) // 4):
-    print('  [{0:016x}]: {1:02x}{2:02x}{3:02x}{4:02x}'.format(
-        0xfffff0000000 + i * 4, config_rom[i * 4], config_rom[i * 4 + 1],
-        config_rom[i * 4 + 2], config_rom[i * 4 + 3]))
+quads = unpack('>{}I'.format(len(config_rom) // 4), config_rom)
+for i, q in enumerate(quads):
+    print('  0xfffff000{:04x}: {:08x}'.format(i * 4, q))
 
 # create FireWire unit
 def handle_bus_update(unit):
