@@ -13,6 +13,7 @@ target = Hinawa.FwNode()
 props = ()
 methods = (
     'new',
+    'open',
 )
 vmethods = ()
 signals = ()

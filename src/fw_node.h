@@ -47,6 +47,9 @@ GType hinawa_fw_node_get_type(void) G_GNUC_CONST;
 
 HinawaFwNode *hinawa_fw_node_new(void);
 
+void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
+			 GError **exception);
+
 G_END_DECLS
 
 #endif
