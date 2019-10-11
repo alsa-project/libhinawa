@@ -34,6 +34,7 @@ G_DEFINE_QUARK("HinawaFwUnit", hinawa_fw_unit)
 #define MAX_CONFIG_ROM_LENGTH	(MAX_CONFIG_ROM_SIZE * 4)
 
 struct _HinawaFwUnitPrivate {
+	HinawaFwNode *node;
 	int fd;
 
 	GMutex mutex;
@@ -137,6 +138,8 @@ static void fw_unit_finalize(GObject *obj)
 
 	g_mutex_clear(&priv->mutex);
 
+	g_object_unref(priv->node);
+
 	G_OBJECT_CLASS(hinawa_fw_unit_parent_class)->finalize(obj);
 }
 
@@ -231,6 +234,7 @@ static void hinawa_fw_unit_init(HinawaFwUnit *self)
 {
 	HinawaFwUnitPrivate *priv= hinawa_fw_unit_get_instance_private(self);
 	g_mutex_init(&priv->mutex);
+	priv->node = hinawa_fw_node_new();
 }
 
 /**
@@ -301,6 +305,12 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 	g_mutex_lock(&priv->mutex);
 	update_info(self, exception);
 	g_mutex_unlock(&priv->mutex);
+
+	hinawa_fw_node_open(priv->node, path, exception);
+	if (*exception != NULL) {
+		close(priv->fd);
+		priv->fd = -1;
+	}
 }
 
 /**
