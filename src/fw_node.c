@@ -31,6 +31,7 @@
 struct _HinawaFwNodePrivate {
 	int fd;
 
+	GMutex mutex;
 	guint8 config_rom[MAX_CONFIG_ROM_LENGTH];
 	unsigned int config_rom_length;
 	struct fw_cdev_event_bus_reset generation;
@@ -80,6 +81,8 @@ static void fw_node_get_property(GObject *obj, guint id,
 	HinawaFwNode *self = HINAWA_FW_NODE(obj);
 	HinawaFwNodePrivate *priv = hinawa_fw_node_get_instance_private(self);
 
+	g_mutex_lock(&priv->mutex);
+
 	switch (id) {
 	case FW_NODE_PROP_TYPE_NODE_ID:
 		g_value_set_ulong(val, priv->generation.node_id);
@@ -103,6 +106,8 @@ static void fw_node_get_property(GObject *obj, guint id,
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
 		break;
 	}
+
+	g_mutex_unlock(&priv->mutex);
 }
 
 static void fw_node_set_property(GObject *obj, guint id,
@@ -165,6 +170,7 @@ static void hinawa_fw_node_init(HinawaFwNode *self)
 	HinawaFwNodePrivate *priv = hinawa_fw_node_get_instance_private(self);
 
 	priv->fd = -1;
+	g_mutex_init(&priv->mutex);
 }
 
 /**
@@ -193,6 +199,7 @@ static void update_info(HinawaFwNode *self, GError **exception)
 	info.rom = (__u64)priv->config_rom;
 	info.rom_length = MAX_CONFIG_ROM_LENGTH;
 	info.bus_reset = (__u64)&priv->generation;
+	info.bus_reset_closure = (__u64)self;
 	if (ioctl(priv->fd, FW_CDEV_IOC_GET_INFO, &info) < 0) {
 		raise(exception, errno);
 		return;
@@ -234,7 +241,9 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
 	if (priv->fd < 0)
 		raise(exception, errno);
 
+	g_mutex_lock(&priv->mutex);
 	update_info(self, exception);
+	g_mutex_unlock(&priv->mutex);
 }
 
 /**
@@ -267,8 +276,24 @@ void hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
 		return;
 	}
 
+	g_mutex_lock(&priv->mutex);
+
 	*image = priv->config_rom;
 	*length = priv->config_rom_length;
+
+	g_mutex_unlock(&priv->mutex);
+}
+
+static void handle_update(HinawaFwNode *self, GError **exception)
+{
+	HinawaFwNodePrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_FW_NODE(self));
+	priv = hinawa_fw_node_get_instance_private(self);
+
+	g_mutex_lock(&priv->mutex);
+	update_info(self, exception);
+	g_mutex_unlock(&priv->mutex);
 }
 
 static gboolean prepare_src(GSource *src, gint *timeout)
@@ -297,6 +322,8 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 {
 	FwNodeSource *src = (FwNodeSource *)gsrc;
 	HinawaFwNodePrivate *priv;
+	struct fw_cdev_event_common *common;
+	GError *exception = NULL;
 	int len;
 
 	if (src->self == NULL || !HINAWA_IS_FW_NODE(src->self))
@@ -314,7 +341,13 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		return G_SOURCE_REMOVE;
 	}
 
-	// Dispatch the event.
+	common = (struct fw_cdev_event_common *)src->buf;
+	if (HINAWA_IS_FW_NODE(common->closure) &&
+	    common->type == FW_CDEV_EVENT_BUS_RESET)
+		handle_update(src->self, &exception);
+
+	if (exception != NULL)
+		return G_SOURCE_REMOVE;
 
 	// Just be sure to continue to process this source.
 	return G_SOURCE_CONTINUE;
