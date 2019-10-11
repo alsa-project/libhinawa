@@ -15,6 +15,12 @@
 
 G_DEFINE_TYPE(HinawaFwNode, hinawa_fw_node, G_TYPE_OBJECT)
 
+// For error handling.
+G_DEFINE_QUARK("HinawaFwNode", hinawa_fw_node)
+#define raise(exception, errno)						\
+	g_set_error(exception, hinawa_fw_node_quark(), errno,		\
+		    "%d: %s", __LINE__, strerror(errno))
+
 static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 {
 	return;
