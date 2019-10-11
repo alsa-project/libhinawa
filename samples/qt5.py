@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from pathlib import Path
 import sys
 
 # Qt5 python binding
@@ -17,8 +18,6 @@ import signal
 
 from array import array
 
-import glob
-
 # helper function
 def get_array():
     # The width with 'L' parameter is depending on environment.
@@ -34,7 +33,8 @@ snd_specific_types = {
     Hinawa.SndUnitType.DIGI00X:     Hinawa.SndDg00x,
     Hinawa.SndUnitType.MOTU:        Hinawa.SndMotu,
 }
-for fullpath in glob.glob('/dev/snd/hw*'):
+for p in Path('/dev/snd/').glob('hw*'):
+    fullpath = str(p)
     try:
         snd_unit = Hinawa.SndUnit()
         snd_unit.open(fullpath)
