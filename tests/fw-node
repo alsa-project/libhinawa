@@ -10,7 +10,14 @@ gi.require_version('Hinawa', '2.0')
 from gi.repository import Hinawa
 
 target = Hinawa.FwNode()
-props = ()
+props = (
+    'node-id',
+    'local-node-id',
+    'bus-manager-node-id',
+    'ir-manager-node-id',
+    'root-node-id',
+    'generation',
+)
 methods = (
     'new',
     'open',
