@@ -8,7 +8,7 @@ enum th_type {
 	TH_TYPE_COUNT,
 };
 
-static gint counter;
+static gint counter[TH_TYPE_COUNT];
 
 static GThread *th[TH_TYPE_COUNT];
 static gboolean running[TH_TYPE_COUNT];
@@ -137,7 +137,7 @@ void hinawa_context_add_src(GSource *src, GError **exception)
 {
 	G_LOCK(th_lock);
 
-	if (counter == 0) {
+	if (counter[TH_TYPE_DISPATCHER] == 0) {
 		// For dispatcher thread.
 		create_thread(TH_TYPE_DISPATCHER, exception);
 		if (*exception != NULL) {
@@ -145,15 +145,7 @@ void hinawa_context_add_src(GSource *src, GError **exception)
 			goto end;
 		}
 
-		// For sub thread.
-		create_thread(TH_TYPE_NOTIFIER, exception);
-		if (*exception != NULL) {
-			g_main_context_unref(ctx);
-			stop_thread(TH_TYPE_DISPATCHER);
-			goto end;
-		}
-
-		++counter;
+		++(counter[TH_TYPE_DISPATCHER]);
 	}
 
 	// NOTE: The returned ID is never used.
@@ -166,14 +158,31 @@ void hinawa_context_remove_src(GSource *src)
 {
 	G_LOCK(th_lock);
 
-	if (--counter == 0) {
+	if (--(counter[TH_TYPE_DISPATCHER]) == 0)
 		stop_thread(TH_TYPE_DISPATCHER);
-		stop_thread(TH_TYPE_NOTIFIER);
-	}
 
 	G_UNLOCK(th_lock);
 
 	g_source_destroy(src);
+}
+
+void hinawa_context_start_notifier(GError **exception)
+{
+	G_LOCK(th_lock);
+
+	if (counter[TH_TYPE_NOTIFIER] == 0) {
+		// For sub thread.
+		create_thread(TH_TYPE_NOTIFIER, exception);
+		if (*exception != NULL) {
+			g_main_context_unref(ctx);
+			stop_thread(TH_TYPE_DISPATCHER);
+			goto end;
+		}
+
+		++(counter[TH_TYPE_NOTIFIER]);
+	}
+end:
+	G_UNLOCK(th_lock);
 }
 
 void hinawa_context_schedule_notification(void *target, const void *data,
@@ -200,4 +209,14 @@ void hinawa_context_schedule_notification(void *target, const void *data,
 	works = g_list_append(works, work);
 	g_cond_signal(&cond);
 	g_mutex_unlock(&mutex);
+}
+
+void hinawa_context_stop_notifier(void)
+{
+	G_LOCK(th_lock);
+
+	if (counter[TH_TYPE_NOTIFIER] == 0)
+		stop_thread(TH_TYPE_NOTIFIER);
+
+	G_UNLOCK(th_lock);
 }

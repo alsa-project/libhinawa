@@ -422,6 +422,8 @@ static void finalize_src(GSource *gsrc)
 		ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
 
 	g_free(src->buf);
+
+	hinawa_context_stop_notifier();
 }
 
 /**
@@ -455,6 +457,10 @@ void hinawa_snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
 	g_source_set_priority(*gsrc, G_PRIORITY_HIGH_IDLE);
 	g_source_set_can_recurse(*gsrc, TRUE);
 
+	hinawa_context_start_notifier(exception);
+	if (*exception != NULL)
+		return;
+
 	// MEMO: allocate one page because we cannot assume the size of
 	// transaction frame.
 	src = (SndUnitSource *)(*gsrc);
@@ -463,6 +469,7 @@ void hinawa_snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
 	if (src->buf == NULL) {
 		raise(exception, ENOMEM);
 		g_source_unref(*gsrc);
+		hinawa_context_stop_notifier();
 		return;
 	}
 

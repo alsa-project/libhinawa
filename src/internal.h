@@ -27,6 +27,9 @@
 void hinawa_context_add_src(GSource *src, GError **exception);
 void hinawa_context_remove_src(GSource *src);
 
+void hinawa_context_start_notifier(GError **exception);
+void hinawa_context_stop_notifier();
+
 typedef void (*NotifierWorkFunc)(void *target, void *data, unsigned int length);
 void hinawa_context_schedule_notification(void *target, const void *data,
 				unsigned int length, NotifierWorkFunc func,

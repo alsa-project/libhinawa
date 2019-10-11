@@ -435,6 +435,8 @@ static void finalize_src(GSource *gsrc)
 	FwNodeSource *src = (FwNodeSource *)gsrc;
 
 	g_free(src->buf);
+
+	hinawa_context_stop_notifier();
 }
 
 /**
@@ -475,6 +477,11 @@ void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
         g_source_set_priority(*gsrc, G_PRIORITY_HIGH_IDLE);
         g_source_set_can_recurse(*gsrc, TRUE);
 
+	hinawa_context_start_notifier(exception);
+	if (*exception != NULL) {
+		return;
+	}
+
         // MEMO: allocate one page because we cannot assume the size of
         // transaction frame.
         src->len = sysconf(_SC_PAGESIZE);
@@ -482,6 +489,7 @@ void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
         if (src->buf == NULL) {
                 raise(exception, ENOMEM);
 		g_source_unref(*gsrc);
+		hinawa_context_stop_notifier();
                 return;
         }
 
