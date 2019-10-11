@@ -5,7 +5,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
 #include <errno.h>
+
+#include <linux/firewire-cdev.h>
 
 /**
  * SECTION:fw_node
@@ -19,8 +22,17 @@
  * Since: 1.4
  */
 
+// 256 comes from an actual implementation in kernel land. Read
+// 'drivers/firewire/core-device.c'. This value is calculated by a range for
+// configuration ROM in ISO/IEC 13213 (IEEE 1212).
+#define MAX_CONFIG_ROM_SIZE	256
+#define MAX_CONFIG_ROM_LENGTH	(MAX_CONFIG_ROM_SIZE * 4)
+
 struct _HinawaFwNodePrivate {
 	int fd;
+
+	guint8 config_rom[MAX_CONFIG_ROM_LENGTH];
+	unsigned int config_rom_length;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwNode, hinawa_fw_node, G_TYPE_OBJECT)
@@ -69,6 +81,32 @@ HinawaFwNode *hinawa_fw_node_new(void)
 	return g_object_new(HINAWA_TYPE_FW_NODE, NULL);
 }
 
+static void update_info(HinawaFwNode *self, GError **exception)
+{
+	HinawaFwNodePrivate *priv = hinawa_fw_node_get_instance_private(self);
+	struct fw_cdev_get_info info = {0};
+	guint32 *rom;
+	unsigned int quads;
+	int i;
+
+	// Duplicate generation parameters in userspace.
+	info.version = 4;
+	info.rom = (__u64)priv->config_rom;
+	info.rom_length = MAX_CONFIG_ROM_LENGTH;
+	if (ioctl(priv->fd, FW_CDEV_IOC_GET_INFO, &info) < 0) {
+		raise(exception, errno);
+		return;
+	}
+
+	// Align buffer for configuration ROM according to host endianness,
+	// because Linux firewire subsystem copies raw data to it.
+	rom = (guint32 *)priv->config_rom;
+	quads = (info.rom_length + 3) / 4;
+	for (i = 0; i < quads; ++i)
+		rom[i] = GUINT32_FROM_BE(rom[i]);
+	priv->config_rom_length = info.rom_length;
+}
+
 /**
  * hinawa_fw_node_open:
  * @self: A #HinawaFwNode
@@ -95,4 +133,6 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
 	priv->fd = open(path, O_RDONLY);
 	if (priv->fd < 0)
 		raise(exception, errno);
+
+	update_info(self, exception);
 }
