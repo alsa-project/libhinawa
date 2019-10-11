@@ -5,6 +5,7 @@ from sys import exit
 from array import array
 from signal import SIGINT
 from struct import unpack
+from threading import Thread
 
 import gi
 gi.require_version('GLib', '2.0')
@@ -47,7 +48,14 @@ if 'unit' not in locals():
     print('No sound FireWire devices found.')
     exit()
 
-# create sound unit
+# Start a thread to dispatch events from the sound unit.
+unit_ctx = GLib.MainContext.new()
+unit_src = unit.create_source()
+unit_src.attach(unit_ctx)
+unit_dispatcher = GLib.MainLoop.new(unit_ctx, False)
+unit_th = Thread(target=lambda d: d.run(), args=(unit_dispatcher,))
+unit_th.start()
+
 def handle_lock_status(unit, status):
     if status:
         print("streaming is locked.");
@@ -55,17 +63,24 @@ def handle_lock_status(unit, status):
         print("streaming is unlocked.");
 def handle_disconnected(unit):
     print('disconnected')
-    Gtk.main_quit()
+unit.connect("lock-status", handle_lock_status)
+unit.connect("disconnected", handle_disconnected)
+
 print('Sound device info:')
 print(' type:\t\t{0}'.format(unit.get_property("type").value_nick))
 print(' card:\t\t{0}'.format(unit.get_property("card")))
 print(' device:\t{0}'.format(unit.get_property("device")))
 print(' GUID:\t\t{0:016x}'.format(unit.get_property("guid")))
-unit.connect("lock-status", handle_lock_status)
-unit.connect("disconnected", handle_disconnected)
 
-# create FireWire node
+# Start a thread to dispatch events from the node.
 node = unit.get_node()
+node_ctx = GLib.MainContext.new()
+node_src = node.create_source()
+node_src.attach(node_ctx)
+node_dispatcher = GLib.MainLoop.new(node_ctx, False)
+node_th = Thread(target=lambda d: d.run(), args=(node_dispatcher,))
+node_th.start()
+
 def handle_bus_update(node):
     print('bus-reset: generation {0}'.format(node.get_property('generation')))
 node.connect("bus-update", handle_bus_update)
@@ -83,14 +98,6 @@ config_rom = node.get_config_rom()
 quads = unpack('>{}I'.format(len(config_rom) // 4), config_rom)
 for i, q in enumerate(quads):
     print('  0xfffff000{:04x}: {:08x}'.format(i * 4, q))
-
-# start listening
-try:
-    unit.listen()
-except Exception as e:
-    print(e)
-    exit()
-print(" listening:\t{0}".format(unit.get_property('listening')))
 
 # create firewire responder
 resp = Hinawa.FwResp()
@@ -234,9 +241,15 @@ Gtk.main()
 del win
 print('delete window object')
 
-unit.unlisten()
-del unit
-print('delete unit object')
+unit_dispatcher.quit()
+unit_th.join()
+del unit_src
+del unit_dispatcher
+
+node_dispatcher.quit()
+node_th.join()
+del node_src
+del node_dispatcher
 
 resp.unregister()
 del resp

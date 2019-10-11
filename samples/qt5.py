@@ -5,6 +5,7 @@ from sys import exit, argv
 from array import array
 from signal import SIGINT
 from struct import unpack
+from threading import Thread
 
 import gi
 gi.require_version('GLib', '2.0')
@@ -48,7 +49,29 @@ if 'unit' not in locals():
     print('No sound FireWire devices found.')
     exit()
 
-# create sound unit
+# create firewire responder
+resp = Hinawa.FwResp()
+def handle_request(resp, tcode):
+    print('Requested with tcode: {0}'.format(tcode.value_nick))
+    req_frame = resp.get_req_frame()
+    for i in range(len(req_frame)):
+        print(' [{0:02d}]: 0x{1:02x}'.format(i, req_frame[i]))
+    return Hinawa.FwRcode.COMPLETE
+try:
+    resp.register(unit, 0xfffff0000d00, 0x100)
+    resp.connect('requested', handle_request)
+except Exception as e:
+    print(e)
+    exit()
+
+# Start a thread to dispatch events from the sound unit.
+unit_ctx = GLib.MainContext.new()
+unit_src = unit.create_source()
+unit_src.attach(unit_ctx)
+unit_dispatcher = GLib.MainLoop.new(unit_ctx, False)
+unit_th = Thread(target=lambda d: d.run(), args=(unit_dispatcher,))
+unit_th.start()
+
 def handle_lock_status(unit, status):
     if status:
         print("streaming is locked.");
@@ -56,17 +79,24 @@ def handle_lock_status(unit, status):
         print("streaming is unlocked.");
 def handle_disconnected(unit):
     print('disconnected')
-    app.quit()
+unit.connect("lock-status", handle_lock_status)
+unit.connect("disconnected", handle_disconnected)
+
 print('Sound device info:')
 print(' type:\t\t{0}'.format(unit.get_property("type").value_nick))
 print(' card:\t\t{0}'.format(unit.get_property("card")))
 print(' device:\t{0}'.format(unit.get_property("device")))
 print(' GUID:\t\t{0:016x}'.format(unit.get_property("guid")))
-unit.connect("lock-status", handle_lock_status)
-unit.connect("disconnected", handle_disconnected)
 
-# create FireWire node
+# Start a thread to dispatch events from the node.
 node = unit.get_node()
+node_ctx = GLib.MainContext.new()
+node_src = node.create_source()
+node_src.attach(node_ctx)
+node_dispatcher = GLib.MainLoop.new(node_ctx, False)
+node_th = Thread(target=lambda d: d.run(), args=(node_dispatcher,))
+node_th.start()
+
 def handle_bus_update(node):
     print('bus-reset: generation {0}'.format(node.get_property('generation')))
 node.connect("bus-update", handle_bus_update)
@@ -84,29 +114,6 @@ config_rom = node.get_config_rom()
 quads = unpack('>{}I'.format(len(config_rom) // 4), config_rom)
 for i, q in enumerate(quads):
     print('  0xfffff000{:04x}: {:08x}'.format(i * 4, q))
-
-# start listening
-try:
-    unit.listen()
-except Exception as e:
-    print(e)
-    exit()
-print(" listening:\t{0}".format(unit.get_property('listening')))
-
-# create firewire responder
-resp = Hinawa.FwResp()
-def handle_request(resp, tcode):
-    print('Requested with tcode: {0}'.format(tcode.value_nick))
-    req_frame = resp.get_req_frame()
-    for i in range(len(req_frame)):
-        print(' [{0:02d}]: 0x{1:02x}'.format(i, req_frame[i]))
-    return Hinawa.FwRcode.COMPLETE
-try:
-    resp.register(unit, 0xfffff0000d00, 0x100)
-    resp.connect('requested', handle_request)
-except Exception as e:
-    print(e)
-    exit()
 
 # create firewire requester
 req = Hinawa.FwReq()
@@ -241,9 +248,15 @@ del app
 del sample
 print('delete application object')
 
-unit.unlisten()
-del unit
-print('delete unit object')
+unit_dispatcher.quit()
+unit_th.join()
+del unit_src
+del unit_dispatcher
+
+node_dispatcher.quit()
+node_th.join()
+del node_src
+del node_dispatcher
 
 resp.unregister()
 del resp
