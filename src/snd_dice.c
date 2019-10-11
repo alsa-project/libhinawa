@@ -143,6 +143,7 @@ void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
 	HinawaFwTcode tcode;
 	unsigned int length;
 	guint8 *req_frame;
+	HinawaFwNode *node;
 	gint i;
 
 	struct notification_waiter waiter = {0};
@@ -182,8 +183,9 @@ void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
 
 	// NOTE: I believe that a pair of this action/subaction is done within
 	// default timeout of HinawaFwReq.
-	hinawa_fw_req_transaction(priv->req, &unit->parent_instance, tcode,
-				  addr, length, &req_frame, &length, exception);
+	hinawa_fw_unit_get_node(&unit->parent_instance, &node);
+	hinawa_fw_req_transaction(priv->req, node, tcode, addr, length,
+				  &req_frame, &length, exception);
 	g_free(req_frame);
 	if (*exception)
 		goto end;

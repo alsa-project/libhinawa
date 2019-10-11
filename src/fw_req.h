@@ -59,7 +59,7 @@ void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 			GByteArray **frame, HinawaFwTcode lock_tcode,
 			GError **exception);
 
-void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwUnit *unit,
+void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 			       HinawaFwTcode tcode, guint64 addr, guint length,
 			       guint8 *const *frame, guint *frame_size,
 			       GError **exception);

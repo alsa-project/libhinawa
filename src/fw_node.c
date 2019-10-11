@@ -410,9 +410,18 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	}
 
 	common = (struct fw_cdev_event_common *)src->buf;
+
 	if (HINAWA_IS_FW_NODE(common->closure) &&
 	    common->type == FW_CDEV_EVENT_BUS_RESET)
 		handle_update(src->self, &exception);
+	else if (HINAWA_IS_FW_RESP(common->closure) &&
+		 common->type == FW_CDEV_EVENT_REQUEST2)
+		hinawa_fw_resp_handle_request(HINAWA_FW_RESP(common->closure),
+				(struct fw_cdev_event_request2 *)common);
+	else if (HINAWA_IS_FW_REQ(common->closure) &&
+		 common->type == FW_CDEV_EVENT_RESPONSE)
+		hinawa_fw_req_handle_response(HINAWA_FW_REQ(common->closure),
+				(struct fw_cdev_event_response *)common);
 
 	if (exception != NULL)
 		return G_SOURCE_REMOVE;

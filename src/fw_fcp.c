@@ -61,7 +61,7 @@ struct fcp_transaction {
 };
 
 struct _HinawaFwFcpPrivate {
-	HinawaFwUnit *unit;
+	HinawaFwNode *node;
 
 	GList *transactions;
 	GMutex transactions_mutex;
@@ -223,7 +223,7 @@ void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
 	g_mutex_unlock(&priv->transactions_mutex);
 
 	// Send this request frame.
-	hinawa_fw_req_transaction(req, priv->unit,
+	hinawa_fw_req_transaction(req, priv->node,
 			HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST,
 			FCP_REQUEST_ADDR, trans.req_frame_size,
 			(guint8 *const *)&trans.req_frame, &trans.req_frame_size,
@@ -341,14 +341,15 @@ void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
 	priv = hinawa_fw_fcp_get_instance_private(self);
 
-	priv->unit = g_object_ref(unit);
+	hinawa_fw_unit_get_node(unit, &priv->node);
+	g_object_ref(priv->node);
 
-	hinawa_fw_resp_register(HINAWA_FW_RESP(self), priv->unit,
+	hinawa_fw_resp_register(HINAWA_FW_RESP(self), unit,
 				FCP_RESPOND_ADDR, FCP_MAXIMUM_FRAME_BYTES,
 				exception);
 	if (*exception != NULL) {
-		g_object_unref(priv->unit);
-		priv->unit = NULL;
+		g_object_unref(priv->node);
+		priv->node = NULL;
 		return;
 	}
 
@@ -371,8 +372,8 @@ void hinawa_fw_fcp_unlisten(HinawaFwFcp *self)
 
 	hinawa_fw_resp_unregister(HINAWA_FW_RESP(self));
 
-	if (priv->unit != NULL) {
-		g_object_unref(priv->unit);
-		priv->unit = NULL;
+	if (priv->node != NULL) {
+		g_object_unref(priv->node);
+		priv->node = NULL;
 	}
 }

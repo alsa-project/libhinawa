@@ -298,20 +298,6 @@ const guint8 *hinawa_fw_unit_get_config_rom(HinawaFwUnit *self, guint *length)
 	return image;
 }
 
-/* Internal use only. */
-void hinawa_fw_unit_ioctl(HinawaFwUnit *self, unsigned long req, void *args,
-			  int *err)
-{
-	HinawaFwUnitPrivate *priv;
-
-	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
-	priv = hinawa_fw_unit_get_instance_private(self);
-
-	*err = 0;
-	if (ioctl(priv->fd, req, args) < 0)
-		*err = errno;
-}
-
 static gboolean prepare_src(GSource *src, gint *timeout)
 {
 	// Use blocking poll(2) to save CPU usage.
@@ -355,15 +341,6 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		goto end;
 
 	common = (struct fw_cdev_event_common *)src->buf;
-
-	if (HINAWA_IS_FW_RESP(common->closure) &&
-		 common->type == FW_CDEV_EVENT_REQUEST2)
-		hinawa_fw_resp_handle_request(HINAWA_FW_RESP(common->closure),
-				(struct fw_cdev_event_request2 *)common);
-	else if (HINAWA_IS_FW_REQ(common->closure) &&
-		 common->type == FW_CDEV_EVENT_RESPONSE)
-		hinawa_fw_req_handle_response(HINAWA_FW_REQ(common->closure),
-				(struct fw_cdev_event_response *)common);
 end:
 	/* Just be sure to continue to process this source. */
 	return G_SOURCE_CONTINUE;

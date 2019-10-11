@@ -10,7 +10,7 @@
 /**
  * SECTION:fw_resp
  * @Title: HinawaFwResp
- * @Short_description: A transaction responder for a FireWire unit
+ * @Short_description: A transaction responder for a FireWire node.
  *
  * A HinawaFwResp responds requests from any units.
  *
@@ -25,7 +25,7 @@ G_DEFINE_QUARK("HinawaFwResp", hinawa_fw_resp)
 		    "%d: %s", __LINE__, strerror(errno))
 
 struct _HinawaFwRespPrivate {
-	HinawaFwUnit *unit;
+	HinawaFwNode *node;
 
 	guint width;
 	guint64 addr_handle;
@@ -66,7 +66,7 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	 * @self: A #HinawaFwResp
 	 * @tcode: One of #HinawaTcode enumerators
 	 *
-	 * When any units transfer requests to the range of address to which
+	 * When any node transfers requests to the range of address to which
 	 * this object listening. The ::requested signal handler can get data
 	 * frame by a call of ::get_req_frame and set data frame by a call of
 	 * ::set_resp_frame, then returns rcode.
@@ -122,22 +122,23 @@ void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
 	priv = hinawa_fw_resp_get_instance_private(self);
 
-	if (priv->unit != NULL) {
+	if (priv->node != NULL) {
 		raise(exception, EINVAL);
 		return;
 	}
-	priv->unit = g_object_ref(unit);
+	hinawa_fw_unit_get_node(unit, &priv->node);
+	g_object_ref(priv->node);
 
 	allocate.offset = addr;
 	allocate.closure = (guint64)self;
 	allocate.length = width;
 	allocate.region_end = addr + width;
 
-	hinawa_fw_unit_ioctl(priv->unit, FW_CDEV_IOC_ALLOCATE, &allocate, &err);
+	hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_ALLOCATE, &allocate, &err);
 	if (err != 0) {
 		raise(exception, err);
-		g_object_unref(priv->unit);
-		priv->unit = NULL;
+		g_object_unref(priv->node);
+		priv->node = NULL;
 		return;
 	}
 
@@ -174,14 +175,14 @@ void hinawa_fw_resp_unregister(HinawaFwResp *self)
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
 	priv = hinawa_fw_resp_get_instance_private(self);
 
-	if (priv->unit == NULL)
+	if (priv->node == NULL)
 		return;
 
 	deallocate.handle = priv->addr_handle;
-	hinawa_fw_unit_ioctl(priv->unit, FW_CDEV_IOC_DEALLOCATE, &deallocate,
+	hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_DEALLOCATE, &deallocate,
 			     &err);
-	g_object_unref(priv->unit);
-	priv->unit = NULL;
+	g_object_unref(priv->node);
+	priv->node = NULL;
 
 	if (priv->req_frame != NULL)
 		g_free(priv->req_frame);
@@ -263,7 +264,7 @@ static void fw_resp_notify_requested(void *target, void *data,
 	}
 
 	resp.handle = event->handle;
-	hinawa_fw_unit_ioctl(priv->unit, FW_CDEV_IOC_SEND_RESPONSE, &resp,
+	hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_SEND_RESPONSE, &resp,
 			     &err);
 
 	memset(priv->resp_frame, 0, priv->width);
@@ -282,7 +283,7 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
 	priv = hinawa_fw_resp_get_instance_private(self);
 
-	if (!priv->unit || event->length > priv->width) {
+	if (!priv->node || event->length > priv->width) {
 		resp.rcode = RCODE_CONFLICT_ERROR;
 		goto error;
 	}
@@ -296,6 +297,6 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 error:
 	resp.handle = event->handle;
 
-	hinawa_fw_unit_ioctl(priv->unit, FW_CDEV_IOC_SEND_RESPONSE,
+	hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_SEND_RESPONSE,
 			     &resp, &err);
 }
