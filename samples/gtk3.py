@@ -147,8 +147,11 @@ if unit.get_property('type') in fcp_types:
 if unit.get_property('type') is Hinawa.SndUnitType.FIREWORKS:
     args = array('I')
     args.append(5)
+    params = array('I')
+    params.append(0xffffffff)
+    params.append(0xffffffff)
     try:
-        params = unit.transact(6, 1, args)
+        params = unit.transaction(6, 1, args, params)
     except Exception as e:
         print(e)
         exit()
