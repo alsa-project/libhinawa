@@ -46,8 +46,9 @@
 
     <chapter id="hinawa-fw">
         <title>Hinawa objects for Linux FireWire subsystem.</title>
-        <para>This library gives 4 objects for abstractions of some
+        <para>This library gives 5 objects for abstractions of some
             features in Linux firewire stack.</para>
+        <xi:include href="xml/fw_node.xml"/>
         <xi:include href="xml/fw_unit.xml"/>
         <xi:include href="xml/fw_resp.xml"/>
         <xi:include href="xml/fw_req.xml"/>

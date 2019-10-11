@@ -1,4 +1,5 @@
 hinawa_fw_fcp_get_type
+hinawa_fw_node_get_type
 hinawa_fw_rcode_get_type
 hinawa_fw_req_get_type
 hinawa_fw_resp_get_type
