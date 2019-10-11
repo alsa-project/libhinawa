@@ -331,14 +331,18 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 const guint8 *hinawa_fw_unit_get_config_rom(HinawaFwUnit *self, guint *length)
 {
 	HinawaFwUnitPrivate *priv;
+	const guint8 *image;
+	GError *exception;
 
 	g_return_val_if_fail(HINAWA_IS_FW_UNIT(self), NULL);
 	priv = hinawa_fw_unit_get_instance_private(self);
 
-	if (length)
-		*length = priv->config_rom_length;
+	exception = NULL;
+	hinawa_fw_node_get_config_rom(priv->node, &image, length, &exception);
+	if (exception != NULL)
+		return NULL;
 
-	return priv->config_rom;
+	return image;
 }
 
 /* Internal use only. */
