@@ -26,70 +26,70 @@ snd_specific_types = {
 for p in Path('/dev/snd/').glob('hw*'):
     fullpath = str(p)
     try:
-        snd_unit = Hinawa.SndUnit()
-        snd_unit.open(fullpath)
+        unit = Hinawa.SndUnit()
+        unit.open(fullpath)
     except:
-        del snd_unit
+        del unit
         continue
 
-    snd_type = snd_unit.get_property('type')
+    snd_type = unit.get_property('type')
     if snd_type in snd_specific_types:
-        del snd_unit
-        snd_unit = snd_specific_types[snd_type]()
+        del unit
+        unit = snd_specific_types[snd_type]()
         try:
-            snd_unit.open(fullpath)
+            unit.open(fullpath)
         except:
-            del snd_unit
+            del unit
             continue
     break
 
-if 'snd_unit' not in locals():
+if 'unit' not in locals():
     print('No sound FireWire devices found.')
     exit()
 
 # create sound unit
-def handle_lock_status(snd_unit, status):
+def handle_lock_status(unit, status):
     if status:
         print("streaming is locked.");
     else:
         print("streaming is unlocked.");
-def handle_disconnected(snd_unit):
+def handle_disconnected(unit):
     print('disconnected')
     app.quit()
 print('Sound device info:')
-print(' type:\t\t{0}'.format(snd_unit.get_property("type").value_nick))
-print(' card:\t\t{0}'.format(snd_unit.get_property("card")))
-print(' device:\t{0}'.format(snd_unit.get_property("device")))
-print(' GUID:\t\t{0:016x}'.format(snd_unit.get_property("guid")))
-snd_unit.connect("lock-status", handle_lock_status)
-snd_unit.connect("disconnected", handle_disconnected)
+print(' type:\t\t{0}'.format(unit.get_property("type").value_nick))
+print(' card:\t\t{0}'.format(unit.get_property("card")))
+print(' device:\t{0}'.format(unit.get_property("device")))
+print(' GUID:\t\t{0:016x}'.format(unit.get_property("guid")))
+unit.connect("lock-status", handle_lock_status)
+unit.connect("disconnected", handle_disconnected)
 print('\nIEEE1394 Unit info:')
 print(' Node IDs:')
-print('  self:\t\t{0:04x}'.format(snd_unit.get_property('node-id')))
-print('  local:\t{0:04x}'.format(snd_unit.get_property('local-node-id')))
-print('  root:\t\t{0:04x}'.format(snd_unit.get_property('root-node-id')))
-print('  bus-manager:\t{0:04x}'.format(snd_unit.get_property('bus-manager-node-id')))
-print('  ir-manager:\t{0:04x}'.format(snd_unit.get_property('ir-manager-node-id')))
-print('  generation:\t{0}'.format(snd_unit.get_property('generation')))
+print('  self:\t\t{0:04x}'.format(unit.get_property('node-id')))
+print('  local:\t{0:04x}'.format(unit.get_property('local-node-id')))
+print('  root:\t\t{0:04x}'.format(unit.get_property('root-node-id')))
+print('  bus-manager:\t{0:04x}'.format(unit.get_property('bus-manager-node-id')))
+print('  ir-manager:\t{0:04x}'.format(unit.get_property('ir-manager-node-id')))
+print('  generation:\t{0}'.format(unit.get_property('generation')))
 print(' Config ROM:')
-config_rom = snd_unit.get_config_rom()
+config_rom = unit.get_config_rom()
 for i in range(len(config_rom) // 4):
     print('  [{0:016x}]: {1:02x}{2:02x}{3:02x}{4:02x}'.format(
         0xfffff0000000 + i * 4, config_rom[i * 4], config_rom[i * 4 + 1],
         config_rom[i * 4 + 2], config_rom[i * 4 + 3]))
 
 # create FireWire unit
-def handle_bus_update(snd_unit):
-    print('bus-reset: generation {0}'.format(snd_unit.get_property('generation')))
-snd_unit.connect("bus-update", handle_bus_update)
+def handle_bus_update(unit):
+    print('bus-reset: generation {0}'.format(unit.get_property('generation')))
+unit.connect("bus-update", handle_bus_update)
 
 # start listening
 try:
-    snd_unit.listen()
+    unit.listen()
 except Exception as e:
     print(e)
     exit()
-print(" listening:\t{0}".format(snd_unit.get_property('listening')))
+print(" listening:\t{0}".format(unit.get_property('listening')))
 
 # create firewire responder
 resp = Hinawa.FwResp()
@@ -100,7 +100,7 @@ def handle_request(resp, tcode):
         print(' [{0:02d}]: 0x{1:02x}'.format(i, req_frame[i]))
     return Hinawa.FwRcode.COMPLETE
 try:
-    resp.register(snd_unit, 0xfffff0000d00, 0x100)
+    resp.register(unit, 0xfffff0000d00, 0x100)
     resp.connect('requested', handle_request)
 except Exception as e:
     print(e)
@@ -115,10 +115,10 @@ fcp_types = (
     Hinawa.SndUnitType.BEBOB,
     Hinawa.SndUnitType.OXFW,
 )
-if snd_unit.get_property('type') in fcp_types:
+if unit.get_property('type') in fcp_types:
     fcp = Hinawa.FwFcp()
     try:
-        fcp.listen(snd_unit)
+        fcp.listen(unit)
     except Exception as e:
         print(e)
         exit()
@@ -133,11 +133,11 @@ if snd_unit.get_property('type') in fcp_types:
         print(' [{0:02d}]: 0x{1:02x}'.format(i, response[i]))
 
 # Echo Fireworks Transaction
-if snd_unit.get_property("type") is 2:
+if unit.get_property("type") is 2:
     args = array('I')
     args.append(5)
     try:
-        params = snd_unit.transact(6, 1, args)
+        params = unit.transact(6, 1, args)
     except Exception as e:
         print(e)
         exit()
@@ -148,13 +148,13 @@ if snd_unit.get_property("type") is 2:
 # Dice notification
 def handle_notification(self, message):
     print("Dice Notification: {0:08x}".format(message))
-if snd_unit.get_property('type') is Hinawa.SndUnitType.DICE:
-    snd_unit.connect('notified', handle_notification)
+if unit.get_property('type') is Hinawa.SndUnitType.DICE:
+    unit.connect('notified', handle_notification)
     args = array('I')
     args.append(0x0000030c)
     try:
         # The address of clock in Impact Twin
-        snd_unit.transact(0xffffe0000074, args, 0x00000020)
+        unit.transact(0xffffe0000074, args, 0x00000020)
     except Exception as e:
         print(e)
         exit()
@@ -162,15 +162,15 @@ if snd_unit.get_property('type') is Hinawa.SndUnitType.DICE:
 # Dg00x message
 def handle_message(self, message):
     print("Dg00x Messaging {0:08x}".format(message));
-if snd_unit.get_property('type') is Hinawa.SndUnitType.DIGI00X:
+if unit.get_property('type') is Hinawa.SndUnitType.DIGI00X:
     print('hear message')
-    snd_unit.connect('message', handle_message)
+    unit.connect('message', handle_message)
 
 # Motu notification and status
 def handle_motu_notification(self, message):
     print("Motu Notification: {0:08x}".format(message))
-if snd_unit.get_property('type') is Hinawa.SndUnitType.MOTU:
-    snd_unit.connect('notified', handle_motu_notification)
+if unit.get_property('type') is Hinawa.SndUnitType.MOTU:
+    unit.connect('notified', handle_motu_notification)
 
 # GUI
 class Sample(QWidget):
@@ -220,7 +220,7 @@ class Sample(QWidget):
     def transact(self, val):
         try:
             addr = int(self.addr.text(), 16)
-            vals = req.read(snd_unit, addr, 4)
+            vals = req.read(unit, addr, 4)
         except Exception as e:
             print(e)
             return
@@ -239,9 +239,9 @@ del app
 del sample
 print('delete application object')
 
-snd_unit.unlisten()
-del snd_unit
-print('delete snd_unit object')
+unit.unlisten()
+del unit
+print('delete unit object')
 
 resp.unregister()
 del resp
