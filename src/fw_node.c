@@ -136,3 +136,37 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
 
 	update_info(self, exception);
 }
+
+/**
+ * hinawa_fw_node_get_config_rom:
+ * @self: A #HinawaFwNode
+ * @image: (element-type guint8)(array length=length)(out): The content of
+ *	   configuration ROM.
+ * @length: (out): The number of bytes consists of the configuration rom.
+ * @exception: A #GError.
+ *
+ * Get cached content of configuration ROM.
+ *
+ * Since: 1.4.
+ */
+void hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
+				   guint *length, GError **exception)
+{
+	HinawaFwNodePrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_FW_NODE(self));
+	priv = hinawa_fw_node_get_instance_private(self);
+
+	if (priv->fd < 0) {
+		raise(exception, ENXIO);
+		return;
+	}
+
+	if (image == NULL || length == NULL) {
+		raise(exception, EINVAL);
+		return;
+	}
+
+	*image = priv->config_rom;
+	*length = priv->config_rom_length;
+}

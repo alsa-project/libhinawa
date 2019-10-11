@@ -102,4 +102,5 @@ HINAWA_1_4_0 {
     "hinawa_fw_node_new";
     "hinawa_fw_node_quark";
     "hinawa_fw_node_open";
+    "hinawa_fw_node_get_config_rom";
 };
