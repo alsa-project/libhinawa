@@ -220,12 +220,14 @@ class Sample(Gtk.Window):
     def on_click_transact(self, button):
         try:
             addr = int(self.entry.get_text(), 16)
-            vals = req.read(unit, addr, 4);
+            frames = bytearray(4);
+            frames = req.transaction(node, Hinawa.FwTcode.READ_QUADLET_REQUEST,
+                                     addr, 4, frames)
         except Exception as e:
             print(e)
             return
 
-        label = '0x{0:02x}{1:02x}{2:02x}{3:02x}'.format(vals[0], vals[1], vals[2], vals[3])
+        label = '0x{:08x}'.format(unpack('>I', frames)[0])
         self.label.set_text(label)
         print(self.label.get_text())
 
