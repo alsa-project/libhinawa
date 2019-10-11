@@ -17,6 +17,8 @@ methods = (
     'unregister',
     'get_req_frame',
     'set_resp_frame',
+    'reserve',
+    'release',
 )
 vmethods = (
     'do_requested',

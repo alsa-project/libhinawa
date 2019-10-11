@@ -48,7 +48,7 @@ static void fw_resp_finalize(GObject *obj)
 {
 	HinawaFwResp *self = HINAWA_FW_RESP(obj);
 
-	hinawa_fw_resp_unregister(self);
+	hinawa_fw_resp_release(self);
 
 	G_OBJECT_CLASS(hinawa_fw_resp_parent_class)->finalize(obj);
 }
@@ -103,17 +103,20 @@ HinawaFwResp *hinawa_fw_resp_new(void)
 }
 
 /**
- * hinawa_fw_resp_register:
- * @self: A #HinawaFwResp
- * @unit: A #HinawaFwUnit
- * @addr: A start address to listen to in host controller
- * @width: The byte width of address to listen to host controller
- * @exception: A #GError
+ * hinawa_fw_resp_reserve:
+ * @self: A #HinawaFwResp.
+ * @node: A #HinawaFwNode.
+ * @addr: A start address to listen to in host controller.
+ * @width: The byte width of address to listen to host controller.
+ * @exception: A #GError.
  *
- * Start to listen to a range of address in host controller
+ * Start to listen to a range of address in host controller which connects to
+ * the node.
+ *
+ * Since: 1.4.0.
  */
-void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
-			     guint64 addr, guint width, GError **exception)
+void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
+			    guint64 addr, guint width, GError **exception)
 {
 	HinawaFwRespPrivate *priv;
 	struct fw_cdev_allocate allocate = {0};
@@ -126,33 +129,30 @@ void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
 		raise(exception, EINVAL);
 		return;
 	}
-	hinawa_fw_unit_get_node(unit, &priv->node);
-	g_object_ref(priv->node);
 
 	allocate.offset = addr;
 	allocate.closure = (guint64)self;
 	allocate.length = width;
 	allocate.region_end = addr + width;
 
-	hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_ALLOCATE, &allocate, &err);
+	hinawa_fw_node_ioctl(node, FW_CDEV_IOC_ALLOCATE, &allocate, &err);
 	if (err != 0) {
 		raise(exception, err);
-		g_object_unref(priv->node);
-		priv->node = NULL;
 		return;
 	}
+	priv->node = g_object_ref(node);
 
 	priv->req_frame = g_malloc(allocate.length);
 	if (!priv->req_frame) {
 		raise(exception, ENOMEM);
-		hinawa_fw_resp_unregister(self);
+		hinawa_fw_resp_release(self);
 		return;
 	}
 
 	priv->resp_frame = g_malloc0(allocate.length);
 	if (!priv->resp_frame) {
 		raise(exception, ENOMEM);
-		hinawa_fw_resp_unregister(self);
+		hinawa_fw_resp_release(self);
 		return;
 	}
 
@@ -161,12 +161,14 @@ void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
 }
 
 /**
- * hinawa_fw_resp_unregister:
- * @self: A HinawaFwResp
+ * hinawa_fw_resp_release:
+ * @self: A HinawaFwResp.
  *
- * stop to listen to a range of address in host controller
+ * stop to listen to a range of address in host controller.
+ *
+ * Since: 1.4.0.
  */
-void hinawa_fw_resp_unregister(HinawaFwResp *self)
+void hinawa_fw_resp_release(HinawaFwResp *self)
 {
 	HinawaFwRespPrivate *priv;
 	struct fw_cdev_deallocate deallocate = {0};
@@ -192,6 +194,46 @@ void hinawa_fw_resp_unregister(HinawaFwResp *self)
 		g_free(priv->resp_frame);
 	priv->resp_frame = NULL;
 	priv->resp_length = 0;
+}
+
+/**
+ * hinawa_fw_resp_register:
+ * @self: A #HinawaFwResp
+ * @unit: A #HinawaFwUnit
+ * @addr: A start address to listen to in host controller
+ * @width: The byte width of address to listen to host controller
+ * @exception: A #GError
+ *
+ * Start to listen to a range of address in host controller
+ *
+ * Deprecated: 1.4.0: Use hinawa_fw_resp_reserve() with an instance of
+ *		      HinawaFwNode, instead.
+ */
+void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
+			     guint64 addr, guint width, GError **exception)
+{
+	HinawaFwNode *node;
+
+	g_return_if_fail(HINAWA_IS_FW_RESP(self));
+
+	hinawa_fw_unit_get_node(unit, &node);
+	g_object_ref(node);
+	hinawa_fw_resp_reserve(self, node, addr, width, exception);
+	g_object_unref(node);
+}
+
+/**
+ * hinawa_fw_resp_unregister:
+ * @self: A HinawaFwResp
+ *
+ * stop to listen to a range of address in host controller
+ *
+ * Deprecated: 1.4.0: Use hinawa_fw_resp_release() with an instance of
+ *		      HinawaFwNode, instead.
+ */
+void hinawa_fw_resp_unregister(HinawaFwResp *self)
+{
+	hinawa_fw_resp_release(self);
 }
 
 /**

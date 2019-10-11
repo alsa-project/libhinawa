@@ -344,7 +344,7 @@ void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
 	hinawa_fw_unit_get_node(unit, &priv->node);
 	g_object_ref(priv->node);
 
-	hinawa_fw_resp_register(HINAWA_FW_RESP(self), unit,
+	hinawa_fw_resp_reserve(HINAWA_FW_RESP(self), priv->node,
 				FCP_RESPOND_ADDR, FCP_MAXIMUM_FRAME_BYTES,
 				exception);
 	if (*exception != NULL) {
@@ -370,7 +370,7 @@ void hinawa_fw_fcp_unlisten(HinawaFwFcp *self)
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
 	priv = hinawa_fw_fcp_get_instance_private(self);
 
-	hinawa_fw_resp_unregister(HINAWA_FW_RESP(self));
+	hinawa_fw_resp_release(HINAWA_FW_RESP(self));
 
 	if (priv->node != NULL) {
 		g_object_unref(priv->node);

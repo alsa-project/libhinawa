@@ -108,4 +108,7 @@ HINAWA_1_4_0 {
     "hinawa_fw_unit_get_node";
 
     "hinawa_snd_unit_create_source";
+
+    "hinawa_fw_resp_reserve";
+    "hinawa_fw_resp_release";
 };
