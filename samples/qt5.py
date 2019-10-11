@@ -49,21 +49,6 @@ if 'unit' not in locals():
     print('No sound FireWire devices found.')
     exit()
 
-# create firewire responder
-resp = Hinawa.FwResp()
-def handle_request(resp, tcode):
-    print('Requested with tcode: {0}'.format(tcode.value_nick))
-    req_frame = resp.get_req_frame()
-    for i in range(len(req_frame)):
-        print(' [{0:02d}]: 0x{1:02x}'.format(i, req_frame[i]))
-    return Hinawa.FwRcode.COMPLETE
-try:
-    resp.register(unit, 0xfffff0000d00, 0x100)
-    resp.connect('requested', handle_request)
-except Exception as e:
-    print(e)
-    exit()
-
 # Start a thread to dispatch events from the sound unit.
 unit_ctx = GLib.MainContext.new()
 unit_src = unit.create_source()
@@ -114,6 +99,21 @@ config_rom = node.get_config_rom()
 quads = unpack('>{}I'.format(len(config_rom) // 4), config_rom)
 for i, q in enumerate(quads):
     print('  0xfffff000{:04x}: {:08x}'.format(i * 4, q))
+
+# create firewire responder
+resp = Hinawa.FwResp()
+def handle_request(resp, tcode):
+    print('Requested with tcode: {0}'.format(tcode.value_nick))
+    req_frame = resp.get_req_frame()
+    for i in range(len(req_frame)):
+        print(' [{0:02d}]: 0x{1:02x}'.format(i, req_frame[i]))
+    return Hinawa.FwRcode.COMPLETE
+try:
+    resp.register(unit, 0xfffff0000d00, 0x100)
+    resp.connect('requested', handle_request)
+except Exception as e:
+    print(e)
+    exit()
 
 # create firewire requester
 req = Hinawa.FwReq()
