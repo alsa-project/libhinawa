@@ -55,6 +55,11 @@ void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
 			       const guint8 *req_frame, guint req_frame_size,
 			       guint8 *const *resp_frame, guint *resp_frame_size,
 			       GError **exception);
+
+void hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node,
+			GError **exception);
+void hinawa_fw_fcp_unbind(HinawaFwFcp *self);
+
 void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 			    GByteArray *req_frame, GByteArray *resp_frame,
 			    GError **exception);

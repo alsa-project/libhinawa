@@ -111,4 +111,7 @@ HINAWA_1_4_0 {
 
     "hinawa_fw_resp_reserve";
     "hinawa_fw_resp_release";
+
+    "hinawa_fw_fcp_bind";
+    "hinawa_fw_fcp_unbind";
 };

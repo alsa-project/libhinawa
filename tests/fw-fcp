@@ -19,6 +19,8 @@ methods = (
     'unlisten',
     'transact',
     'transaction',
+    'bind',
+    'unbind',
 )
 vmethods = ()
 signals = ()

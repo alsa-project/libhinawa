@@ -112,7 +112,7 @@ static void fw_fcp_finalize(GObject *obj)
 {
 	HinawaFwFcp *self = HINAWA_FW_FCP(obj);
 
-	hinawa_fw_fcp_unlisten(self);
+	hinawa_fw_fcp_unbind(self);
 
 	G_OBJECT_CLASS(hinawa_fw_fcp_parent_class)->finalize(obj);
 }
@@ -326,6 +326,58 @@ static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode)
 }
 
 /**
+ * hinawa_fw_fcp_bind:
+ * @self: A #HinawaFwFcp.
+ * @node: A #HinawaFwNode.
+ * @exception: A #GError.
+ *
+ * Start to listen to FCP responses.
+ */
+void hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node,
+			GError **exception)
+{
+	HinawaFwFcpPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_FW_FCP(self));
+	priv = hinawa_fw_fcp_get_instance_private(self);
+
+	if (priv->node == NULL) {
+		hinawa_fw_resp_reserve(HINAWA_FW_RESP(self), node,
+				FCP_RESPOND_ADDR, FCP_MAXIMUM_FRAME_BYTES,
+				exception);
+		if (*exception != NULL)
+			return;
+		priv->node = g_object_ref(node);
+
+		g_mutex_init(&priv->transactions_mutex);
+		priv->transactions = NULL;
+	}
+}
+
+/**
+ * hinawa_fw_fcp_unbind:
+ * @self: A #HinawaFwFcp.
+ *
+ * Stop to listen to FCP responses.
+ *
+ * Since: 1.4.0.
+ */
+void hinawa_fw_fcp_unbind(HinawaFwFcp *self)
+{
+	HinawaFwFcpPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_FW_FCP(self));
+	priv = hinawa_fw_fcp_get_instance_private(self);
+
+	if (priv->node != NULL) {
+		hinawa_fw_resp_release(HINAWA_FW_RESP(self));
+
+		g_object_unref(priv->node);
+		priv->node = NULL;
+	}
+}
+
+/**
  * hinawa_fw_fcp_listen:
  * @self: A #HinawaFwFcp
  * @unit: A #HinawaFwUnit
@@ -336,25 +388,15 @@ static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode)
 void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
 			  GError **exception)
 {
-	HinawaFwFcpPrivate *priv;
+	HinawaFwNode *node;
 
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
-	priv = hinawa_fw_fcp_get_instance_private(self);
 
-	hinawa_fw_unit_get_node(unit, &priv->node);
-	g_object_ref(priv->node);
+	hinawa_fw_unit_get_node(unit, &node);
 
-	hinawa_fw_resp_reserve(HINAWA_FW_RESP(self), priv->node,
-				FCP_RESPOND_ADDR, FCP_MAXIMUM_FRAME_BYTES,
-				exception);
-	if (*exception != NULL) {
-		g_object_unref(priv->node);
-		priv->node = NULL;
-		return;
-	}
-
-	g_mutex_init(&priv->transactions_mutex);
-	priv->transactions = NULL;
+	g_object_ref(node);
+	hinawa_fw_fcp_bind(self, node, exception);
+	g_object_unref(node);
 }
 
 /**
@@ -362,18 +404,10 @@ void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
  * @self: A #HinawaFwFcp
  *
  * Stop to listen to FCP responses.
+ *
+ * Deprecated: 1.4.0: Use hinawa_fw_fcp_unbind(), instead.
  */
 void hinawa_fw_fcp_unlisten(HinawaFwFcp *self)
 {
-	HinawaFwFcpPrivate *priv;
-
-	g_return_if_fail(HINAWA_IS_FW_FCP(self));
-	priv = hinawa_fw_fcp_get_instance_private(self);
-
-	hinawa_fw_resp_release(HINAWA_FW_RESP(self));
-
-	if (priv->node != NULL) {
-		g_object_unref(priv->node);
-		priv->node = NULL;
-	}
+	hinawa_fw_fcp_unbind(self);
 }
