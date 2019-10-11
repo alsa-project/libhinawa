@@ -132,14 +132,15 @@ if unit.get_property('type') in fcp_types:
         print(e)
         exit()
     request = bytes([0x01, 0xff, 0x19, 0x00, 0xff, 0xff, 0xff, 0xff])
+    response = bytearray(8)
     try:
-        response = fcp.transact(request)
+        response = fcp.transaction(request, response)
     except Exception as e:
         print(e)
         exit()
     print('FCP Response:')
-    for i in range(len(response)):
-        print(' [{0:02d}]: 0x{1:02x}'.format(i, response[i]))
+    for i, b in enumerate(response):
+        print(' [{0:02d}]: 0x{1:02x}'.format(i, b))
 
 # Echo Fireworks Transaction
 if unit.get_property("type") is 2:
