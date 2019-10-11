@@ -3,17 +3,17 @@
 from pathlib import Path
 from sys import exit
 
-# Gtk+3 gir
 import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
+gi.require_version('GLib', '2.0')
+from gi.repository import GLib
 
-# Hinawa-2.0 gir
 gi.require_version('Hinawa', '2.0')
 from gi.repository import Hinawa
 
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
+
 # to handle UNIX signal
-from gi.repository import GLib
 import signal
 
 from array import array
