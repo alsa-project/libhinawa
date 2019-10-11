@@ -25,23 +25,10 @@ G_DEFINE_QUARK("HinawaFwUnit", hinawa_fw_unit)
  * All of operations utilize ioctl(2) with subsystem specific request commands.
  */
 
-/*
- * 256 comes from an actual implementation in kernel land. Read
- * 'drivers/firewire/core-device.c'. This value is calculated by a range for
- * configuration ROM in ISO/IEC 13213 (IEEE 1212).
- */
-#define MAX_CONFIG_ROM_SIZE	256
-#define MAX_CONFIG_ROM_LENGTH	(MAX_CONFIG_ROM_SIZE * 4)
-
 struct _HinawaFwUnitPrivate {
 	HinawaFwNode *node;
 	GSource *src;
 	int fd;
-
-	GMutex mutex;
-	guint8 config_rom[MAX_CONFIG_ROM_LENGTH];
-	unsigned int config_rom_length;
-	struct fw_cdev_event_bus_reset generation;
 
 	GSource *unit_src;
 };
@@ -90,9 +77,7 @@ static void fw_unit_get_property(GObject *obj, guint id,
 	case FW_UNIT_PROP_TYPE_IR_MANAGER_NODE_ID:
 	case FW_UNIT_PROP_TYPE_ROOT_NODE_ID:
 	case FW_UNIT_PROP_TYPE_GENERATION:
-		g_mutex_lock(&priv->mutex);
 		g_object_get_property(node, fw_unit_props[id]->name, val);
-		g_mutex_unlock(&priv->mutex);
 		break;
 	case FW_UNIT_PROP_TYPE_LISTENING:
 		g_value_set_boolean(val, priv->src != NULL);
@@ -117,8 +102,6 @@ static void fw_unit_finalize(GObject *obj)
 	hinawa_fw_unit_unlisten(self);
 
 	close(priv->fd);
-
-	g_mutex_clear(&priv->mutex);
 
 	g_object_unref(priv->node);
 
@@ -215,7 +198,6 @@ static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 static void hinawa_fw_unit_init(HinawaFwUnit *self)
 {
 	HinawaFwUnitPrivate *priv= hinawa_fw_unit_get_instance_private(self);
-	g_mutex_init(&priv->mutex);
 	priv->node = hinawa_fw_node_new();
 }
 
@@ -232,43 +214,9 @@ HinawaFwUnit *hinawa_fw_unit_new(void)
 	return g_object_new(HINAWA_TYPE_FW_UNIT, NULL);
 }
 
-static void update_info(HinawaFwUnit *self, GError **exception)
-{
-	struct fw_cdev_get_info info = {0};
-	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(self);
-	guint32 *rom;
-	unsigned int quads;
-	int i;
-
-	/* Duplicate generation parameters in userspace. */
-	info.version = 4;
-	info.rom = (__u64)priv->config_rom;
-	info.rom_length = MAX_CONFIG_ROM_LENGTH;
-	info.bus_reset = (guint64)&priv->generation;
-	info.bus_reset_closure = (guint64)self;
-
-	if (ioctl(priv->fd, FW_CDEV_IOC_GET_INFO, &info) < 0)
-		raise(exception, errno);
-
-	/*
-	 * Align buffer for configuration ROM according to host endianness, because
-	 * Linux firewire subsystem copies raw data to it.
-	 */
-	rom = (guint32 *)priv->config_rom;
-	quads = (info.rom_length + 3) / 4;
-	for (i = 0; i < quads; ++i)
-		rom[i] = GUINT32_FROM_BE(rom[i]);
-	priv->config_rom_length = info.rom_length;
-}
-
 static void handle_bus_update(HinawaFwNode *node, gpointer arg)
 {
 	HinawaFwUnit *self = (HinawaFwUnit *)arg;
-	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(self);
-
-	g_mutex_lock(&priv->mutex);
-	update_info(self, NULL);
-	g_mutex_unlock(&priv->mutex);
 
 	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE], 0, NULL);
 }
@@ -290,6 +238,7 @@ static void handle_disconnected(HinawaFwNode *node, gpointer arg)
  */
 void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 {
+	struct fw_cdev_get_info info = {0};
 	HinawaFwUnitPrivate *priv;
 	int fd;
 
@@ -303,9 +252,13 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 	}
 	priv->fd = fd;
 
-	g_mutex_lock(&priv->mutex);
-	update_info(self, exception);
-	g_mutex_unlock(&priv->mutex);
+	info.version = 4;
+	if (ioctl(priv->fd, FW_CDEV_IOC_GET_INFO, &info) < 0) {
+		raise(exception, errno);
+		close(priv->fd);
+		priv->fd = -1;
+		return;
+	}
 
 	hinawa_fw_node_open(priv->node, path, exception);
 	if (*exception != NULL) {
