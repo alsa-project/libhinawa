@@ -1,4 +1,5 @@
 tests = [
+  'fw-node',
   'fw-unit',
   'fw-req',
   'fw-resp',
