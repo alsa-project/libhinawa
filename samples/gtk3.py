@@ -126,7 +126,7 @@ fcp_types = (
 if unit.get_property('type') in fcp_types:
     fcp = Hinawa.FwFcp()
     try:
-        fcp.listen(unit)
+        fcp.bind(node)
     except Exception as e:
         print(e)
         exit()
@@ -140,7 +140,7 @@ if unit.get_property('type') in fcp_types:
     print('FCP Response:')
     for i, b in enumerate(response):
         print(' [{0:02d}]: 0x{1:02x}'.format(i, b))
-    fcp.unlisten()
+    fcp.unbind()
     del fcp
 
 # Echo Fireworks Transaction
