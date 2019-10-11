@@ -25,7 +25,9 @@ methods = (
     'create_source',
 )
 vmethods = ()
-signals = ()
+signals = (
+    'bus-update',
+)
 
 if not test(target, props, methods, vmethods, signals):
     exit(ENXIO)

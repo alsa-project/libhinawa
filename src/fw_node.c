@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
-#include "fw_node.h"
+#include "internal.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -63,6 +63,13 @@ enum fw_node_prop_type {
 	FW_NODE_PROP_TYPE_COUNT,
 };
 static GParamSpec *fw_node_props[FW_NODE_PROP_TYPE_COUNT] = { NULL, };
+
+// This object has one signal.
+enum fw_node_sig_type {
+	FW_NODE_SIG_TYPE_BUS_UPDATE = 0,
+	FW_NODE_SIG_TYPE_COUNT,
+};
+static guint fw_node_sigs[FW_NODE_SIG_TYPE_COUNT] = { 0 };
 
 static void fw_node_finalize(GObject *obj)
 {
@@ -163,6 +170,25 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 	g_object_class_install_properties(gobject_class,
 					  FW_NODE_PROP_TYPE_COUNT,
 					  fw_node_props);
+
+	/**
+	 * HinawaFwNode::bus-update:
+	 * @self: A #HinawaFwNode.
+	 *
+	 * When IEEE 1394 bus is updated, the ::bus-update signal is generated.
+	 * Handlers can read current generation in the bus via 'generation'
+	 * property.
+	 *
+	 * Since: 1.4.
+	 */
+	fw_node_sigs[FW_NODE_SIG_TYPE_BUS_UPDATE] =
+		g_signal_new("bus-update",
+			     G_OBJECT_CLASS_TYPE(klass),
+			     G_SIGNAL_RUN_LAST,
+			     0,
+			     NULL, NULL,
+			     g_cclosure_marshal_VOID__VOID,
+			     G_TYPE_NONE, 0, G_TYPE_NONE);
 }
 
 static void hinawa_fw_node_init(HinawaFwNode *self)
@@ -284,9 +310,17 @@ void hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
 	g_mutex_unlock(&priv->mutex);
 }
 
+static void fw_node_notify_update(void *target, void *data, unsigned int length)
+{
+	HinawaFwNode *self = target;
+
+	g_signal_emit(self, fw_node_sigs[FW_NODE_SIG_TYPE_BUS_UPDATE], 0, NULL);
+}
+
 static void handle_update(HinawaFwNode *self, GError **exception)
 {
 	HinawaFwNodePrivate *priv;
+	int err = 0;
 
 	g_return_if_fail(HINAWA_IS_FW_NODE(self));
 	priv = hinawa_fw_node_get_instance_private(self);
@@ -294,6 +328,9 @@ static void handle_update(HinawaFwNode *self, GError **exception)
 	g_mutex_lock(&priv->mutex);
 	update_info(self, exception);
 	g_mutex_unlock(&priv->mutex);
+
+	hinawa_context_schedule_notification(self, NULL, 0,
+					     fw_node_notify_update, &err);
 }
 
 static gboolean prepare_src(GSource *src, gint *timeout)
