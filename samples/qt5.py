@@ -109,7 +109,7 @@ def handle_request(resp, tcode):
         print(' [{0:02d}]: 0x{1:02x}'.format(i, req_frame[i]))
     return Hinawa.FwRcode.COMPLETE
 try:
-    resp.register(unit, 0xfffff0000d00, 0x100)
+    resp.reserve(node, 0xfffff0000d00, 0x100)
     resp.connect('requested', handle_request)
 except Exception as e:
     print(e)
@@ -261,7 +261,7 @@ node_th.join()
 del node_src
 del node_dispatcher
 
-resp.unregister()
+resp.release()
 del resp
 print('delete fw_resp object')
 
