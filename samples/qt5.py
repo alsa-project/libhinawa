@@ -3,6 +3,7 @@
 from pathlib import Path
 from sys import exit, argv
 from array import array
+from signal import SIGINT
 
 import gi
 gi.require_version('GLib', '2.0')
@@ -14,9 +15,6 @@ from gi.repository import Hinawa
 # Qt5 python binding
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtWidgets import QToolButton, QGroupBox, QLineEdit, QLabel
-
-# to handle UNIX signal
-import signal
 
 # query sound devices and get FireWire sound unit
 snd_specific_types = {
@@ -213,7 +211,7 @@ class Sample(QWidget):
         buttom_layout.addWidget(self.value)
 
         # handle unix signal
-        GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGINT, \
+        GLib.unix_signal_add(GLib.PRIORITY_HIGH, SIGINT,
                              self.handle_unix_signal, None)
 
     def handle_unix_signal(self, user_data):
