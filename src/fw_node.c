@@ -13,7 +13,11 @@
  * Since: 1.4
  */
 
-G_DEFINE_TYPE(HinawaFwNode, hinawa_fw_node, G_TYPE_OBJECT)
+struct _HinawaFwNodePrivate {
+	int fd;
+};
+
+G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwNode, hinawa_fw_node, G_TYPE_OBJECT)
 
 // For error handling.
 G_DEFINE_QUARK("HinawaFwNode", hinawa_fw_node)

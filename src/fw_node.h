@@ -31,9 +31,12 @@ G_BEGIN_DECLS
 
 typedef struct _HinawaFwNode		HinawaFwNode;
 typedef struct _HinawaFwNodeClass	HinawaFwNodeClass;
+typedef struct _HinawaFwNodePrivate	HinawaFwNodePrivate;
 
 struct _HinawaFwNode {
 	GObject parent_instance;
+
+	HinawaFwNodePrivate *priv;
 };
 
 struct _HinawaFwNodeClass {
