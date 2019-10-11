@@ -33,6 +33,7 @@ struct _HinawaFwNodePrivate {
 
 	guint8 config_rom[MAX_CONFIG_ROM_LENGTH];
 	unsigned int config_rom_length;
+	struct fw_cdev_event_bus_reset generation;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwNode, hinawa_fw_node, G_TYPE_OBJECT)
@@ -93,6 +94,7 @@ static void update_info(HinawaFwNode *self, GError **exception)
 	info.version = 4;
 	info.rom = (__u64)priv->config_rom;
 	info.rom_length = MAX_CONFIG_ROM_LENGTH;
+	info.bus_reset = (__u64)&priv->generation;
 	if (ioctl(priv->fd, FW_CDEV_IOC_GET_INFO, &info) < 0) {
 		raise(exception, errno);
 		return;
