@@ -50,6 +50,12 @@ HinawaSndEfw *hinawa_snd_efw_new(void);
 
 void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception);
 
+void hinawa_snd_efw_transaction(HinawaSndEfw *self,
+				guint category, guint command,
+				const guint32 *args, gsize arg_count,
+				guint32 *const *params, gsize *param_count,
+				GError **exception);
+
 void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 			     GArray *args, GArray *params,
 			     GError **exception);

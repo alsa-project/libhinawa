@@ -131,40 +131,38 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
 }
 
 /**
- * hinawa_snd_efw_transact:
- * @self: A #HinawaSndEfw
- * @category: one of category for the transact
- * @command: one of commands for the transact
- * @args: (nullable) (element-type guint32) (array) (in): arguments for the
- *        transaction
- * @params: (element-type guint32) (array) (out caller-allocates): return params
- * @exception: A #GError
+ * hinawa_snd_efw_transaction:
+ * @self: A #HinawaSndEfw.
+ * @category: one of category for the transaction.
+ * @command: one of commands for the transaction.
+ * @args: (array length=arg_count)(in)(nullable): An array with elements for
+ *	  quadlet data as arguments for command.
+ * @arg_count: The number of quadlets in the args array.
+ * @params: (array length=param_count)(inout): An array with elements for
+ *	    quadlet data to save parameters in response.
+ * @param_count: The number of quadlets in the params array.
+ * @exception: A #GError.
  *
  * Execute transaction according to Echo Fireworks Transaction protocol.
+ *
+ * Since: 1.4.0.
  */
-void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
-			     GArray *args, GArray *params, GError **exception)
+void hinawa_snd_efw_transaction(HinawaSndEfw *self,
+				guint category, guint command,
+				const guint32 *args, gsize arg_count,
+				guint32 *const *params, gsize *param_count,
+				GError **exception)
 {
 	HinawaSndEfwPrivate *priv;
-	int type;
-
 	struct efw_transaction trans;
-	guint32 *items;
-
 	unsigned int quads;
-	unsigned int count;
-	unsigned int i;
-
 	gint64 expiration;
+	unsigned int i;
 
 	g_return_if_fail(HINAWA_IS_SND_EFW(self));
 	priv = hinawa_snd_efw_get_instance_private(self);
 
-	/* Check unit type and function arguments . */
-	g_object_get(G_OBJECT(self), "type", &type, NULL);
-	if ((type != SNDRV_FIREWIRE_TYPE_FIREWORKS) ||
-	    (args && g_array_get_element_size(args) != sizeof(guint32)) ||
-	    (params && g_array_get_element_size(params) != sizeof(guint32))) {
+	if (*params == NULL || *param_count == 0) {
 		raise(exception, EINVAL);
 		return;
 	}
@@ -175,50 +173,41 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 		return;
 	}
 
-	/* Increment the sequence number for next transaction. */
-	trans.frame->seqnum = priv->seqnum;
+	quads = sizeof(*trans.frame) / 4;
+	if (args)
+		quads += arg_count;
+
+	// Fill transaction frame.
+	trans.frame->seqnum = GUINT32_TO_BE(priv->seqnum);
+	trans.frame->length = GUINT32_TO_BE(quads);
+	trans.frame->version = GUINT32_TO_BE(MINIMUM_SUPPORTED_VERSION);
+	trans.frame->category = GUINT32_TO_BE(category);
+	trans.frame->command = GUINT32_TO_BE(command);
+	for (i = 0; i < arg_count; ++i)
+		trans.frame->params[i] = GUINT32_TO_BE(args[i]);
+
+	// Increment the sequence number for next transaction.
 	priv->seqnum += 2;
 	if (priv->seqnum > SND_EFW_TRANSACTION_USER_SEQNUM_MAX)
 		priv->seqnum = 0;
-
-	/* Fill transaction frame. */
-	quads = sizeof(struct snd_efw_transaction) / 4;
-	if (args)
-		quads += args->len;
-	trans.frame->length	= quads;
-	trans.frame->version	= MINIMUM_SUPPORTED_VERSION;
-	trans.frame->category	= category;
-	trans.frame->command	= command;
-	if (args)
-		memcpy(trans.frame->params,
-		       args->data, args->len * sizeof(guint32));
-
-	/* The transactions are aligned to big-endian. */
-	items = (guint32 *)trans.frame;
-	for (i = 0; i < quads; i++)
-		items[i] = GUINT32_TO_BE(items[i]);
 
 	// This predicates against suprious wakeup.
 	trans.frame->status = 0xffffffff;
 	g_mutex_lock(&priv->lock);
 	g_cond_init(&trans.cond);
 
-	/* Insert this entry to list and enter critical section. */
+	// Insert this entry to list and enter critical section.
 	priv->transactions = g_list_append(priv->transactions, &trans);
 
-	/* NOTE: Timeout is 200 milli-seconds. */
+	// Send this request frame.
 	expiration = g_get_monotonic_time() + 200 * G_TIME_SPAN_MILLISECOND;
-
-	/* Send this request frame. */
-	hinawa_snd_unit_write(&self->parent_instance, trans.frame, quads * 4,
-			      exception);
+	hinawa_snd_unit_write(&self->parent_instance, trans.frame,
+			      quads * sizeof(__be32), exception);
 	if (*exception != NULL)
 		goto end;
 
-	/*
-	 * Wait corresponding response till timeout and temporarily leave the
-	 * critical section.
-	 */
+	// Wait corresponding response till timeout and temporarily leave the
+	// critical section.
 	while (trans.frame->status == 0xffffffff) {
 		if (!g_cond_wait_until(&trans.cond, &priv->lock, expiration))
 			break;
@@ -228,47 +217,73 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 		goto end;
 	}
 
-	quads = GUINT32_FROM_BE(trans.frame->length);
-
-	/* The transactions are aligned to big-endian. */
-	items = (guint32 *)trans.frame;
-	for (i = 0; i < quads; i++)
-		items[i] = GUINT32_FROM_BE(items[i]);
-
-	/* Check transaction status. */
-	if (trans.frame->status != EFT_STATUS_OK) {
+	// Check transaction status.
+	if (GUINT32_FROM_BE(trans.frame->status) != EFT_STATUS_OK) {
 		g_set_error(exception, hinawa_snd_efw_quark(),
 			    EPROTO, "%s",
 			    efw_status_names[trans.frame->status]);
 		goto end;
 	}
 
-	/* Check transaction headers. */
-	if ((trans.frame->version  <  MINIMUM_SUPPORTED_VERSION) ||
-	    (trans.frame->category != category) ||
-	    (trans.frame->command  != command)) {
+	// Check transaction headers.
+	if (GUINT32_FROM_BE(trans.frame->version) < MINIMUM_SUPPORTED_VERSION ||
+	    GUINT32_FROM_BE(trans.frame->category) != category ||
+	    GUINT32_FROM_BE(trans.frame->command) != command) {
 		raise(exception, EIO);
 		goto end;
 	}
 
-	/* Check returned parameters. */
-	count = quads - sizeof(struct snd_efw_transaction) / 4;
-	if (count > 0 && params == NULL) {
+	// Check size.
+	quads = GUINT32_FROM_BE(trans.frame->length) - sizeof(*trans.frame) / 4;
+	if (quads > *param_count) {
 		raise(exception, EINVAL);
 		goto end;
+
 	}
 
-	/* Copy parameters. */
-	g_array_remove_range(params, 0, params->len);
-	g_array_insert_vals(params, 0, trans.frame->params, count);
+	// Copy parameters.
+	for (i = 0; i < quads; ++i)
+		(*params)[i] = GUINT32_FROM_BE(trans.frame->params[i]);
+	*param_count = quads;
 end:
-	/* Remove thie entry from list and leave the critical section. */
+	// Remove thie entry from list and leave the critical section.
 	priv->transactions =
 			g_list_remove(priv->transactions, (gpointer *)&trans);
 	g_mutex_unlock(&priv->lock);
 	g_cond_clear(&trans.cond);
 
 	g_free(trans.frame);
+}
+
+/**
+ * hinawa_snd_efw_transact:
+ * @self: A #HinawaSndEfw
+ * @category: one of category for the transact
+ * @command: one of commands for the transact
+ * @args: (nullable)(element-type guint32)(array)(in): arguments for the
+ *        transaction
+ * @params: (element-type guint32) (array) (out caller-allocates): return params
+ * @exception: A #GError
+ *
+ * Execute transaction according to Echo Fireworks Transaction protocol.
+ *
+ * Deprecated: 1.4.0: Use hinawa_snd_efw_transaction(), instead.
+ */
+void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
+			     GArray *args, GArray *params, GError **exception)
+{
+	if ((args && g_array_get_element_size(args) != sizeof(guint32)) ||
+	    (g_array_get_element_size(params) != sizeof(guint32))) {
+		raise(exception, EINVAL);
+		return;
+	}
+
+	g_array_set_size(params, MAXIMUM_FRAME_BYTES);
+
+	hinawa_snd_efw_transaction(self, category, command,
+			(const guint32 *)args->data, args->len,
+			(guint32 *const *)&(params->data),
+			(gsize *)&(params->len), exception);
 }
 
 void hinawa_snd_efw_handle_response(HinawaSndEfw *self,
