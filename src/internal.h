@@ -32,6 +32,9 @@ void hinawa_context_schedule_notification(void *target, const void *data,
 				unsigned int length, NotifierWorkFunc func,
 				int *err);
 
+void hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args,
+			  int *err);
+
 void hinawa_fw_unit_ioctl(HinawaFwUnit *self, unsigned long req, void *args,
 			  int *err);
 void hinawa_fw_resp_handle_request(HinawaFwResp *self,

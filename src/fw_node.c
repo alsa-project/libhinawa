@@ -479,3 +479,17 @@ void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
 	src->self = self;
 	src->tag = g_source_add_unix_fd(*gsrc, priv->fd, G_IO_IN);
 }
+
+// Internal use only.
+void hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args,
+			  int *err)
+{
+	HinawaFwNodePrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_FW_NODE(self));
+	priv = hinawa_fw_node_get_instance_private(self);
+
+	*err = 0;
+	if (ioctl(priv->fd, req, args) < 0)
+		*err = -errno;
+}
