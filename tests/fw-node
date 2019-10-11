@@ -26,6 +26,7 @@ methods = (
 )
 vmethods = (
     'do_bus_update',
+    'do_disconnected',
 )
 signals = (
     'bus-update',

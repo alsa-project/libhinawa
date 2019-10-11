@@ -54,6 +54,17 @@ struct _HinawaFwNodeClass {
 	 */
 	void (*bus_update)(HinawaFwNode *self);
 
+	/**
+	 * HinawaFwNodeClass::disconnected:
+	 * @self: A #HinawaFwNode
+	 *
+	 * When phicical FireWire devices are disconnected from IEEE 1394 bus,
+	 * the ::disconnected handler is called.
+	 *
+	 * Since: 1.4.
+	 */
+	void (*disconnected)(HinawaFwNode *self);
+
 };
 
 GType hinawa_fw_node_get_type(void) G_GNUC_CONST;
