@@ -29,6 +29,7 @@ vmethods = (
 )
 signals = (
     'bus-update',
+    'disconnected',
 )
 
 if not test(target, props, methods, vmethods, signals):

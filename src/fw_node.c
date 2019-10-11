@@ -64,9 +64,10 @@ enum fw_node_prop_type {
 };
 static GParamSpec *fw_node_props[FW_NODE_PROP_TYPE_COUNT] = { NULL, };
 
-// This object has one signal.
+// This object has two signals.
 enum fw_node_sig_type {
 	FW_NODE_SIG_TYPE_BUS_UPDATE = 0,
+	FW_NODE_SIG_TYPE_DISCONNECTED,
 	FW_NODE_SIG_TYPE_COUNT,
 };
 static guint fw_node_sigs[FW_NODE_SIG_TYPE_COUNT] = { 0 };
@@ -186,6 +187,24 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 			     G_OBJECT_CLASS_TYPE(klass),
 			     G_SIGNAL_RUN_LAST,
 			     G_STRUCT_OFFSET(HinawaFwNodeClass, bus_update),
+			     NULL, NULL,
+			     g_cclosure_marshal_VOID__VOID,
+			     G_TYPE_NONE, 0, G_TYPE_NONE);
+
+	/**
+	 * HinawaFwNode::disconnected:
+	 * @self: A #HinawaFwNode.
+	 *
+	 * When phicical FireWire devices are disconnected from IEEE 1394 bus,
+	 * the ::disconnected signal is generated.
+	 *
+	 * Since: 1.4.
+	 */
+	fw_node_sigs[FW_NODE_SIG_TYPE_DISCONNECTED] =
+		g_signal_new("disconnected",
+			     G_OBJECT_CLASS_TYPE(klass),
+			     G_SIGNAL_RUN_LAST,
+			     0,
 			     NULL, NULL,
 			     g_cclosure_marshal_VOID__VOID,
 			     G_TYPE_NONE, 0, G_TYPE_NONE);
@@ -317,6 +336,14 @@ static void fw_node_notify_update(void *target, void *data, unsigned int length)
 	g_signal_emit(self, fw_node_sigs[FW_NODE_SIG_TYPE_BUS_UPDATE], 0, NULL);
 }
 
+static void fw_node_notify_disconnected(void *target, void *data,
+					unsigned int length)
+{
+	HinawaFwNode *self = target;
+
+	g_signal_emit(self, fw_node_sigs[FW_NODE_SIG_TYPE_DISCONNECTED], 0);
+}
+
 static void handle_update(HinawaFwNode *self, GError **exception)
 {
 	HinawaFwNodePrivate *priv;
@@ -346,10 +373,14 @@ static gboolean check_src(GSource *gsrc)
 {
 	FwNodeSource *src = (FwNodeSource *)gsrc;
 	GIOCondition condition;
+	int err = 0;
 
 	condition = g_source_query_unix_fd(gsrc, src->tag);
-	if (condition & G_IO_ERR)
+	if (condition & G_IO_ERR) {
+		hinawa_context_schedule_notification(src->self, NULL, 0,
+					fw_node_notify_disconnected, &err);
 		return FALSE;
+	}
 
 	// Don't go to dispatch if nothing available.
 	return !!(condition & G_IO_IN);
