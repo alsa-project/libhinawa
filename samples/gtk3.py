@@ -63,24 +63,26 @@ print(' device:\t{0}'.format(unit.get_property("device")))
 print(' GUID:\t\t{0:016x}'.format(unit.get_property("guid")))
 unit.connect("lock-status", handle_lock_status)
 unit.connect("disconnected", handle_disconnected)
-print('\nIEEE1394 Unit info:')
+
+# create FireWire node
+node = unit.get_node()
+def handle_bus_update(node):
+    print('bus-reset: generation {0}'.format(node.get_property('generation')))
+node.connect("bus-update", handle_bus_update)
+
+print('\nIEEE1394 node info:')
 print(' Node IDs:')
-print('  self:\t\t{0:04x}'.format(unit.get_property('node-id')))
-print('  local:\t{0:04x}'.format(unit.get_property('local-node-id')))
-print('  root:\t\t{0:04x}'.format(unit.get_property('root-node-id')))
-print('  bus-manager:\t{0:04x}'.format(unit.get_property('bus-manager-node-id')))
-print('  ir-manager:\t{0:04x}'.format(unit.get_property('ir-manager-node-id')))
-print('  generation:\t{0}'.format(unit.get_property('generation')))
+print('  self:\t\t{:04x}'.format(node.get_property('node-id')))
+print('  local:\t{:04x}'.format(node.get_property('local-node-id')))
+print('  root:\t\t{:04x}'.format(node.get_property('root-node-id')))
+print('  bus-manager:\t{:04x}'.format(node.get_property('bus-manager-node-id')))
+print('  ir-manager:\t{:04x}'.format(node.get_property('ir-manager-node-id')))
+print('  generation:\t{}'.format(node.get_property('generation')))
 print(' Config ROM:')
-config_rom = unit.get_config_rom()
+config_rom = node.get_config_rom()
 quads = unpack('>{}I'.format(len(config_rom) // 4), config_rom)
 for i, q in enumerate(quads):
     print('  0xfffff000{:04x}: {:08x}'.format(i * 4, q))
-
-# create FireWire unit
-def handle_bus_update(unit):
-    print('bus-reset: generation {0}'.format(unit.get_property('generation')))
-unit.connect("bus-update", handle_bus_update)
 
 # start listening
 try:
@@ -242,5 +244,8 @@ print('delete fw_resp object')
 
 del req
 print('delete fw_req object')
+
+del node
+del unit
 
 exit()
