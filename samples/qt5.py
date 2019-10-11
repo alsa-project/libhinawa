@@ -145,7 +145,7 @@ if unit.get_property('type') in fcp_types:
     del fcp
 
 # Echo Fireworks Transaction
-if unit.get_property("type") is 2:
+if unit.get_property('type') is Hinawa.SndUnitType.FIREWORKS:
     args = array('I')
     args.append(5)
     try:
