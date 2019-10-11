@@ -35,6 +35,7 @@ G_DEFINE_QUARK("HinawaFwUnit", hinawa_fw_unit)
 
 struct _HinawaFwUnitPrivate {
 	HinawaFwNode *node;
+	GSource *src;
 	int fd;
 
 	GMutex mutex;
@@ -42,7 +43,7 @@ struct _HinawaFwUnitPrivate {
 	unsigned int config_rom_length;
 	struct fw_cdev_event_bus_reset generation;
 
-	GSource *src;
+	GSource *unit_src;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwUnit, hinawa_fw_unit, G_TYPE_OBJECT)
 
@@ -486,15 +487,30 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
 	priv = hinawa_fw_unit_get_instance_private(self);
 
-	fw_unit_create_source(self, &priv->src, exception);
-	if (*exception != NULL)
-		return;
+	if (priv->unit_src == NULL) {
+		fw_unit_create_source(self, &priv->unit_src, exception);
+		if (*exception != NULL)
+			return;
 
-	hinawa_context_add_src(priv->src, exception);
-	if (*exception != NULL) {
-		g_source_unref(priv->src);
-		priv->src = NULL;
-		return;
+		hinawa_context_add_src(priv->unit_src, exception);
+		if (*exception != NULL) {
+			hinawa_fw_unit_unlisten(self);
+			return;
+		}
+	}
+
+	if (priv->src == NULL) {
+		hinawa_fw_node_create_source(priv->node, &priv->src, exception);
+		if (*exception != NULL) {
+			hinawa_fw_unit_unlisten(self);
+			return;
+		}
+
+		hinawa_context_add_src(priv->src, exception);
+		if (*exception != NULL) {
+			hinawa_fw_unit_unlisten(self);
+			return;
+		}
 	}
 }
 
@@ -510,6 +526,12 @@ void hinawa_fw_unit_unlisten(HinawaFwUnit *self)
 
 	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
 	priv = hinawa_fw_unit_get_instance_private(self);
+
+	if (priv->unit_src != NULL) {
+		hinawa_context_remove_src(priv->unit_src);
+		g_source_unref(priv->unit_src);
+		priv->unit_src = NULL;
+	}
 
 	if (priv->src != NULL) {
 		hinawa_context_remove_src(priv->src);
