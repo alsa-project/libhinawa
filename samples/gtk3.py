@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from sys import exit
+from array import array
 
 import gi
 gi.require_version('GLib', '2.0')
@@ -15,16 +16,6 @@ from gi.repository import Gtk
 
 # to handle UNIX signal
 import signal
-
-from array import array
-
-# helper function
-def get_array():
-    # The width with 'L' parameter is depending on environment.
-    arr = array('L')
-    if arr.itemsize is not 4:
-        arr = array('I')
-    return arr
 
 # query sound devices and get FireWire sound unit
 snd_specific_types = {
@@ -146,7 +137,7 @@ if snd_unit.get_property('type') in fcp_types:
 
 # Echo Fireworks Transaction
 if snd_unit.get_property("type") is 2:
-    args = get_array()
+    args = array('I')
     args.append(5)
     try:
         params = snd_unit.transact(6, 1, args)
@@ -162,7 +153,7 @@ def handle_notification(self, message):
     print("Dice Notification: {0:08x}".format(message))
 if snd_unit.get_property('type') is Hinawa.SndUnitType.DICE:
     snd_unit.connect('notified', handle_notification)
-    args = get_array()
+    args = array('I')
     args.append(0x0000030c)
     try:
         # The address of clock in Impact Twin
