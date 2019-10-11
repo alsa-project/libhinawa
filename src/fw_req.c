@@ -280,7 +280,7 @@ end:
  * @exception: A #GError
  *
  * Execute write transactions to the given unit.
- * Deprecated: 1.4.0: Use hinawa_fw_req_transaction() instead,
+ * Deprecated: 1.4.0: Use hinawa_fw_req_transaction() instead.
  */
 void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 			 GByteArray *frame, GError **exception)
@@ -306,7 +306,7 @@ void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
  * @exception: A #GError
  *
  * Execute read transaction to the given unit.
- * Deprecated: 1.4.0: Use hinawa_fw_req_transaction() instead,
+ * Deprecated: 1.4.0: Use hinawa_fw_req_transaction() instead.
  */
 void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
 			GByteArray *frame, guint length, GError **exception)
@@ -334,7 +334,7 @@ void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
  * @exception: A #GError
  *
  * Execute lock transaction to the given unit.
- * Deprecated: 1.4.0: Use hinawa_fw_req_transaction() instead,
+ * Deprecated: 1.4.0: Use hinawa_fw_req_transaction() instead.
  */
 void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit,
 			guint64 addr, GByteArray **frame,
