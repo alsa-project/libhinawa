@@ -153,7 +153,7 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 		g_param_spec_boolean("listening", "listening",
 				     "Whether this device is under listening.",
 				     FALSE,
-				     G_PARAM_READABLE);
+				     G_PARAM_READABLE | G_PARAM_DEPRECATED);
 
 	g_object_class_install_properties(gobject_class,
 					  SND_UNIT_PROP_TYPE_COUNT,
@@ -424,7 +424,17 @@ static void finalize_src(GSource *gsrc)
 	g_free(src->buf);
 }
 
-static void snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
+/**
+ * hinawa_snd_unit_create_source:
+ * @self: A #HinawaSndUnit.
+ * @gsrc: (out): A #GSource.
+ * @exception: A #GError.
+ *
+ * Create Gsource for GMainContext to dispatch events for the sound device.
+ *
+ * Since: 1.4.
+ */
+void hinawa_snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
 				   GError **exception)
 {
 	static GSourceFuncs funcs = {
@@ -474,6 +484,10 @@ static void snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
  * @exception: A #GError
  *
  * Start listening to events.
+ *
+ * Deprecated: 1.4.0: Instead, use GSource retrieved by a call of
+ *		      hinawa_snd_unit_create_source(). Then use GMainContext and
+ *		      GMainLoop of GLib for event loop.
  */
 void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 {
@@ -482,7 +496,7 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
 
-	snd_unit_create_source(self, &priv->src, exception);
+	hinawa_snd_unit_create_source(self, &priv->src, exception);
 	if (*exception != NULL)
 		return;
 
@@ -503,6 +517,9 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
  * @self: A #HinawaSndUnit
  *
  * Stop listening to events.
+ *
+ * Deprecated: 1.4.0: Instead, maintain GMainContext and GMainLoop with GSource
+ *		      retrieved by a call of hinawa_snd_unit_create_source().
  */
 void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 {

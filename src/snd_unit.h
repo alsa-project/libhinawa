@@ -66,6 +66,9 @@ void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception);
 void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception);
 void hinawa_snd_unit_unlisten(HinawaSndUnit *self);
 
+void hinawa_snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
+				   GError **exception);
+
 G_END_DECLS
 
 #endif
