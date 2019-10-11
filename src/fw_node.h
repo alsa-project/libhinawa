@@ -41,6 +41,19 @@ struct _HinawaFwNode {
 
 struct _HinawaFwNodeClass {
 	GObjectClass parent_class;
+
+	/**
+	 * HinawaFwNodeClass::bus_update:
+	 * @self: A #HinawaFwNode.
+	 *
+	 * When IEEE 1394 bus is updated, the ::bus-update handler is called.
+	 * The handlers can read current generation in the bus via 'generation'
+	 * property.
+	 *
+	 * Since: 1.4.
+	 */
+	void (*bus_update)(HinawaFwNode *self);
+
 };
 
 GType hinawa_fw_node_get_type(void) G_GNUC_CONST;

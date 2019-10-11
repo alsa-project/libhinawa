@@ -24,7 +24,9 @@ methods = (
     'get_config_rom',
     'create_source',
 )
-vmethods = ()
+vmethods = (
+    'do_bus_update',
+)
 signals = (
     'bus-update',
 )
