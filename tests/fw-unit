@@ -24,7 +24,8 @@ methods = (
     'open',
     'get_config_rom',
     'listen',
-    'unlisten'
+    'unlisten',
+    'get_node',
 )
 vmethods = (
     'do_bus_update',

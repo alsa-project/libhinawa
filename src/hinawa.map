@@ -104,4 +104,6 @@ HINAWA_1_4_0 {
     "hinawa_fw_node_open";
     "hinawa_fw_node_get_config_rom";
     "hinawa_fw_node_create_source";
+
+    "hinawa_fw_unit_get_node";
 };

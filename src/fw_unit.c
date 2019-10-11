@@ -478,3 +478,22 @@ void hinawa_fw_unit_unlisten(HinawaFwUnit *self)
 		priv->src = NULL;
 	}
 }
+
+/**
+ * hinawa_fw_unit_get_node:
+ * @self: A #HinawaFwUnit.
+ * @node: (out)(transfer none): A #HinawaFwNode.
+ *
+ * Retrieve an instance of #HinawaFwNode associated to the given unit.
+ *
+ * Since: 1.4.
+ */
+void hinawa_fw_unit_get_node(HinawaFwUnit *self, HinawaFwNode **node)
+{
+	HinawaFwUnitPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
+	priv = hinawa_fw_unit_get_instance_private(self);
+
+	*node = priv->node;
+}

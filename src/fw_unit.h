@@ -74,6 +74,8 @@ const guint8 *hinawa_fw_unit_get_config_rom(HinawaFwUnit *self, guint *length);
 void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception);
 void hinawa_fw_unit_unlisten(HinawaFwUnit *self);
 
+void hinawa_fw_unit_get_node(HinawaFwUnit *self, HinawaFwNode **node);
+
 G_END_DECLS
 
 #endif
