@@ -44,6 +44,14 @@ G_DEFINE_QUARK("HinawaFwNode", hinawa_fw_node)
 	g_set_error(exception, hinawa_fw_node_quark(), errno,		\
 		    "%d: %s", __LINE__, strerror(errno))
 
+typedef struct {
+	GSource src;
+	HinawaFwNode *self;
+	gpointer tag;
+	unsigned int len;
+	void *buf;
+} FwNodeSource;
+
 enum fw_node_prop_type {
 	FW_NODE_PROP_TYPE_NODE_ID = 1,
 	FW_NODE_PROP_TYPE_LOCAL_NODE_ID,
@@ -261,4 +269,112 @@ void hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
 
 	*image = priv->config_rom;
 	*length = priv->config_rom_length;
+}
+
+static gboolean prepare_src(GSource *src, gint *timeout)
+{
+	// Use 500 msec for safe cancellation of thread.
+	*timeout = 500;
+
+	// This source is not ready, let's poll(2).
+	return FALSE;
+}
+
+static gboolean check_src(GSource *gsrc)
+{
+	FwNodeSource *src = (FwNodeSource *)gsrc;
+	GIOCondition condition;
+
+	condition = g_source_query_unix_fd(gsrc, src->tag);
+	if (condition & G_IO_ERR)
+		return FALSE;
+
+	// Don't go to dispatch if nothing available.
+	return !!(condition & G_IO_IN);
+}
+
+static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
+{
+	FwNodeSource *src = (FwNodeSource *)gsrc;
+	HinawaFwNodePrivate *priv;
+	int len;
+
+	if (src->self == NULL || !HINAWA_IS_FW_NODE(src->self))
+		return G_SOURCE_REMOVE;
+	priv = hinawa_fw_node_get_instance_private(src->self);
+
+	if (priv->fd < 0)
+		return G_SOURCE_REMOVE;
+
+	len = read(priv->fd, src->buf, src->len);
+	if (len < 0) {
+		if (errno == EAGAIN)
+			return G_SOURCE_CONTINUE;
+
+		return G_SOURCE_REMOVE;
+	}
+
+	// Dispatch the event.
+
+	// Just be sure to continue to process this source.
+	return G_SOURCE_CONTINUE;
+}
+
+static void finalize_src(GSource *gsrc)
+{
+	FwNodeSource *src = (FwNodeSource *)gsrc;
+
+	g_free(src->buf);
+}
+
+/**
+ * hinawa_fw_node_create_source:
+ * @self: A #HinawaFwNode.
+ * @gsrc: (out): A #GSource.
+ * @exception: A #GError.
+ *
+ * Create Gsource for GMainContext to dispatch events for the node on IEEE 1394
+ * bus.
+ *
+ * Since: 1.4.
+ */
+void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
+				  GError **exception)
+{
+        static GSourceFuncs funcs = {
+                .prepare        = prepare_src,
+                .check          = check_src,
+                .dispatch       = dispatch_src,
+                .finalize       = finalize_src,
+        };
+	HinawaFwNodePrivate *priv;
+	FwNodeSource *src;
+
+	g_return_if_fail(HINAWA_IS_FW_NODE(self));
+	priv = hinawa_fw_node_get_instance_private(self);
+
+	if (priv->fd < 0) {
+		raise(exception, ENXIO);
+		return;
+	}
+
+        *gsrc = g_source_new(&funcs, sizeof(FwNodeSource));
+	src = (FwNodeSource *)(*gsrc);
+
+        g_source_set_name(*gsrc, "HinawaFwNode");
+        g_source_set_priority(*gsrc, G_PRIORITY_HIGH_IDLE);
+        g_source_set_can_recurse(*gsrc, TRUE);
+
+        // MEMO: allocate one page because we cannot assume the size of
+        // transaction frame.
+        src->len = sysconf(_SC_PAGESIZE);
+        src->buf = g_malloc0(src->len);
+        if (src->buf == NULL) {
+                raise(exception, ENOMEM);
+		g_source_unref(*gsrc);
+                return;
+        }
+
+	src->self = self;
+	src->tag = g_source_add_unix_fd(*gsrc, priv->fd, G_IO_IN);
 }
