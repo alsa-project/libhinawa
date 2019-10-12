@@ -107,10 +107,18 @@ static void snd_motu_notify_notification(void *target, void *data,
 void hinawa_snd_motu_handle_notification(HinawaSndMotu *self,
 					 const void *buf, unsigned int len)
 {
+	gboolean listening;
 	int err = 0;
 
 	g_return_if_fail(HINAWA_IS_SND_MOTU(self));
 
-	hinawa_context_schedule_notification(self, buf, len,
-					     snd_motu_notify_notification, &err);
+	// For backward compatibility.
+	g_object_get(&self->parent_instance, "listening", &listening, NULL);
+	if (listening) {
+		hinawa_context_schedule_notification(self, buf, len,
+					snd_motu_notify_notification, &err);
+		return;
+	}
+
+	snd_motu_notify_notification(self, (void *)buf, len);
 }

@@ -312,10 +312,17 @@ static void snd_unit_notify_disconnected(void *target, void *data,
 static void handle_lock_event(HinawaSndUnit *self,
 			      void *buf, unsigned int length)
 {
+	HinawaSndUnitPrivate *priv = hinawa_snd_unit_get_instance_private(self);
 	int err = 0;
 
-	hinawa_context_schedule_notification(self, buf, length,
+	// For backward compatibility.
+	if (priv->src != NULL) {
+		hinawa_context_schedule_notification(self, buf, length,
 					     snd_unit_notify_lock, &err);
+		return;
+	}
+
+	snd_unit_notify_lock(self, (void *)buf, length);
 }
 
 static gboolean prepare_src(GSource *src, gint *timeout)
@@ -330,26 +337,25 @@ static gboolean prepare_src(GSource *src, gint *timeout)
 static gboolean check_src(GSource *gsrc)
 {
 	SndUnitSource *src = (SndUnitSource *)gsrc;
+	HinawaSndUnit *unit = src->unit;
+	HinawaSndUnitPrivate *priv = hinawa_snd_unit_get_instance_private(unit);
 	GIOCondition condition;
 
 	condition = g_source_query_unix_fd(gsrc, src->tag);
 	if (condition & G_IO_ERR) {
-		HinawaSndUnit *unit = src->unit;
 		if (unit != NULL) {
-			gboolean listening;
 			int err = 0;
 
-			// For emitting one signal.
-			g_object_get(G_OBJECT(&unit->parent_instance),
-				     "listening", &listening, NULL);
-
-			hinawa_snd_unit_unlisten(unit);
-
-			if (listening) {
+			if (priv->src != NULL) {
+				// For backward compatibility.
 				hinawa_context_schedule_notification(unit,
 					NULL, 0, snd_unit_notify_disconnected,
 					&err);
+			} else {
+				snd_unit_notify_disconnected(unit, NULL, 0);
 			}
+
+			hinawa_snd_unit_unlisten(unit);
 		}
 	}
 
@@ -422,8 +428,6 @@ static void finalize_src(GSource *gsrc)
 		ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
 
 	g_free(src->buf);
-
-	hinawa_context_stop_notifier();
 }
 
 /**
@@ -456,10 +460,6 @@ void hinawa_snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
 	g_source_set_name(*gsrc, "HinawaSndUnit");
 	g_source_set_priority(*gsrc, G_PRIORITY_HIGH_IDLE);
 	g_source_set_can_recurse(*gsrc, TRUE);
-
-	hinawa_context_start_notifier(exception);
-	if (*exception != NULL)
-		return;
 
 	// MEMO: allocate one page because we cannot assume the size of
 	// transaction frame.
@@ -514,6 +514,12 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 		return;
 	}
 
+	hinawa_context_start_notifier(exception);
+	if (*exception != NULL) {
+		hinawa_snd_unit_unlisten(self);
+		return;
+	}
+
 	hinawa_fw_unit_listen(&self->parent_instance, exception);
 	if (*exception != NULL)
 		hinawa_snd_unit_unlisten(self);
@@ -536,6 +542,8 @@ void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 	priv = hinawa_snd_unit_get_instance_private(self);
 
 	if (priv->src != NULL) {
+		hinawa_context_stop_notifier();
+
 		hinawa_context_remove_src(priv->src);
 		g_source_unref(priv->src);
 		priv->src = NULL;

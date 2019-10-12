@@ -154,6 +154,7 @@ void hinawa_snd_tscm_handle_control(HinawaSndTscm *self, const void *buf,
 {
 	struct snd_firewire_event_tascam_control *event =
 			(struct snd_firewire_event_tascam_control *)buf;
+	gboolean listening;
 	int err = 0;
 
 	g_return_if_fail(HINAWA_IS_SND_TSCM(self));
@@ -161,6 +162,13 @@ void hinawa_snd_tscm_handle_control(HinawaSndTscm *self, const void *buf,
 	if (len < sizeof(event->type))
 		return;
 
-	hinawa_context_schedule_notification(self, buf, len,
+	// For backward compatibility.
+	g_object_get(&self->parent_instance, "listening", &listening, NULL);
+	if (listening) {
+		hinawa_context_schedule_notification(self, buf, len,
 					     snd_tscm_notify_control, &err);
+		return;
+	}
+
+	snd_tscm_notify_control(self, (void *)buf, len);
 }
