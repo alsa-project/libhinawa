@@ -34,6 +34,9 @@ struct _HinawaFwRespPrivate {
 	unsigned int req_length;
 	guint8 *resp_frame;
 	unsigned int resp_length;
+
+	// For backward compatibility.
+	gboolean registered;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwResp, hinawa_fw_resp, G_TYPE_OBJECT)
 
@@ -212,14 +215,21 @@ void hinawa_fw_resp_release(HinawaFwResp *self)
 void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
 			     guint64 addr, guint width, GError **exception)
 {
+	HinawaFwRespPrivate *priv;
 	HinawaFwNode *node;
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
+	priv = hinawa_fw_resp_get_instance_private(self);
 
 	hinawa_fw_unit_get_node(unit, &node);
 	g_object_ref(node);
 	hinawa_fw_resp_reserve(self, node, addr, width, exception);
 	g_object_unref(node);
+
+	if (*exception != NULL)
+		return;
+
+	priv->registered = TRUE;
 }
 
 /**
@@ -233,7 +243,13 @@ void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
  */
 void hinawa_fw_resp_unregister(HinawaFwResp *self)
 {
+	HinawaFwRespPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_FW_RESP(self));
+	priv = hinawa_fw_resp_get_instance_private(self);
+
 	hinawa_fw_resp_release(self);
+	priv->registered = FALSE;
 }
 
 /**
@@ -327,18 +343,21 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 
 	if (!priv->node || event->length > priv->width) {
 		resp.rcode = RCODE_CONFLICT_ERROR;
-		goto error;
+		resp.handle = event->handle;
+
+		hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_SEND_RESPONSE,
+				     &resp, &err);
+		return;
 	}
 
 	length = sizeof(*event) + event->length;
 
-	// Emit signal to handlers later.
-	hinawa_context_schedule_notification(self, event, length,
+	// For backward compatibility.
+	if (priv->registered) {
+		hinawa_context_schedule_notification(self, event, length,
 					     fw_resp_notify_requested, &err);
-	return;
-error:
-	resp.handle = event->handle;
+		return;
+	}
 
-	hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_SEND_RESPONSE,
-			     &resp, &err);
+	fw_resp_notify_requested(self, (void *)event, length);
 }

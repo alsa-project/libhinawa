@@ -244,20 +244,33 @@ static void fw_unit_notify_disconnected(void *target, void *data,
 static void handle_bus_update(HinawaFwNode *node, gpointer arg)
 {
 	HinawaFwUnit *self = (HinawaFwUnit *)arg;
+	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(self);
 	int err;
 
-	hinawa_context_schedule_notification(self, NULL, 0,
+	// For backward compatibility.
+	if (priv->src != NULL) {
+		hinawa_context_schedule_notification(self, NULL, 0,
 					     fw_unit_notify_update, &err);
+		return;
+	}
 
+	fw_unit_notify_update(self, NULL, 0);
 }
 
 static void handle_disconnected(HinawaFwNode *node, gpointer arg)
 {
 	HinawaFwUnit *self = (HinawaFwUnit *)arg;
+	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(self);
 	int err;
 
-	hinawa_context_schedule_notification(self, NULL, 0,
+	// For backward compatibility.
+	if (priv->src != NULL) {
+		hinawa_context_schedule_notification(self, NULL, 0,
 					     fw_unit_notify_disconnected, &err);
+		return;
+	}
+
+	fw_unit_notify_disconnected(self, NULL, 0);
 }
 
 /**
@@ -348,6 +361,12 @@ void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
 			hinawa_fw_unit_unlisten(self);
 			return;
 		}
+
+		hinawa_context_start_notifier(exception);
+		if (*exception != NULL) {
+			hinawa_fw_unit_unlisten(self);
+			return;
+		}
 	}
 }
 
@@ -368,6 +387,8 @@ void hinawa_fw_unit_unlisten(HinawaFwUnit *self)
 	priv = hinawa_fw_unit_get_instance_private(self);
 
 	if (priv->src != NULL) {
+		hinawa_context_stop_notifier();
+
 		hinawa_context_remove_src(priv->src);
 		g_source_unref(priv->src);
 		priv->src = NULL;
