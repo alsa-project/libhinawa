@@ -24,7 +24,9 @@ G_DEFINE_QUARK("HinawaFwUnit", hinawa_fw_unit)
  * A #HinawaFwUnit object has a reference to an instance of HinawaFwNode for
  * Linux FireWire character device, corresponding to parent node on IEEE 1394
  * bus. This object is expected to be used by inheritance from subclasses; e.g.
- * HinawaSndUnit.
+ * HinawaSndUnit, and should not be instantiated directly for newly written
+ * code since the object is planned to be abstract class in future libhinawa
+ * release.
  *
  * All of operations are done by associated HinawaFwNode. Some APIs and
  * properties which #HinawaFwUnit has are maintained just for backward
@@ -35,6 +37,7 @@ struct _HinawaFwUnitPrivate {
 	HinawaFwNode *node;
 	GSource *src;
 };
+// TODO: use G_DEFINE_ABSTRACT_TYPE().
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwUnit, hinawa_fw_unit, G_TYPE_OBJECT)
 
 typedef struct {
@@ -215,6 +218,8 @@ static void hinawa_fw_unit_init(HinawaFwUnit *self)
  *
  * Returns: an instance of #HinawaFwUnit.
  * Since: 1.3.
+ * Deprecated: 1.4.0: HinawaFwUnit is planned to be an abstract class in future
+ *		      release. Please instantiate for derived class, instead.
  */
 HinawaFwUnit *hinawa_fw_unit_new(void)
 {
