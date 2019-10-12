@@ -1,5 +1,5 @@
 Name:			libhinawa
-Version:		1.3.0
+Version:		1.4.0
 Release:		1%{?dist}
 Summary:		GObject introspection library for devices connected to IEEE 1394 bus
 
@@ -7,7 +7,7 @@ License:		LGPLv2
 URL:			https://github.com/takaswie/libhinawa
 Source:			%{name}-%{version}.tar.xz
 
-BuildRequires:  meson >= 0.32.0
+BuildRequires:  meson >= 0.46.0
 BuildRequires:  gtk-doc >= 1.18-2
 BuildRequires:  gobject-introspection >= 1.32.1, gobject-introspection-devel >= 1.32.1
 BuildRequires:  python3-gobject
@@ -63,6 +63,12 @@ developing applications that use %{name}.
 
 
 %changelog
+* Sat Oct 12 2019 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 1.4.0
+- new upstream release.
+
+* Tue May 7 2019 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 1.3.1
+- new upstream release.
+
 * Mon Apr 22 2019 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 1.3.0
 - new upstream release.
 
