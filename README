@@ -1,6 +1,6 @@
 # libhinawa
 
-2019/3/5
+2019/10/12
 Takashi Sakamoto
 
 ## Instruction
@@ -22,19 +22,35 @@ this library is an application of Linux sound subsystem.
 ```
 #!/usr/bin/env python3
 
+from threading import Thread
+
 import gi
+gi.require_version('GLib', '2.0')
 gi.require_version('Hinawa', '2.0')
-from gi.repository import Hinawa
+from gi.repository import GLib, Hinawa
 
 unit = Hinawa.SndUnit()
 unit.open('/dev/snd/hwC0D0')
-unit.listen()
+node = unit.get_node()
+
+ctx = GLib.MainContext.new()
+unit_src = unit.create_source()
+node_src = node.create_source()
+unit_src.attach(ctx)
+node_src.attach(ctx)
+dispatcher = GLib.MainLoop.new(ctx, False)
+dispatch_th = Thread(target=lambda d: d.run(), args=(dispatcher,))
+dispatch_th.start()
 
 addr = 0xfffff0000904
 req = Hinawa.FwReq()
-frames = req.read(unit, addr, 4)
-for i, frame in enumerate(frames):
-    print('{0:016x}: {0:02x}'.format(addr + i, frame))
+frame = bytearray(4)
+frame = req.transaction(node, Hinawa.FwTcode.READ_QUADLET_REQUEST, addr, 4,
+			frame)
+for i, frame in enumerate(frame):
+    print('0x{:016x}: 0x{:02x}'.format(addr + i, frame))
+
+dispatcher.quit()
 ```
 
 ## License
@@ -51,7 +67,7 @@ for i, frame in enumerate(frames):
 - Linux kernel 3.12 or later
 
 ## Requirements to build
-- Meson 0.32.0 or later
+- Meson 0.46.0 or later
 - Ninja
 - PyGObject (optional to run unit tests)
 - GTK-Doc 1.18-2 (optional to generate API documentation)
@@ -78,10 +94,9 @@ $ ninja install
 ## Sample scripts
 
 ```
-$ ./samples/run.sh [gtk|qt4|qt5]
+$ ./samples/run.sh [gtk|qt5]
 ```
 gtk - PyGObject is required.
-qt4 - PyQt4 is required (also test python2).
 qt5 - PyQt5 is required.
 
 ## How to make DEB package
@@ -93,5 +108,32 @@ qt5 - PyQt5 is required.
 1. archive all source code into libhinawa-1.3.0.tar.gz
   $ git archive --format tar.gz --prefix='libhinawa-1.3.0/' 1.3.0 -o ~/rpmbuild/SOURCES/libhinawa-1.3.0.tar.gz
 2. rpmbuild -bb libhinawa.spec
+
+## Future plan for libhinawa v2 and backward compatibility
+ * HinawaFwUnit
+   * This gobject class is planned to be an abstract class. Instead, any
+     derived class such as HinawaSndUnit should be used for instantiation.
+ * HinawaFwReq/HinawaFwResp/HinawaFwFcp
+  * Any API with arguments for HinawaFwUnit is planned to be dropped. Instead,
+    use APIs with arguments for HinawaFwNode.
+  * Any API with arguments for GByteArray is planned to be dropped. Instead,
+    use APIs with arguments for guint8(buffer) and gsize(buffer length).
+ * HinawaSndEfw/HinawaSndDice
+  * Any API with arguments for GArray is planned to be dropped. Instead, use
+    APIs with arguments for guint32(buffer) and gsize(buffer length).
+ * I/O thread
+  * No thread is planned to be launched internally for event dispatcher.
+    Instead, retrieve GSource from HinawaFwNode and HinawaSndUnit and use it
+    with GMainContext for event dispatcher. When no dispatcher runs, timeout
+    occurs for any transaction.
+ * Notifier thread
+  * No thread is planned to be launched internally for GObject signal notifier.
+    Instead, launch another thread for your notifier and delegate any
+    transaction into it. This is required to prevent I/O thread to be stalled
+    because of waiting for an additional event of the transaction.
+
+For backward compatibility, the deprecated APIs and features are kept during v1
+period, however application developers should migrate to new APIs and implement
+alternatives for the lost features.
 
 end
