@@ -139,7 +139,11 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
  *	  quadlet data as arguments for command.
  * @arg_count: The number of quadlets in the args array.
  * @params: (array length=param_count)(inout): An array with elements for
- *	    quadlet data to save parameters in response.
+ *	    quadlet data to save parameters in response. Callers should give it
+ *	    for buffer with enough space against the request since this library
+ *	    performs no reallocation. Due to the reason, the value of this
+ *	    argument should point to the pointer to the array and immutable.
+ *	    The content of array is mutable for parameters in response.
  * @param_count: The number of quadlets in the params array.
  * @exception: A #GError.
  *

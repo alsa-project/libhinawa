@@ -145,7 +145,9 @@ HinawaFwReq *hinawa_fw_req_new(void)
  * @addr: A destination address of target device
  * @length: The range of address in byte unit.
  * @frame: (array length=frame_size)(inout): An array with elements for byte
- *	   data. The value of this argument should point to the pointer to the
+ *	   data. Callers should give it for buffer with enough space against the
+ *	   request since this library performs no reallocation. Due to the
+ *	   reason, the value of this argument should point to the pointer to the
  *	   array and immutable. The content of array is mutable for read and
  *	   lock transaction.
  * @frame_size: The size of array in byte unit. The value of this argument

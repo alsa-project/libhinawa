@@ -169,9 +169,11 @@ HinawaFwFcp *hinawa_fw_fcp_new(void)
  *	       the array and immutable.
  * @req_frame_size: The size of array for request in byte unit.
  * @resp_frame: (array length=resp_frame_size)(inout): An array with elements
- *		for response byte data. The value of this argument should point
- *		to the pointer to the array and immutable. The content of array
- *		is mutable.
+ *		for response byte data. Callers should give it for buffer with
+ *		enough space against the request since this library performs no
+ *		reallocation. Due to the reason, the value of this argument
+ *		should point to the pointer to the array and immutable. The
+ *		content of array is mutable.
  * @resp_frame_size: The size of array for response in byte unit. The value of
  *		     this argument should point to the numerical number and
  *		     mutable.
