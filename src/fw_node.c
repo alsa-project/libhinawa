@@ -329,25 +329,9 @@ void hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
 	g_mutex_unlock(&priv->mutex);
 }
 
-static void fw_node_notify_update(void *target, void *data, unsigned int length)
-{
-	HinawaFwNode *self = target;
-
-	g_signal_emit(self, fw_node_sigs[FW_NODE_SIG_TYPE_BUS_UPDATE], 0, NULL);
-}
-
-static void fw_node_notify_disconnected(void *target, void *data,
-					unsigned int length)
-{
-	HinawaFwNode *self = target;
-
-	g_signal_emit(self, fw_node_sigs[FW_NODE_SIG_TYPE_DISCONNECTED], 0);
-}
-
 static void handle_update(HinawaFwNode *self, GError **exception)
 {
 	HinawaFwNodePrivate *priv;
-	int err = 0;
 
 	g_return_if_fail(HINAWA_IS_FW_NODE(self));
 	priv = hinawa_fw_node_get_instance_private(self);
@@ -356,8 +340,7 @@ static void handle_update(HinawaFwNode *self, GError **exception)
 	update_info(self, exception);
 	g_mutex_unlock(&priv->mutex);
 
-	hinawa_context_schedule_notification(self, NULL, 0,
-					     fw_node_notify_update, &err);
+	g_signal_emit(self, fw_node_sigs[FW_NODE_SIG_TYPE_BUS_UPDATE], 0, NULL);
 }
 
 static gboolean prepare_src(GSource *src, gint *timeout)
@@ -373,12 +356,11 @@ static gboolean check_src(GSource *gsrc)
 {
 	FwNodeSource *src = (FwNodeSource *)gsrc;
 	GIOCondition condition;
-	int err = 0;
 
 	condition = g_source_query_unix_fd(gsrc, src->tag);
 	if (condition & G_IO_ERR) {
-		hinawa_context_schedule_notification(src->self, NULL, 0,
-					fw_node_notify_disconnected, &err);
+		g_signal_emit(src->self,
+			      fw_node_sigs[FW_NODE_SIG_TYPE_DISCONNECTED], 0);
 		return FALSE;
 	}
 

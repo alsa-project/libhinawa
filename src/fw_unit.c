@@ -226,18 +226,38 @@ HinawaFwUnit *hinawa_fw_unit_new(void)
 	return g_object_new(HINAWA_TYPE_FW_UNIT, NULL);
 }
 
+static void fw_unit_notify_update(void *target, void *data, unsigned int length)
+{
+	HinawaFwUnit *self = target;
+
+	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE], 0, NULL);
+}
+
+static void fw_unit_notify_disconnected(void *target, void *data,
+					unsigned int length)
+{
+	HinawaFwUnit *self = target;
+
+	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_DISCONNECTED], 0);
+}
+
 static void handle_bus_update(HinawaFwNode *node, gpointer arg)
 {
 	HinawaFwUnit *self = (HinawaFwUnit *)arg;
+	int err;
 
-	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE], 0, NULL);
+	hinawa_context_schedule_notification(self, NULL, 0,
+					     fw_unit_notify_update, &err);
+
 }
 
 static void handle_disconnected(HinawaFwNode *node, gpointer arg)
 {
 	HinawaFwUnit *self = (HinawaFwUnit *)arg;
+	int err;
 
-	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_DISCONNECTED], 0);
+	hinawa_context_schedule_notification(self, NULL, 0,
+					     fw_unit_notify_disconnected, &err);
 }
 
 /**
