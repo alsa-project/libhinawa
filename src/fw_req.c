@@ -177,10 +177,29 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 		return;
 	}
 
+	// Should be aligned to quadlet.
 	if (tcode == HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST ||
-	    tcode == HINAWA_FW_TCODE_READ_QUADLET_REQUEST) {
-		if ((addr & 0x3) || length != 4 || *frame_size < length) {
+	    tcode == HINAWA_FW_TCODE_READ_QUADLET_REQUEST ||
+	    tcode == HINAWA_FW_TCODE_LOCK_MASK_SWAP ||
+	    tcode == HINAWA_FW_TCODE_LOCK_COMPARE_SWAP ||
+	    tcode == HINAWA_FW_TCODE_LOCK_FETCH_ADD ||
+	    tcode == HINAWA_FW_TCODE_LOCK_LITTLE_ADD ||
+	    tcode == HINAWA_FW_TCODE_LOCK_BOUNDED_ADD ||
+	    tcode == HINAWA_FW_TCODE_LOCK_WRAP_ADD ||
+	    tcode == HINAWA_FW_TCODE_LOCK_VENDOR_DEPENDENT) {
+		if ((addr & 0x3) || (length & 0x3)) {
 			raise(exception, EINVAL);
+			return;
+		}
+	}
+
+	// Should have enough space for read/written data.
+	if (tcode == HINAWA_FW_TCODE_READ_QUADLET_REQUEST ||
+	    tcode == HINAWA_FW_TCODE_READ_BLOCK_REQUEST ||
+	    tcode == HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST ||
+	    tcode == HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST) {
+		if (*frame_size < length) {
+			raise(exception, ENOBUFS);
 			return;
 		}
 	} else if (tcode == HINAWA_FW_TCODE_LOCK_MASK_SWAP ||
@@ -190,15 +209,14 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 		   tcode == HINAWA_FW_TCODE_LOCK_BOUNDED_ADD ||
 		   tcode == HINAWA_FW_TCODE_LOCK_WRAP_ADD ||
 		   tcode == HINAWA_FW_TCODE_LOCK_VENDOR_DEPENDENT) {
-		if (length & 0x3 || *frame_size < length * 2) {
-			raise(exception, EINVAL);
+		if (*frame_size < length * 2) {
+			raise(exception, ENOBUFS);
 			return;
 		}
 		length *= 2;
-	} else if (tcode != HINAWA_FW_TCODE_READ_BLOCK_REQUEST &&
-		   tcode != HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST){
-		// Not supported.
-		raise(exception, EINVAL);
+	} else {
+		// Not supported due to no test.
+		raise(exception, ENOTSUP);
 		return;
 	}
 

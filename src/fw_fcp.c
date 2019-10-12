@@ -161,6 +161,8 @@ HinawaFwFcp *hinawa_fw_fcp_new(void)
 	return g_object_new(HINAWA_TYPE_FW_FCP, NULL);
 }
 
+#define NOTIFY_ENOBUFS	1
+
 /**
  * hinawa_fw_fcp_transaction:
  * @self: A #HinawaFwFcp.
@@ -249,7 +251,10 @@ deferred:
 		goto deferred;
 	}
 
-	*resp_frame_size = trans.resp_frame_size;
+	if (trans.resp_frame_size > NOTIFY_ENOBUFS)
+		*resp_frame_size = trans.resp_frame_size;
+	else
+		raise(exception, ENOBUFS);
 end:
 	g_mutex_unlock(&trans.mutex);
 	g_cond_clear(&trans.cond);
@@ -309,12 +314,16 @@ static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode)
 
 		if (trans->req_frame[1] == req_frame[1] &&
 		    trans->req_frame[2] == req_frame[2]) {
-			length = MIN(length, trans->resp_frame_size);
-
 			g_mutex_lock(&trans->mutex);
+
+			// To notify ENOBUFS.
+			if (trans->resp_frame_size < length)
+				length = NOTIFY_ENOBUFS;
+
 			memcpy((void *)trans->resp_frame, req_frame, length);
 			trans->resp_frame_size = length;
 			g_cond_signal(&trans->cond);
+
 			g_mutex_unlock(&trans->mutex);
 			break;
 		}

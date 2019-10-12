@@ -240,7 +240,7 @@ void hinawa_snd_efw_transaction(HinawaSndEfw *self,
 	// Check size.
 	quads = GUINT32_FROM_BE(trans.frame->length) - sizeof(*trans.frame) / 4;
 	if (quads > *param_count) {
-		raise(exception, EINVAL);
+		raise(exception, ENOBUFS);
 		goto end;
 
 	}
