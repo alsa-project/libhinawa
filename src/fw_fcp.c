@@ -271,7 +271,7 @@ end:
  * @exception: A #GError
  *
  * Execute fCP transaction.
- * Deprecated: 1.4.0: Use hinawa_fw_fcp_transaction() instead,
+ * Deprecated: 1.4: Use hinawa_fw_fcp_transaction() instead,
  */
 void hinawa_fw_fcp_transact(HinawaFwFcp *self,
 			    GByteArray *req_frame, GByteArray *resp_frame,
@@ -360,7 +360,7 @@ void hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node,
  *
  * Stop to listen to FCP responses.
  *
- * Since: 1.4.0.
+ * Since: 1.4.
  */
 void hinawa_fw_fcp_unbind(HinawaFwFcp *self)
 {
@@ -384,6 +384,9 @@ void hinawa_fw_fcp_unbind(HinawaFwFcp *self)
  * @exception: A #GError
  *
  * Start to listen to FCP responses.
+ *
+ * Deprecated: 1.4: Use hinawa_fw_fcp_bind() with an instance of HinawaFwNode,
+ *		    instead.
  */
 void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
 			  GError **exception)
@@ -405,7 +408,7 @@ void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
  *
  * Stop to listen to FCP responses.
  *
- * Deprecated: 1.4.0: Use hinawa_fw_fcp_unbind(), instead.
+ * Deprecated: 1.4: Use hinawa_fw_fcp_unbind(), instead.
  */
 void hinawa_fw_fcp_unlisten(HinawaFwFcp *self)
 {

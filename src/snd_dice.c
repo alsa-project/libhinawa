@@ -137,7 +137,7 @@ void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
  * Execute write transactions to the given address, then wait and check
  * notification.
  *
- * Since: 1.4.0.
+ * Since: 1.4.
  */
 void hinawa_snd_dice_transaction(HinawaSndDice *self, guint64 addr,
 			         const guint32 *frame, gsize frame_count,
@@ -219,7 +219,7 @@ end:
  * Execute write transactions to the given address, then wait and check
  * notification.
  *
- * Deprecated: 1.4.0: Use hinawa_snd_dice_transaction(), instead.
+ * Deprecated: 1.4: Use hinawa_snd_dice_transaction(), instead.
  */
 void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
 			      guint32 bit_flag, GError **exception)

@@ -145,7 +145,7 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
  *
  * Execute transaction according to Echo Fireworks Transaction protocol.
  *
- * Since: 1.4.0.
+ * Since: 1.4.
  */
 void hinawa_snd_efw_transaction(HinawaSndEfw *self,
 				guint category, guint command,
@@ -267,7 +267,7 @@ end:
  *
  * Execute transaction according to Echo Fireworks Transaction protocol.
  *
- * Deprecated: 1.4.0: Use hinawa_snd_efw_transaction(), instead.
+ * Deprecated: 1.4: Use hinawa_snd_efw_transaction(), instead.
  */
 void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 			     GArray *args, GArray *params, GError **exception)

@@ -19,7 +19,7 @@
  * This class is an application of Linux FireWire subsystem.
  * All of operations utilize ioctl(2) with subsystem specific request commands.
  *
- * Since: 1.4
+ * Since: 1.4.
  */
 
 // 256 comes from an actual implementation in kernel land. Read

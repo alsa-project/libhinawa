@@ -492,9 +492,9 @@ void hinawa_snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
  *
  * Start listening to events.
  *
- * Deprecated: 1.4.0: Instead, use GSource retrieved by a call of
- *		      hinawa_snd_unit_create_source(). Then use GMainContext and
- *		      GMainLoop of GLib for event loop.
+ * Deprecated: 1.4: Instead, use GSource retrieved by a call of
+ *		    hinawa_snd_unit_create_source(). Then use GMainContext and
+ *		    GMainLoop of GLib for event loop.
  */
 void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
 {
@@ -525,8 +525,8 @@ void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
  *
  * Stop listening to events.
  *
- * Deprecated: 1.4.0: Instead, maintain GMainContext and GMainLoop with GSource
- *		      retrieved by a call of hinawa_snd_unit_create_source().
+ * Deprecated: 1.4: Instead, maintain GMainContext and GMainLoop with GSource
+ *		    retrieved by a call of hinawa_snd_unit_create_source().
  */
 void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
 {

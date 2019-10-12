@@ -113,7 +113,7 @@ HinawaFwResp *hinawa_fw_resp_new(void)
  * Start to listen to a range of address in host controller which connects to
  * the node.
  *
- * Since: 1.4.0.
+ * Since: 1.4.
  */
 void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 			    guint64 addr, guint width, GError **exception)
@@ -166,7 +166,7 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
  *
  * stop to listen to a range of address in host controller.
  *
- * Since: 1.4.0.
+ * Since: 1.4.
  */
 void hinawa_fw_resp_release(HinawaFwResp *self)
 {
@@ -206,8 +206,8 @@ void hinawa_fw_resp_release(HinawaFwResp *self)
  *
  * Start to listen to a range of address in host controller
  *
- * Deprecated: 1.4.0: Use hinawa_fw_resp_reserve() with an instance of
- *		      HinawaFwNode, instead.
+ * Deprecated: 1.4: Use hinawa_fw_resp_reserve() with an instance of
+ *		    HinawaFwNode, instead.
  */
 void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
 			     guint64 addr, guint width, GError **exception)
@@ -228,8 +228,8 @@ void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
  *
  * stop to listen to a range of address in host controller
  *
- * Deprecated: 1.4.0: Use hinawa_fw_resp_release() with an instance of
- *		      HinawaFwNode, instead.
+ * Deprecated: 1.4: Use hinawa_fw_resp_release() with an instance of
+ *		    HinawaFwNode, instead.
  */
 void hinawa_fw_resp_unregister(HinawaFwResp *self)
 {
