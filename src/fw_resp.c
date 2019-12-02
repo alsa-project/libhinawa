@@ -255,8 +255,8 @@ void hinawa_fw_resp_unregister(HinawaFwResp *self)
 /**
  * hinawa_fw_resp_get_req_frame:
  * @self: A #HinawaFwResp
- * @frame: (element-type guint8)(array length=length)(out): a 8bit array for
- * 	   response frame.
+ * @frame: (array length=length)(out)(transfer none): a 8bit array for response
+ * 	   frame.
  * @length: (out): The length of bytes for the frame.
  *
  * Retrieve byte frame to be requested.

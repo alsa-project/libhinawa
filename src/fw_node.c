@@ -294,7 +294,7 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
 /**
  * hinawa_fw_node_get_config_rom:
  * @self: A #HinawaFwNode
- * @image: (element-type guint8)(array length=length)(out): The content of
+ * @image: (array length=length)(out)(transfer none): The content of
  *	   configuration ROM.
  * @length: (out): The number of bytes consists of the configuration rom.
  * @exception: A #GError.
