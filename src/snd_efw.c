@@ -276,6 +276,9 @@ end:
 void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 			     GArray *args, GArray *params, GError **exception)
 {
+	const guint32 *arg_ptr = NULL;
+	gsize arg_count = 0;
+
 	if ((args && g_array_get_element_size(args) != sizeof(guint32)) ||
 	    (g_array_get_element_size(params) != sizeof(guint32))) {
 		raise(exception, EINVAL);
@@ -284,8 +287,12 @@ void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
 
 	g_array_set_size(params, MAXIMUM_FRAME_BYTES);
 
-	hinawa_snd_efw_transaction(self, category, command,
-			(const guint32 *)args->data, args->len,
+	if (args) {
+		arg_ptr = (const guint32 *)args->data;
+		arg_count = args->len;
+	}
+
+	hinawa_snd_efw_transaction(self, category, command, arg_ptr, arg_count,
 			(guint32 *const *)&(params->data),
 			(gsize *)&(params->len), exception);
 }
