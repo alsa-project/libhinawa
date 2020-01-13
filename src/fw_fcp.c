@@ -205,15 +205,21 @@ void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
 		return;
 	}
 
-	req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
+	g_object_get(G_OBJECT(self), "timeout", &timeout_ms, NULL);
+
+	// NOTE: This is too rough estimation that 66 % of the given timeout
+	// can be consumed by write/response subaction for request transaction
+	// of FCP command and the rest by write subaction for request
+	// transaction of FCP response. This is just a heuristic because
+	// actual transactions are internally handled by abstraction layer of
+	// Linux FireWire subsystem.
+	req = g_object_new(HINAWA_TYPE_FW_REQ, "timeout", timeout_ms * 2 / 3);
 
 	// Prepare for an entry of FCP transaction.
 	trans.req_frame = req_frame;
 	trans.req_frame_size = req_frame_size;
 	trans.resp_frame = *resp_frame;
 	trans.resp_frame_size = *resp_frame_size;
-
-	g_object_get(G_OBJECT(self), "timeout", &timeout_ms, NULL);
 
 	// This predicates against suprious wakeup.
 	trans.resp_frame[0] = 0x00;
@@ -248,6 +254,8 @@ deferred:
 	} else if (trans.resp_frame[0] == AVC_STATUS_INTERIM) {
 		// It's a deffered transaction, wait again.
 		trans.resp_frame[0] = 0x00;
+		// Although the timeout is infinite in 1394 TA specification,
+		// use the finite value for safe.
 		goto deferred;
 	}
 
