@@ -295,7 +295,10 @@ void hinawa_snd_unit_ioctl(HinawaSndUnit *self, unsigned long request,
 static void snd_unit_notify_lock(void *target, void *data, unsigned int length)
 {
 	HinawaSndUnit *self = target;
+	HinawaSndUnitPrivate *priv = hinawa_snd_unit_get_instance_private(self);
 	struct snd_firewire_event_lock_status *event = data;
+
+	priv->streaming = event->status;
 
 	g_signal_emit(self, snd_unit_sigs[SND_UNIT_SIG_TYPE_LOCK_STATUS], 0,
 		      event->status);
