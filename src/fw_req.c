@@ -109,7 +109,7 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 		g_param_spec_uint("timeout", "timeout",
 				  "An elapse to expire waiting for response by ms unit.",
 				  10, UINT_MAX,
-				  10,
+				  200,
 				  G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
 
 	g_object_class_install_properties(gobject_class,
