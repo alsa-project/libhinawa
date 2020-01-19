@@ -213,7 +213,7 @@ void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
 	// transaction of FCP response. This is just a heuristic because
 	// actual transactions are internally handled by abstraction layer of
 	// Linux FireWire subsystem.
-	req = g_object_new(HINAWA_TYPE_FW_REQ, "timeout", timeout_ms * 2 / 3);
+	req = g_object_new(HINAWA_TYPE_FW_REQ, "timeout", timeout_ms * 2 / 3, NULL);
 
 	// Prepare for an entry of FCP transaction.
 	trans.req_frame = req_frame;
