@@ -63,6 +63,9 @@ developing applications that use %{name}.
 
 
 %changelog
+* Thu Jan 20 2020 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 1.4.4
+- new upstream release.
+
 * Thu Jan 16 2020 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 1.4.3
 - new upstream release.
 
