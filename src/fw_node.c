@@ -35,6 +35,9 @@ struct _HinawaFwNodePrivate {
 	guint8 config_rom[MAX_CONFIG_ROM_LENGTH];
 	unsigned int config_rom_length;
 	struct fw_cdev_event_bus_reset generation;
+
+	GList *transactions;
+	GMutex transactions_mutex;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwNode, hinawa_fw_node, G_TYPE_OBJECT)
@@ -79,6 +82,8 @@ static void fw_node_finalize(GObject *obj)
 
 	if (priv->fd >= 0)
 		close(priv->fd);
+
+	g_list_free(priv->transactions);
 
 	G_OBJECT_CLASS(hinawa_fw_node_parent_class)->finalize(obj);
 }
@@ -216,6 +221,7 @@ static void hinawa_fw_node_init(HinawaFwNode *self)
 
 	priv->fd = -1;
 	g_mutex_init(&priv->mutex);
+	g_mutex_init(&priv->transactions_mutex);
 }
 
 /**
@@ -401,9 +407,22 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		hinawa_fw_resp_handle_request(HINAWA_FW_RESP(common->closure),
 				(struct fw_cdev_event_request2 *)common);
 	else if (HINAWA_IS_FW_REQ(common->closure) &&
-		 common->type == FW_CDEV_EVENT_RESPONSE)
-		hinawa_fw_req_handle_response(HINAWA_FW_REQ(common->closure),
-				(struct fw_cdev_event_response *)common);
+		 common->type == FW_CDEV_EVENT_RESPONSE) {
+		struct fw_cdev_event_response *ev =
+				(struct fw_cdev_event_response *)common;
+		HinawaFwReq *req = HINAWA_FW_REQ(ev->closure);
+		GList *entry;
+
+		// Don't process request invalidated in advance.
+		g_mutex_lock(&priv->transactions_mutex);
+		entry = g_list_find(priv->transactions, req);
+		if (entry) {
+			priv->transactions =
+				g_list_delete_link(priv->transactions, entry);
+			hinawa_fw_req_handle_response(req, ev);
+		}
+		g_mutex_unlock(&priv->transactions_mutex);
+	}
 
 	if (exception != NULL)
 		return G_SOURCE_REMOVE;
@@ -480,7 +499,31 @@ void hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args,
 	g_return_if_fail(HINAWA_IS_FW_NODE(self));
 	priv = hinawa_fw_node_get_instance_private(self);
 
+	// To invalidate the transaction in a case of timeout.
+	if (req == FW_CDEV_IOC_SEND_REQUEST) {
+		struct fw_cdev_send_request *data = args;
+		HinawaFwReq *req = (HinawaFwReq *)data->closure;
+		priv->transactions = g_list_prepend(priv->transactions, req);
+	}
+
 	*err = 0;
 	if (ioctl(priv->fd, req, args) < 0)
 		*err = -errno;
+}
+
+void hinawa_fw_node_invalidate_transaction(HinawaFwNode *self, HinawaFwReq *req)
+{
+	HinawaFwNodePrivate *priv;
+	GList *entry;
+
+	g_return_if_fail(HINAWA_IS_FW_NODE(self));
+	priv = hinawa_fw_node_get_instance_private(self);
+
+	g_mutex_lock(&priv->transactions_mutex);
+	entry = g_list_find(priv->transactions, req);
+	if (entry) {
+		priv->transactions =
+				g_list_delete_link(priv->transactions, entry);
+	}
+	g_mutex_unlock(&priv->transactions_mutex);
 }

@@ -271,6 +271,7 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 	g_mutex_unlock(&priv->mutex);
 
 	if (priv->rcode == G_MAXUINT) {
+		hinawa_fw_node_invalidate_transaction(node, self);
 		raise(exception, ETIMEDOUT);
 		goto end;
 	}

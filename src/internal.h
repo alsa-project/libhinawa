@@ -37,6 +37,7 @@ void hinawa_context_schedule_notification(void *target, const void *data,
 
 void hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args,
 			  int *err);
+void hinawa_fw_node_invalidate_transaction(HinawaFwNode *self, HinawaFwReq *req);
 
 void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 				   struct fw_cdev_event_request2 *event);
