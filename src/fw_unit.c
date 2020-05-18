@@ -39,14 +39,6 @@ struct _HinawaFwUnitPrivate {
 // TODO: use G_DEFINE_ABSTRACT_TYPE().
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwUnit, hinawa_fw_unit, G_TYPE_OBJECT)
 
-// This object has two deprecated signals.
-enum fw_unit_sig_type {
-	FW_UNIT_SIG_TYPE_BUS_UPDATE = 0,
-	FW_UNIT_SIG_TYPE_DISCONNECTED,
-	FW_UNIT_SIG_TYPE_COUNT,
-};
-static guint fw_unit_sigs[FW_UNIT_SIG_TYPE_COUNT] = { 0 };
-
 static void fw_unit_finalize(GObject *obj)
 {
 	HinawaFwUnit *self = HINAWA_FW_UNIT(obj);
@@ -62,45 +54,6 @@ static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
 	gobject_class->finalize = fw_unit_finalize;
-
-	/**
-	 * HinawaFwUnit::bus-update:
-	 * @self: A #HinawaFwUnit
-	 *
-	 * When IEEE 1394 bus is updated, the ::bus-update signal is generated.
-	 * Handlers can read current generation in the bus via 'generation'
-	 * property.
-	 *
-	 * Deprecated: 1.4: Use an instance of HinawaFwNode retrieved by a call
-	 *		    of hinawa_fw_unit_get_node().
-	 */
-	fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE] =
-		g_signal_new("bus-update",
-			     G_OBJECT_CLASS_TYPE(klass),
-			     G_SIGNAL_RUN_LAST,
-			     G_STRUCT_OFFSET(HinawaFwUnitClass, bus_update),
-			     NULL, NULL,
-			     g_cclosure_marshal_VOID__VOID,
-			     G_TYPE_NONE, 0, G_TYPE_NONE);
-
-	/**
-	 * HinawaFwUnit::disconnected:
-	 * @self: A #HinawaFwUnit
-	 *
-	 * When physical FireWire devices are disconnected from IEEE 1394 bus,
-	 * the #HinawaFwUnit becomes unlistening and emits this signal.
-	 *
-	 * Deprecated: 1.4: Use an instance of HinawaFwNode retrieved by a call
-	 *		    of hinawa_fw_unit_get_node().
-	 */
-	fw_unit_sigs[FW_UNIT_SIG_TYPE_DISCONNECTED] =
-		g_signal_new("disconnected",
-			     G_OBJECT_CLASS_TYPE(klass),
-			     G_SIGNAL_RUN_LAST,
-			     G_STRUCT_OFFSET(HinawaFwUnitClass, disconnected),
-			     NULL, NULL,
-			     g_cclosure_marshal_VOID__VOID,
-			     G_TYPE_NONE, 0, G_TYPE_NONE);
 }
 
 static void hinawa_fw_unit_init(HinawaFwUnit *self)
@@ -124,20 +77,6 @@ HinawaFwUnit *hinawa_fw_unit_new(void)
 	return g_object_new(HINAWA_TYPE_FW_UNIT, NULL);
 }
 
-static void handle_bus_update(HinawaFwNode *node, gpointer arg)
-{
-	HinawaFwUnit *self = (HinawaFwUnit *)arg;
-
-	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE], 0, NULL);
-}
-
-static void handle_disconnected(HinawaFwNode *node, gpointer arg)
-{
-	HinawaFwUnit *self = (HinawaFwUnit *)arg;
-
-	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_DISCONNECTED], 0);
-}
-
 /**
  * hinawa_fw_unit_open:
  * @self: A #HinawaFwUnit
@@ -154,13 +93,6 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 	priv = hinawa_fw_unit_get_instance_private(self);
 
 	hinawa_fw_node_open(priv->node, path, exception);
-	if (*exception != NULL)
-		return;
-
-	g_signal_connect(G_OBJECT(priv->node), "bus_update",
-			 G_CALLBACK(handle_bus_update), self);
-	g_signal_connect(G_OBJECT(priv->node), "disconnected",
-			 G_CALLBACK(handle_disconnected), self);
 }
 
 /**

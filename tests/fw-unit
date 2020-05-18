@@ -17,14 +17,8 @@ methods = (
     'get_config_rom',
     'get_node',
 )
-vmethods = (
-    'do_bus_update',
-    'do_disconnected',
-)
-signals = (
-    'bus-update',
-    'disconnected',
-)
+vmethods = ()
+signals = ()
 
 if not test(target, props, methods, vmethods, signals):
     exit(ENXIO)
