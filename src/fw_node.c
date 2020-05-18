@@ -98,22 +98,22 @@ static void fw_node_get_property(GObject *obj, guint id,
 
 	switch (id) {
 	case FW_NODE_PROP_TYPE_NODE_ID:
-		g_value_set_ulong(val, priv->generation.node_id);
+		g_value_set_uint(val, priv->generation.node_id);
 		break;
 	case FW_NODE_PROP_TYPE_LOCAL_NODE_ID:
-		g_value_set_ulong(val, priv->generation.local_node_id);
+		g_value_set_uint(val, priv->generation.local_node_id);
 		break;
 	case FW_NODE_PROP_TYPE_BUS_MANAGER_NODE_ID:
-		g_value_set_ulong(val, priv->generation.bm_node_id);
+		g_value_set_uint(val, priv->generation.bm_node_id);
 		break;
 	case FW_NODE_PROP_TYPE_IR_MANAGER_NODE_ID:
-		g_value_set_ulong(val, priv->generation.irm_node_id);
+		g_value_set_uint(val, priv->generation.irm_node_id);
 		break;
 	case FW_NODE_PROP_TYPE_ROOT_NODE_ID:
-		g_value_set_ulong(val, priv->generation.root_node_id);
+		g_value_set_uint(val, priv->generation.root_node_id);
 		break;
 	case FW_NODE_PROP_TYPE_GENERATION:
-		g_value_set_ulong(val, priv->generation.generation);
+		g_value_set_uint(val, priv->generation.generation);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
@@ -138,40 +138,40 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 	gobject_class->set_property = fw_node_set_property;
 
 	fw_node_props[FW_NODE_PROP_TYPE_NODE_ID] =
-		g_param_spec_ulong("node-id", "node-id",
-				   "Node-ID of this node at this generation.",
-				   0, ULONG_MAX, 0,
-				   G_PARAM_READABLE);
+		g_param_spec_uint("node-id", "node-id",
+				  "Node-ID of this node at this generation.",
+				  0, G_MAXUINT32, 0,
+				  G_PARAM_READABLE);
 	fw_node_props[FW_NODE_PROP_TYPE_LOCAL_NODE_ID] =
-		g_param_spec_ulong("local-node-id", "local-node-id",
-				   "Node-ID for a node which this node use to "
-				   "communicate to the other nodes on the bus "
-				   "at this generation.",
-				   0, ULONG_MAX, 0,
-				   G_PARAM_READABLE);
+		g_param_spec_uint("local-node-id", "local-node-id",
+				  "Node-ID for a node which this node use to "
+				  "communicate to the other nodes on the bus "
+				  "at this generation.",
+				  0, G_MAXUINT32, 0,
+				  G_PARAM_READABLE);
 	fw_node_props[FW_NODE_PROP_TYPE_BUS_MANAGER_NODE_ID] =
-		g_param_spec_ulong("bus-manager-node-id", "bus-manager-node-id",
-				   "Node-ID for bus manager on the bus at this "
-				   "generation.",
-				   0, ULONG_MAX, 0,
-				   G_PARAM_READABLE);
+		g_param_spec_uint("bus-manager-node-id", "bus-manager-node-id",
+				  "Node-ID for bus manager on the bus at this "
+				  "generation.",
+				  0, G_MAXUINT32, 0,
+				  G_PARAM_READABLE);
 	fw_node_props[FW_NODE_PROP_TYPE_IR_MANAGER_NODE_ID] =
-		g_param_spec_ulong("ir-manager-node-id", "ir-manager-node-id",
-				   "Node-ID for isochronous resource manager "
-				   "on the bus at this generation",
-				   0, ULONG_MAX, 0,
-				   G_PARAM_READABLE);
+		g_param_spec_uint("ir-manager-node-id", "ir-manager-node-id",
+				  "Node-ID for isochronous resource manager "
+				  "on the bus at this generation",
+				  0, G_MAXUINT32, 0,
+				  G_PARAM_READABLE);
 	fw_node_props[FW_NODE_PROP_TYPE_ROOT_NODE_ID] =
-		g_param_spec_ulong("root-node-id", "root-node-id",
-				   "Node-ID for root of bus topology at this "
-				   "generation.",
-				   0, ULONG_MAX, 0,
-				   G_PARAM_READABLE);
+		g_param_spec_uint("root-node-id", "root-node-id",
+				  "Node-ID for root of bus topology at this "
+				  "generation.",
+				  0, G_MAXUINT32, 0,
+				  G_PARAM_READABLE);
 	fw_node_props[FW_NODE_PROP_TYPE_GENERATION] =
-		g_param_spec_ulong("generation", "generation",
-				   "current level of generation on this bus.",
-				   0, ULONG_MAX, 0,
-				   G_PARAM_READABLE);
+		g_param_spec_uint("generation", "generation",
+				  "current level of generation on this bus.",
+				  0, G_MAXUINT32, 0,
+				  G_PARAM_READABLE);
 
 	g_object_class_install_properties(gobject_class,
 					  FW_NODE_PROP_TYPE_COUNT,
