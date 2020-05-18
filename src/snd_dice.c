@@ -229,16 +229,6 @@ void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
 				    bit_flag, exception);
 }
 
-static void snd_dice_notify_notification(void *target, void *data,
-					 unsigned int length)
-{
-	HinawaSndDice *self = target;
-	struct snd_firewire_event_dice_notification *event = data;
-
-	g_signal_emit(self, dice_sigs[DICE_SIG_TYPE_NOTIFIED],
-		      0, event->notification);
-}
-
 void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 					 const void *buf, unsigned int len)
 {
@@ -247,9 +237,6 @@ void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 	HinawaSndDicePrivate *priv;
 	GList *entry;
 	struct notification_waiter *waiter;
-	gboolean listening;
-	int err = 0;
-
 
 	g_return_if_fail(HINAWA_IS_SND_DICE(self));
 	priv = hinawa_snd_dice_get_instance_private(self);
@@ -266,13 +253,6 @@ void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 
 	g_mutex_unlock(&priv->mutex);
 
-	// For backward compatibility.
-	g_object_get(&self->parent_instance, "listening", &listening, NULL);
-	if (listening) {
-		hinawa_context_schedule_notification(self, buf, len,
-					snd_dice_notify_notification, &err);
-		return;
-	}
-
-	snd_dice_notify_notification(self, (void *)buf, len);
+	g_signal_emit(self, dice_sigs[DICE_SIG_TYPE_NOTIFIED],
+		      0, event->notification);
 }
