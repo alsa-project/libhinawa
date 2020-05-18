@@ -275,7 +275,7 @@ void hinawa_fw_resp_set_resp_frame(HinawaFwResp *self, guint8 *frame,
 	}
 }
 
-// NOTE: For HinawaFwUnit, internal.
+// NOTE: For HinawaFwNodee, internal.
 void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 				   struct fw_cdev_event_request2 *event)
 {

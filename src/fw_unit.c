@@ -18,13 +18,7 @@
  * A #HinawaFwUnit object has a reference to an instance of HinawaFwNode for
  * Linux FireWire character device, corresponding to parent node on IEEE 1394
  * bus. This object is expected to be used by inheritance from subclasses; e.g.
- * HinawaSndUnit, and should not be instantiated directly for newly written
- * code since the object is planned to be abstract class in future libhinawa
- * release.
- *
- * All of operations are done by associated HinawaFwNode. Some APIs and
- * properties which #HinawaFwUnit has are maintained just for backward
- * compatibility and already deprecated. Instead, use associated HinawaFwNode.
+ * HinawaSndUnit.
  */
 
 struct _HinawaFwUnitPrivate {
