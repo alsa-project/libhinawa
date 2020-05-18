@@ -35,18 +35,9 @@ G_DEFINE_QUARK("HinawaFwUnit", hinawa_fw_unit)
 
 struct _HinawaFwUnitPrivate {
 	HinawaFwNode *node;
-	GSource *src;
 };
 // TODO: use G_DEFINE_ABSTRACT_TYPE().
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwUnit, hinawa_fw_unit, G_TYPE_OBJECT)
-
-typedef struct {
-	GSource src;
-	HinawaFwUnit *unit;
-	gpointer tag;
-	unsigned int len;
-	void *buf;
-} FwUnitSource;
 
 // This object has deprecated properties.
 enum fw_unit_prop_type {
@@ -56,7 +47,6 @@ enum fw_unit_prop_type {
 	FW_UNIT_PROP_TYPE_IR_MANAGER_NODE_ID,
 	FW_UNIT_PROP_TYPE_ROOT_NODE_ID,
 	FW_UNIT_PROP_TYPE_GENERATION,
-	FW_UNIT_PROP_TYPE_LISTENING,
 	FW_UNIT_PROP_TYPE_COUNT,
 };
 static GParamSpec *fw_unit_props[FW_UNIT_PROP_TYPE_COUNT] = { NULL, };
@@ -85,9 +75,6 @@ static void fw_unit_get_property(GObject *obj, guint id,
 	case FW_UNIT_PROP_TYPE_GENERATION:
 		g_object_get_property(node, fw_unit_props[id]->name, val);
 		break;
-	case FW_UNIT_PROP_TYPE_LISTENING:
-		g_value_set_boolean(val, priv->src != NULL);
-		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
 		break;
@@ -98,8 +85,6 @@ static void fw_unit_finalize(GObject *obj)
 {
 	HinawaFwUnit *self = HINAWA_FW_UNIT(obj);
 	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(self);
-
-	hinawa_fw_unit_unlisten(self);
 
 	g_object_unref(priv->node);
 
@@ -148,11 +133,6 @@ static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 				  "current level of generation on this bus.",
 				  0, G_MAXUINT32, 0,
 				  G_PARAM_READABLE | G_PARAM_DEPRECATED);
-	fw_unit_props[FW_UNIT_PROP_TYPE_LISTENING] =
-		g_param_spec_boolean("listening", "listening",
-				     "Whether this device is under listening.",
-				     FALSE,
-				     G_PARAM_READABLE | G_PARAM_DEPRECATED);
 
 	g_object_class_install_properties(gobject_class,
 					  FW_UNIT_PROP_TYPE_COUNT,
@@ -219,51 +199,18 @@ HinawaFwUnit *hinawa_fw_unit_new(void)
 	return g_object_new(HINAWA_TYPE_FW_UNIT, NULL);
 }
 
-static void fw_unit_notify_update(void *target, void *data, unsigned int length)
-{
-	HinawaFwUnit *self = target;
-
-	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE], 0, NULL);
-}
-
-static void fw_unit_notify_disconnected(void *target, void *data,
-					unsigned int length)
-{
-	HinawaFwUnit *self = target;
-
-	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_DISCONNECTED], 0);
-}
-
 static void handle_bus_update(HinawaFwNode *node, gpointer arg)
 {
 	HinawaFwUnit *self = (HinawaFwUnit *)arg;
-	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(self);
-	int err;
 
-	// For backward compatibility.
-	if (priv->src != NULL) {
-		hinawa_context_schedule_notification(self, NULL, 0,
-					     fw_unit_notify_update, &err);
-		return;
-	}
-
-	fw_unit_notify_update(self, NULL, 0);
+	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_BUS_UPDATE], 0, NULL);
 }
 
 static void handle_disconnected(HinawaFwNode *node, gpointer arg)
 {
 	HinawaFwUnit *self = (HinawaFwUnit *)arg;
-	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(self);
-	int err;
 
-	// For backward compatibility.
-	if (priv->src != NULL) {
-		hinawa_context_schedule_notification(self, NULL, 0,
-					     fw_unit_notify_disconnected, &err);
-		return;
-	}
-
-	fw_unit_notify_disconnected(self, NULL, 0);
+	g_signal_emit(self, fw_unit_sigs[FW_UNIT_SIG_TYPE_DISCONNECTED], 0);
 }
 
 /**
@@ -320,72 +267,6 @@ const guint8 *hinawa_fw_unit_get_config_rom(HinawaFwUnit *self, guint *length)
 		return NULL;
 
 	return image;
-}
-
-/**
- * hinawa_fw_unit_listen:
- * @self: A #HinawaFwUnit
- * @exception: A #GError
- *
- * Start to listen to any events from the unit.
- *
- * Deprecated: 1.4: Instead, use GSource retrieved by a call of
- *		    hinawa_fw_node_create_source() for an instance of
- *		    HinawaFwNode retrieved by a call of
- *		    hinawa_fw_unit_get_node(). Then use GMainContext and
- *		    GMainLoop of GLib for event loop.
- */
-void hinawa_fw_unit_listen(HinawaFwUnit *self, GError **exception)
-{
-	HinawaFwUnitPrivate *priv;
-
-	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
-	priv = hinawa_fw_unit_get_instance_private(self);
-
-	if (priv->src == NULL) {
-		hinawa_fw_node_create_source(priv->node, &priv->src, exception);
-		if (*exception != NULL) {
-			hinawa_fw_unit_unlisten(self);
-			return;
-		}
-
-		hinawa_context_add_src(priv->src, exception);
-		if (*exception != NULL) {
-			hinawa_fw_unit_unlisten(self);
-			return;
-		}
-
-		hinawa_context_start_notifier(exception);
-		if (*exception != NULL) {
-			hinawa_fw_unit_unlisten(self);
-			return;
-		}
-	}
-}
-
-/**
- * hinawa_fw_unit_unlisten:
- * @self: A #HinawaFwUnit
- *
- * Stop to listen to any events from the unit.
- *
- * Deprecated: 1.4: Instead, maintain GMainContext and GMainLoop with GSource
- *		    retrieved by a call of hinawa_fw_node_create_source().
- */
-void hinawa_fw_unit_unlisten(HinawaFwUnit *self)
-{
-	HinawaFwUnitPrivate *priv;
-
-	g_return_if_fail(HINAWA_IS_FW_UNIT(self));
-	priv = hinawa_fw_unit_get_instance_private(self);
-
-	if (priv->src != NULL) {
-		hinawa_context_stop_notifier();
-
-		hinawa_context_remove_src(priv->src);
-		g_source_unref(priv->src);
-		priv->src = NULL;
-	}
 }
 
 /**

@@ -17,14 +17,11 @@ props = (
     'ir-manager-node-id',
     'root-node-id',
     'generation',
-    'listening',
 )
 methods = (
     'new',
     'open',
     'get_config_rom',
-    'listen',
-    'unlisten',
     'get_node',
 )
 vmethods = (
