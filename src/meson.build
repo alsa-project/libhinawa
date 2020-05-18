@@ -77,7 +77,6 @@ headers += 'hinawa_enum_types.h'
 sources += enums
 
 sources_to_build = [
-  'hinawa_context.c',
   'internal.h',
 ]
 

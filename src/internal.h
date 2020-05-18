@@ -24,17 +24,6 @@
 #include "snd_motu.h"
 #include "snd_tscm.h"
 
-void hinawa_context_add_src(GSource *src, GError **exception);
-void hinawa_context_remove_src(GSource *src);
-
-void hinawa_context_start_notifier(GError **exception);
-void hinawa_context_stop_notifier();
-
-typedef void (*NotifierWorkFunc)(void *target, void *data, unsigned int length);
-void hinawa_context_schedule_notification(void *target, const void *data,
-				unsigned int length, NotifierWorkFunc func,
-				int *err);
-
 void hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args,
 			  int *err);
 void hinawa_fw_node_invalidate_transaction(HinawaFwNode *self, HinawaFwReq *req);
