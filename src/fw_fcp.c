@@ -4,7 +4,6 @@
 
 #include "internal.h"
 #include "fw_fcp.h"
-#include "hinawa_enum_types.h"
 
 /**
  * SECTION:fw_fcp

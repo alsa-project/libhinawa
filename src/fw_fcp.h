@@ -6,6 +6,8 @@
 #include <glib-object.h>
 #include "fw_resp.h"
 
+#include <hinawa_enums.h>
+
 G_BEGIN_DECLS
 
 #define HINAWA_TYPE_FW_FCP	(hinawa_fw_fcp_get_type())
