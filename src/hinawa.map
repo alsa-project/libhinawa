@@ -49,8 +49,6 @@ HINAWA_1_0_0 {
     "hinawa_fw_rcode_get_type";
     "hinawa_snd_unit_type_get_type";
 
-    "hinawa_fw_resp_get_req_frame";
-    "hinawa_fw_resp_set_resp_frame";
     "hinawa_sigs_marshal_ENUM__ENUM";
 } HINAWA_0_8_0;
 
@@ -101,4 +99,7 @@ HINAWA_2_0_0 {
     "hinawa_fw_node_get_config_rom";
 
     "hinawa_fw_fcp_transaction";
+
+    "hinawa_fw_resp_get_req_frame";
+    "hinawa_fw_resp_set_resp_frame";
 } HINAWA_1_4_0;

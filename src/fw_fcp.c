@@ -54,7 +54,7 @@ struct fcp_transaction {
 	const guint8 *req_frame;
 	guint req_frame_size;
 	guint8 *resp_frame;
-	guint resp_frame_size;
+	gsize resp_frame_size;
 	GCond cond;
 	GMutex mutex;
 };
@@ -292,7 +292,7 @@ static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode)
 	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
 	struct fcp_transaction *trans;
 	const guint8 *req_frame;
-	guint length;
+	gsize length;
 	GList *entry;
 
 	g_mutex_lock(&priv->transactions_mutex);

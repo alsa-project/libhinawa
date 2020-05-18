@@ -68,9 +68,9 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 void hinawa_fw_resp_release(HinawaFwResp *self);
 
 void hinawa_fw_resp_get_req_frame(HinawaFwResp *self, const guint8 **frame,
-				  guint *length);
+				  gsize *length);
 void hinawa_fw_resp_set_resp_frame(HinawaFwResp *self, guint8 *frame,
-				   guint length);
+				   gsize length);
 
 G_END_DECLS
 

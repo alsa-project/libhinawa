@@ -31,9 +31,9 @@ struct _HinawaFwRespPrivate {
 	guint64 addr_handle;
 
 	guint8 *req_frame;
-	unsigned int req_length;
+	gsize req_length;
 	guint8 *resp_frame;
-	unsigned int resp_length;
+	gsize resp_length;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwResp, hinawa_fw_resp, G_TYPE_OBJECT)
 
@@ -239,7 +239,7 @@ void hinawa_fw_resp_release(HinawaFwResp *self)
  * Retrieve byte frame to be requested.
  */
 void hinawa_fw_resp_get_req_frame(HinawaFwResp *self, const guint8 **frame,
-				  guint *length)
+				  gsize *length)
 {
 	HinawaFwRespPrivate *priv;
 
@@ -262,7 +262,7 @@ void hinawa_fw_resp_get_req_frame(HinawaFwResp *self, const guint8 **frame,
  * Register byte frame as response.
  */
 void hinawa_fw_resp_set_resp_frame(HinawaFwResp *self, guint8 *frame,
-				   guint length)
+				   gsize length)
 {
 	HinawaFwRespPrivate *priv;
 
