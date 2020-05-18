@@ -340,30 +340,12 @@ static gboolean prepare_src(GSource *src, gint *timeout)
 static gboolean check_src(GSource *gsrc)
 {
 	SndUnitSource *src = (SndUnitSource *)gsrc;
-	HinawaSndUnit *unit = src->unit;
-	HinawaSndUnitPrivate *priv = hinawa_snd_unit_get_instance_private(unit);
 	GIOCondition condition;
 
+	// Don't go to dispatch if nothing available. As an exception, return
+	// TRUE for POLLERR to call .dispatch for internal destruction.
 	condition = g_source_query_unix_fd(gsrc, src->tag);
-	if (condition & G_IO_ERR) {
-		if (unit != NULL) {
-			int err = 0;
-
-			if (priv->src != NULL) {
-				// For backward compatibility.
-				hinawa_context_schedule_notification(unit,
-					NULL, 0, snd_unit_notify_disconnected,
-					&err);
-			} else {
-				snd_unit_notify_disconnected(unit, NULL, 0);
-			}
-
-			hinawa_snd_unit_unlisten(unit);
-		}
-	}
-
-	// Don't go to dispatch if nothing available.
-	return !!(condition & G_IO_IN);
+	return !!(condition & (G_IO_IN | G_IO_ERR));
 }
 
 static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
@@ -371,12 +353,28 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	SndUnitSource *src = (SndUnitSource *)gsrc;
 	HinawaSndUnit *unit = src->unit;
 	HinawaSndUnitPrivate *priv;
+	GIOCondition condition;
 	struct snd_firewire_event_common *common;
 	int len;
 
-	if (unit == NULL)
-		goto end;
 	priv = hinawa_snd_unit_get_instance_private(unit);
+	if (priv->fd < 0)
+		return G_SOURCE_REMOVE;
+
+	condition = g_source_query_unix_fd(gsrc, src->tag);
+	if (condition & G_IO_ERR) {
+		if (priv->src != NULL) {
+			int err = 0;
+
+			// For backward compatibility.
+			hinawa_context_schedule_notification(unit,
+				NULL, 0, snd_unit_notify_disconnected, &err);
+		} else {
+			snd_unit_notify_disconnected(unit, NULL, 0);
+		}
+
+		return G_SOURCE_REMOVE;
+	}
 
 	len = read(priv->fd, src->buf, src->len);
 	if (len <= 0)
