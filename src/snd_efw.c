@@ -259,44 +259,6 @@ end:
 	g_free(trans.frame);
 }
 
-/**
- * hinawa_snd_efw_transact:
- * @self: A #HinawaSndEfw
- * @category: one of category for the transact
- * @command: one of commands for the transact
- * @args: (nullable)(element-type guint32)(array)(in): arguments for the
- *        transaction
- * @params: (element-type guint32) (array) (out caller-allocates): return params
- * @exception: A #GError
- *
- * Execute transaction according to Echo Fireworks Transaction protocol.
- *
- * Deprecated: 1.4: Use hinawa_snd_efw_transaction(), instead.
- */
-void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
-			     GArray *args, GArray *params, GError **exception)
-{
-	const guint32 *arg_ptr = NULL;
-	gsize arg_count = 0;
-
-	if ((args && g_array_get_element_size(args) != sizeof(guint32)) ||
-	    (g_array_get_element_size(params) != sizeof(guint32))) {
-		raise(exception, EINVAL);
-		return;
-	}
-
-	g_array_set_size(params, MAXIMUM_FRAME_BYTES);
-
-	if (args) {
-		arg_ptr = (const guint32 *)args->data;
-		arg_count = args->len;
-	}
-
-	hinawa_snd_efw_transaction(self, category, command, arg_ptr, arg_count,
-			(guint32 *const *)&(params->data),
-			(gsize *)&(params->len), exception);
-}
-
 void hinawa_snd_efw_handle_response(HinawaSndEfw *self,
 				    const void *buf, unsigned int len)
 {

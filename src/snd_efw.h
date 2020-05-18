@@ -56,10 +56,6 @@ void hinawa_snd_efw_transaction(HinawaSndEfw *self,
 				guint32 *const *params, gsize *param_count,
 				GError **exception);
 
-void hinawa_snd_efw_transact(HinawaSndEfw *self, guint category, guint command,
-			     GArray *args, GArray *params,
-			     GError **exception);
-
 G_END_DECLS
 
 #endif
