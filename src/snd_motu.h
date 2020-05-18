@@ -51,7 +51,7 @@ struct _HinawaSndMotuClass {
 	 * When Motu models transfer notification, the ::notified handler is
 	 * called.
 	 */
-	void (*notified)(HinawaSndMotu *self, gulong message);
+	void (*notified)(HinawaSndMotu *self, guint message);
 };
 
 GType hinawa_snd_motu_get_type(void) G_GNUC_CONST;
