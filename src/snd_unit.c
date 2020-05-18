@@ -33,8 +33,6 @@ struct _HinawaSndUnitPrivate {
 	struct snd_firewire_get_info info;
 
 	gboolean streaming;
-
-	GSource *src;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndUnit, hinawa_snd_unit, HINAWA_TYPE_FW_UNIT)
 
@@ -52,7 +50,6 @@ enum snd_unit_prop_type {
 	SND_UNIT_PROP_TYPE_DEVICE,
 	SND_UNIT_PROP_TYPE_GUID,
 	SND_UNIT_PROP_TYPE_STREAMING,
-	SND_UNIT_PROP_TYPE_LISTENING,
 	SND_UNIT_PROP_TYPE_COUNT,
 };
 static GParamSpec *snd_unit_props[SND_UNIT_PROP_TYPE_COUNT] = { NULL, };
@@ -88,9 +85,6 @@ static void snd_unit_get_property(GObject *obj, guint id,
 	case SND_UNIT_PROP_TYPE_STREAMING:
 		g_value_set_boolean(val, priv->streaming);
 		break;
-	case SND_UNIT_PROP_TYPE_LISTENING:
-		g_value_set_boolean(val, priv->src != NULL);
-		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
 		break;
@@ -101,8 +95,6 @@ static void snd_unit_finalize(GObject *obj)
 {
 	HinawaSndUnit *self = HINAWA_SND_UNIT(obj);
 	HinawaSndUnitPrivate *priv = hinawa_snd_unit_get_instance_private(self);
-
-	hinawa_snd_unit_unlisten(self);
 
 	close(priv->fd);
 
@@ -143,11 +135,6 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 				    "Global unique ID for this firewire unit.",
 				    0, G_MAXUINT64, 0,
 				    G_PARAM_READABLE);
-	snd_unit_props[SND_UNIT_PROP_TYPE_LISTENING] =
-		g_param_spec_boolean("listening", "listening",
-				     "Whether this device is under listening.",
-				     FALSE,
-				     G_PARAM_READABLE | G_PARAM_DEPRECATED);
 
 	g_object_class_install_properties(gobject_class,
 					  SND_UNIT_PROP_TYPE_COUNT,
@@ -286,40 +273,16 @@ void hinawa_snd_unit_ioctl(HinawaSndUnit *self, unsigned long request,
 		raise(exception, errno);
 }
 
-static void snd_unit_notify_lock(void *target, void *data, unsigned int length)
+static void handle_lock_event(HinawaSndUnit *self,
+			      void *buf, unsigned int length)
 {
-	HinawaSndUnit *self = target;
 	HinawaSndUnitPrivate *priv = hinawa_snd_unit_get_instance_private(self);
-	struct snd_firewire_event_lock_status *event = data;
+	struct snd_firewire_event_lock_status *event = buf;
 
 	priv->streaming = event->status;
 
 	g_signal_emit(self, snd_unit_sigs[SND_UNIT_SIG_TYPE_LOCK_STATUS], 0,
 		      event->status);
-}
-
-static void snd_unit_notify_disconnected(void *target, void *data,
-					 unsigned int length)
-{
-	HinawaSndUnit *self = target;
-
-	g_signal_emit_by_name(&self->parent_instance, "disconnected", NULL);
-}
-
-static void handle_lock_event(HinawaSndUnit *self,
-			      void *buf, unsigned int length)
-{
-	HinawaSndUnitPrivate *priv = hinawa_snd_unit_get_instance_private(self);
-	int err = 0;
-
-	// For backward compatibility.
-	if (priv->src != NULL) {
-		hinawa_context_schedule_notification(self, buf, length,
-					     snd_unit_notify_lock, &err);
-		return;
-	}
-
-	snd_unit_notify_lock(self, (void *)buf, length);
 }
 
 static gboolean check_src(GSource *gsrc)
@@ -348,15 +311,8 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 
 	condition = g_source_query_unix_fd(gsrc, src->tag);
 	if (condition & G_IO_ERR) {
-		if (priv->src != NULL) {
-			int err = 0;
-
-			// For backward compatibility.
-			hinawa_context_schedule_notification(unit,
-				NULL, 0, snd_unit_notify_disconnected, &err);
-		} else {
-			snd_unit_notify_disconnected(unit, NULL, 0);
-		}
+		g_signal_emit_by_name(&unit->parent_instance, "disconnected",
+				      NULL);
 
 		return G_SOURCE_REMOVE;
 	}
@@ -468,71 +424,4 @@ void hinawa_snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
 		return;
 	}
 	ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL);
-}
-
-/**
- * hinawa_snd_unit_listen:
- * @self: A #HinawaSndUnit
- * @exception: A #GError
- *
- * Start listening to events.
- *
- * Deprecated: 1.4: Instead, use GSource retrieved by a call of
- *		    hinawa_snd_unit_create_source(). Then use GMainContext and
- *		    GMainLoop of GLib for event loop.
- */
-void hinawa_snd_unit_listen(HinawaSndUnit *self, GError **exception)
-{
-	HinawaSndUnitPrivate *priv;
-
-	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
-	priv = hinawa_snd_unit_get_instance_private(self);
-
-	hinawa_snd_unit_create_source(self, &priv->src, exception);
-	if (*exception != NULL)
-		return;
-
-	hinawa_context_add_src(priv->src, exception);
-	if (*exception != NULL) {
-		g_source_unref(priv->src);
-		priv->src = NULL;
-		return;
-	}
-
-	hinawa_context_start_notifier(exception);
-	if (*exception != NULL) {
-		hinawa_snd_unit_unlisten(self);
-		return;
-	}
-
-	hinawa_fw_unit_listen(&self->parent_instance, exception);
-	if (*exception != NULL)
-		hinawa_snd_unit_unlisten(self);
-}
-
-/**
- * hinawa_snd_unit_unlisten:
- * @self: A #HinawaSndUnit
- *
- * Stop listening to events.
- *
- * Deprecated: 1.4: Instead, maintain GMainContext and GMainLoop with GSource
- *		    retrieved by a call of hinawa_snd_unit_create_source().
- */
-void hinawa_snd_unit_unlisten(HinawaSndUnit *self)
-{
-	HinawaSndUnitPrivate *priv;
-
-	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
-	priv = hinawa_snd_unit_get_instance_private(self);
-
-	if (priv->src != NULL) {
-		hinawa_context_stop_notifier();
-
-		hinawa_context_remove_src(priv->src);
-		g_source_unref(priv->src);
-		priv->src = NULL;
-	}
-
-	hinawa_fw_unit_unlisten(&self->parent_instance);
 }

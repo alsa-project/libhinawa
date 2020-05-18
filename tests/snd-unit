@@ -16,15 +16,12 @@ props = (
     'device',
     'streaming',
     'guid',
-    'listening',
 )
 methods = (
     'new',
     'open',
     'lock',
     'unlock',
-    'listen',
-    'unlisten',
 )
 vmethods = (
     'do_lock_status',
