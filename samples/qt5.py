@@ -60,10 +60,11 @@ def handle_lock_status(unit, status):
         print("streaming is locked.");
     else:
         print("streaming is unlocked.");
-def handle_disconnected(unit):
-    print('disconnected')
+def handle_unit_disconnected(unit, unit_dispatcher):
+    print('unit disconnected')
+    unit_dispatcher.quit()
 unit.connect("lock-status", handle_lock_status)
-unit.connect("disconnected", handle_disconnected)
+unit.connect("disconnected", handle_unit_disconnected, unit_dispatcher)
 
 unit_th = Thread(target=lambda d: d.run(), args=(unit_dispatcher,))
 unit_th.start()
@@ -83,7 +84,12 @@ node_dispatcher = GLib.MainLoop.new(node_ctx, False)
 
 def handle_bus_update(node):
     print('bus-reset: generation {0}'.format(node.get_property('generation')))
+def handle_node_disconnected(node, node_dispatcher):
+    print('node disconnected')
+    node_dispatcher.quit()
+    app.quit()
 node.connect("bus-update", handle_bus_update)
+node.connect('disconnected', handle_node_disconnected, node_dispatcher)
 
 node_th = Thread(target=lambda d: d.run(), args=(node_dispatcher,))
 node_th.start()
