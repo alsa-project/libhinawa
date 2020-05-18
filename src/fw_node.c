@@ -342,15 +342,6 @@ static void handle_update(HinawaFwNode *self, GError **exception)
 	g_signal_emit(self, fw_node_sigs[FW_NODE_SIG_TYPE_BUS_UPDATE], 0, NULL);
 }
 
-static gboolean prepare_src(GSource *src, gint *timeout)
-{
-	// Use 500 msec for safe cancellation of thread.
-	*timeout = 500;
-
-	// This source is not ready, let's poll(2).
-	return FALSE;
-}
-
 static gboolean check_src(GSource *gsrc)
 {
 	FwNodeSource *src = (FwNodeSource *)gsrc;
@@ -446,7 +437,6 @@ void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
 				  GError **exception)
 {
         static GSourceFuncs funcs = {
-                .prepare        = prepare_src,
                 .check          = check_src,
                 .dispatch       = dispatch_src,
                 .finalize       = finalize_src,
