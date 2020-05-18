@@ -410,7 +410,6 @@ void hinawa_snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
 	if (src->buf == NULL) {
 		raise(exception, ENOMEM);
 		g_source_unref(*gsrc);
-		hinawa_context_stop_notifier();
 		return;
 	}
 
