@@ -54,9 +54,10 @@ enum snd_unit_prop_type {
 };
 static GParamSpec *snd_unit_props[SND_UNIT_PROP_TYPE_COUNT] = { NULL, };
 
-/* This object has one signal. */
+// This object has two signals.
 enum snd_unit_sig_type {
 	SND_UNIT_SIG_TYPE_LOCK_STATUS = 0,
+	SND_UNIT_SIG_TYPE_DISCONNECTED,
 	SND_UNIT_SIG_TYPE_COUNT,
 };
 static guint snd_unit_sigs[SND_UNIT_SIG_TYPE_COUNT] = { 0 };
@@ -156,6 +157,24 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 			     NULL, NULL,
 			     g_cclosure_marshal_VOID__BOOLEAN,
 			     G_TYPE_NONE, 1, G_TYPE_BOOLEAN);
+
+	/**
+	 * HinawaSndUnit::disconnected:
+	 * @self: A #HinawaSndUnit
+	 *
+	 * When the sound card is not available anymore due to unbinding driver
+	 * or hot unplugging, this signal is emit. The owner of this object
+	 * should call g_object_free() as quickly as possible to release ALSA
+	 * hwdep character device.
+	 */
+	snd_unit_sigs[SND_UNIT_SIG_TYPE_DISCONNECTED] =
+		g_signal_new("disconnected",
+			     G_OBJECT_CLASS_TYPE(klass),
+			     G_SIGNAL_RUN_LAST,
+			     0,
+			     NULL, NULL,
+			     g_cclosure_marshal_VOID__VOID,
+			     G_TYPE_NONE, 0, G_TYPE_NONE, 0);
 }
 
 static void hinawa_snd_unit_init(HinawaSndUnit *self)

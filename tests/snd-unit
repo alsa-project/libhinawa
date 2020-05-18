@@ -28,6 +28,7 @@ vmethods = (
 )
 signals = (
     'lock-status',
+    'disconnected',
 )
 
 if not test(target, props, methods, vmethods, signals):
