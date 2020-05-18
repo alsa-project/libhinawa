@@ -208,27 +208,6 @@ end:
 	g_cond_clear(&waiter.cond);
 }
 
-/**
- * hinawa_snd_dice_transact:
- * @self: A #HinawaSndDice
- * @addr: A destination address of target device
- * @frame: (element-type guint32) (array) (in): a 32bit array
- * @bit_flag: bit flag to wait
- * @exception: A #GError
- *
- * Execute write transactions to the given address, then wait and check
- * notification.
- *
- * Deprecated: 1.4: Use hinawa_snd_dice_transaction(), instead.
- */
-void hinawa_snd_dice_transact(HinawaSndDice *self, guint64 addr, GArray *frame,
-			      guint32 bit_flag, GError **exception)
-{
-	hinawa_snd_dice_transaction(self, addr,
-				    (const guint32 *)frame->data, frame->len,
-				    bit_flag, exception);
-}
-
 void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 					 const void *buf, unsigned int len)
 {
