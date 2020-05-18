@@ -33,7 +33,7 @@ struct _HinawaFwNodePrivate {
 
 	GMutex mutex;
 	guint8 config_rom[MAX_CONFIG_ROM_LENGTH];
-	unsigned int config_rom_length;
+	gsize config_rom_length;
 	struct fw_cdev_event_bus_reset generation;
 
 	GList *transactions;
@@ -303,7 +303,7 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
  * Since: 1.4.
  */
 void hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
-				   guint *length, GError **exception)
+				   gsize *length, GError **exception)
 {
 	HinawaFwNodePrivate *priv;
 

@@ -75,7 +75,7 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
 			 GError **exception);
 
 void hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
-				   guint *length, GError **exception);
+				   gsize *length, GError **exception);
 
 void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
 				  GError **exception);
