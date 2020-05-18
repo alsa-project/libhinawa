@@ -147,7 +147,7 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 	snd_unit_props[SND_UNIT_PROP_TYPE_GUID] =
 		g_param_spec_uint64("guid", "guid",
 				    "Global unique ID for this firewire unit.",
-				    0, ULONG_MAX, 0,
+				    0, G_MAXUINT64, 0,
 				    G_PARAM_READABLE);
 	snd_unit_props[SND_UNIT_PROP_TYPE_LISTENING] =
 		g_param_spec_boolean("listening", "listening",
