@@ -12,6 +12,7 @@ from gi.repository import Hinawa
 target = Hinawa.FwFcp()
 props = (
     'timeout',
+    'is-bound',
 )
 methods = (
     'new',

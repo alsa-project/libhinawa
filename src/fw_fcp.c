@@ -72,6 +72,7 @@ G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwFcp, hinawa_fw_fcp, HINAWA_TYPE_FW_RESP)
 /* This object has one property. */
 enum fw_fcp_prop_type {
 	FW_FCP_PROP_TYPE_TIMEOUT = 1,
+	FW_FCP_PROP_TYPE_IS_BOUND,
 	FW_FCP_PROP_TYPE_COUNT,
 };
 static GParamSpec *fw_fcp_props[FW_FCP_PROP_TYPE_COUNT] = { NULL, };
@@ -85,6 +86,9 @@ static void fw_fcp_get_property(GObject *obj, guint id, GValue *val,
 	switch (id) {
 	case FW_FCP_PROP_TYPE_TIMEOUT:
 		g_value_set_uint(val, priv->timeout);
+		break;
+	case FW_FCP_PROP_TYPE_IS_BOUND:
+		g_value_set_boolean(val, priv->node != NULL);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
@@ -137,6 +141,12 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 				  10, UINT_MAX,
 				  200,
 				  G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
+	fw_fcp_props[FW_FCP_PROP_TYPE_IS_BOUND] =
+		g_param_spec_boolean("is-bound", "is-bound",
+				     "Whether this protocol is bound to any "
+				     "instance of HinawaFwNode.",
+				     FALSE,
+				     G_PARAM_READABLE);
 
 	g_object_class_install_properties(gobject_class,
 					  FW_FCP_PROP_TYPE_COUNT,
