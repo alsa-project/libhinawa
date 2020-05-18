@@ -30,8 +30,7 @@
 struct _HinawaFwUnitPrivate {
 	HinawaFwNode *node;
 };
-// TODO: use G_DEFINE_ABSTRACT_TYPE().
-G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwUnit, hinawa_fw_unit, G_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE(HinawaFwUnit, hinawa_fw_unit, G_TYPE_OBJECT)
 
 static void fw_unit_finalize(GObject *obj)
 {
