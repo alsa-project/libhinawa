@@ -322,15 +322,6 @@ static void handle_lock_event(HinawaSndUnit *self,
 	snd_unit_notify_lock(self, (void *)buf, length);
 }
 
-static gboolean prepare_src(GSource *src, gint *timeout)
-{
-	// Use blocking poll(2) to save CPU usage.
-	*timeout = -1;
-
-	/* This source is not ready, let's poll(2) */
-	return FALSE;
-}
-
 static gboolean check_src(GSource *gsrc)
 {
 	SndUnitSource *src = (SndUnitSource *)gsrc;
@@ -439,7 +430,6 @@ void hinawa_snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
 				   GError **exception)
 {
 	static GSourceFuncs funcs = {
-		.prepare	= prepare_src,
 		.check		= check_src,
 		.dispatch	= dispatch_src,
 		.finalize	= finalize_src,
