@@ -48,7 +48,7 @@ struct _HinawaSndDg00xClass {
 	 * When Dg00x models transfer notification, the ::message handler is
 	 * called.
 	 */
-	void (*message)(HinawaSndDg00x *self, gulong message);
+	void (*message)(HinawaSndDg00x *self, guint32 message);
 };
 
 GType hinawa_snd_dg00x_get_type(void) G_GNUC_CONST;

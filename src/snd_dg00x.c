@@ -44,8 +44,8 @@ static void hinawa_snd_dg00x_class_init(HinawaSndDg00xClass *klass)
 			     G_SIGNAL_RUN_LAST,
 			     G_STRUCT_OFFSET(HinawaSndDg00xClass, message),
 			     NULL, NULL,
-			     g_cclosure_marshal_VOID__ULONG,
-			     G_TYPE_NONE, 1, G_TYPE_ULONG);
+			     g_cclosure_marshal_VOID__UINT,
+			     G_TYPE_NONE, 1, G_TYPE_UINT);
 }
 
 static void hinawa_snd_dg00x_init(HinawaSndDg00x *self)
