@@ -40,12 +40,41 @@ struct _HinawaFwRespPrivate {
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwResp, hinawa_fw_resp, G_TYPE_OBJECT)
 
-/* This object has one signal. */
+// This object has one property.
+enum fw_resp_prop_type {
+	FW_RESP_PROP_TYPE_IS_RESERVED = 1,
+	FW_RESP_PROP_TYPE_COUNT,
+};
+static GParamSpec *fw_resp_props[FW_RESP_PROP_TYPE_COUNT] = { NULL, };
+
+// This object has one signal.
 enum fw_resp_sig_type {
 	FW_RESP_SIG_TYPE_REQ = 0,
 	FW_RESP_SIG_TYPE_COUNT,
 };
 static guint fw_resp_sigs[FW_RESP_SIG_TYPE_COUNT] = { 0 };
+
+static void fw_resp_get_property(GObject *obj, guint id, GValue *val,
+				 GParamSpec *spec)
+{
+	HinawaFwResp *self = HINAWA_FW_RESP(obj);
+	HinawaFwRespPrivate *priv = hinawa_fw_resp_get_instance_private(self);
+
+	switch (id) {
+	case FW_RESP_PROP_TYPE_IS_RESERVED:
+		g_value_set_boolean(val, priv->node != NULL);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
+		break;
+	}
+}
+
+static void fw_resp_set_property(GObject *obj, guint id, const GValue *val,
+				 GParamSpec *spec)
+{
+	G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
+}
 
 static void fw_resp_finalize(GObject *obj)
 {
@@ -60,9 +89,20 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
-	gobject_class->get_property = NULL;
-	gobject_class->set_property = NULL;
+	gobject_class->get_property = fw_resp_get_property;
+	gobject_class->set_property = fw_resp_set_property;
 	gobject_class->finalize = fw_resp_finalize;
+
+	fw_resp_props[FW_RESP_PROP_TYPE_IS_RESERVED] =
+		g_param_spec_boolean("is-reserved", "is-reserved",
+				     "Whether a range of address is reserved "
+				     "or not in host controller. ",
+				     FALSE,
+				     G_PARAM_READABLE);
+
+	g_object_class_install_properties(gobject_class,
+					  FW_RESP_PROP_TYPE_COUNT,
+					  fw_resp_props);
 
 	/**
 	 * HinawaFwResp::requested:

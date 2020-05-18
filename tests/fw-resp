@@ -10,7 +10,9 @@ gi.require_version('Hinawa', '2.0')
 from gi.repository import Hinawa
 
 target = Hinawa.FwResp()
-props = ()
+props = (
+    'is-reserved',
+)
 methods = (
     'new',
     'register',
