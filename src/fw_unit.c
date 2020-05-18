@@ -121,40 +121,40 @@ static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 	gobject_class->finalize = fw_unit_finalize;
 
 	fw_unit_props[FW_UNIT_PROP_TYPE_NODE_ID] =
-		g_param_spec_ulong("node-id", "node-id",
-				   "Node-ID of this unit at this generation.",
-				   0, ULONG_MAX, 0,
-				   G_PARAM_READABLE | G_PARAM_DEPRECATED);
+		g_param_spec_uint("node-id", "node-id",
+				  "Node-ID of this unit at this generation.",
+				  0, G_MAXUINT32, 0,
+				  G_PARAM_READABLE | G_PARAM_DEPRECATED);
 	fw_unit_props[FW_UNIT_PROP_TYPE_LOCAL_NODE_ID] =
-		g_param_spec_ulong("local-node-id", "local-node-id",
-				   "Node-ID for a unit which this unit use to "
-				   "communicate to the other units on the bus "
-				   "at this generation.",
-				   0, ULONG_MAX, 0,
-				   G_PARAM_READABLE | G_PARAM_DEPRECATED);
+		g_param_spec_uint("local-node-id", "local-node-id",
+				  "Node-ID for a unit which this unit use to "
+				  "communicate to the other units on the bus "
+				  "at this generation.",
+				  0, G_MAXUINT32, 0,
+				  G_PARAM_READABLE | G_PARAM_DEPRECATED);
 	fw_unit_props[FW_UNIT_PROP_TYPE_BUS_MANAGER_NODE_ID] =
-		g_param_spec_ulong("bus-manager-node-id", "bus-manager-node-id",
-				   "Node-ID for bus manager on the bus at this "
-				   "generation.",
-				   0, ULONG_MAX, 0,
-				   G_PARAM_READABLE | G_PARAM_DEPRECATED);
+		g_param_spec_uint("bus-manager-node-id", "bus-manager-node-id",
+				  "Node-ID for bus manager on the bus at this "
+				  "generation.",
+				  0, G_MAXUINT32, 0,
+				  G_PARAM_READABLE | G_PARAM_DEPRECATED);
 	fw_unit_props[FW_UNIT_PROP_TYPE_IR_MANAGER_NODE_ID] =
-		g_param_spec_ulong("ir-manager-node-id", "ir-manager-node-id",
-				   "Node-ID for isochronous resource manager "
-				   "on the bus at this generation",
-				   0, ULONG_MAX, 0,
-				   G_PARAM_READABLE | G_PARAM_DEPRECATED);
+		g_param_spec_uint("ir-manager-node-id", "ir-manager-node-id",
+				  "Node-ID for isochronous resource manager "
+				  "on the bus at this generation",
+				  0, G_MAXUINT32, 0,
+				  G_PARAM_READABLE | G_PARAM_DEPRECATED);
 	fw_unit_props[FW_UNIT_PROP_TYPE_ROOT_NODE_ID] =
-		g_param_spec_ulong("root-node-id", "root-node-id",
-				   "Node-ID for root of bus topology at this "
-				   "generation.",
-				   0, ULONG_MAX, 0,
-				   G_PARAM_READABLE | G_PARAM_DEPRECATED);
+		g_param_spec_uint("root-node-id", "root-node-id",
+				  "Node-ID for root of bus topology at this "
+				  "generation.",
+				  0, G_MAXUINT32, 0,
+				  G_PARAM_READABLE | G_PARAM_DEPRECATED);
 	fw_unit_props[FW_UNIT_PROP_TYPE_GENERATION] =
-		g_param_spec_ulong("generation", "generation",
-				   "current level of generation on this bus.",
-				   0, ULONG_MAX, 0,
-				   G_PARAM_READABLE | G_PARAM_DEPRECATED);
+		g_param_spec_uint("generation", "generation",
+				  "current level of generation on this bus.",
+				  0, G_MAXUINT32, 0,
+				  G_PARAM_READABLE | G_PARAM_DEPRECATED);
 	fw_unit_props[FW_UNIT_PROP_TYPE_LISTENING] =
 		g_param_spec_boolean("listening", "listening",
 				     "Whether this device is under listening.",
