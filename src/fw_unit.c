@@ -39,18 +39,6 @@ struct _HinawaFwUnitPrivate {
 // TODO: use G_DEFINE_ABSTRACT_TYPE().
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwUnit, hinawa_fw_unit, G_TYPE_OBJECT)
 
-// This object has deprecated properties.
-enum fw_unit_prop_type {
-	FW_UNIT_PROP_TYPE_NODE_ID = 1,
-	FW_UNIT_PROP_TYPE_LOCAL_NODE_ID,
-	FW_UNIT_PROP_TYPE_BUS_MANAGER_NODE_ID,
-	FW_UNIT_PROP_TYPE_IR_MANAGER_NODE_ID,
-	FW_UNIT_PROP_TYPE_ROOT_NODE_ID,
-	FW_UNIT_PROP_TYPE_GENERATION,
-	FW_UNIT_PROP_TYPE_COUNT,
-};
-static GParamSpec *fw_unit_props[FW_UNIT_PROP_TYPE_COUNT] = { NULL, };
-
 // This object has two deprecated signals.
 enum fw_unit_sig_type {
 	FW_UNIT_SIG_TYPE_BUS_UPDATE = 0,
@@ -58,28 +46,6 @@ enum fw_unit_sig_type {
 	FW_UNIT_SIG_TYPE_COUNT,
 };
 static guint fw_unit_sigs[FW_UNIT_SIG_TYPE_COUNT] = { 0 };
-
-static void fw_unit_get_property(GObject *obj, guint id,
-				 GValue *val, GParamSpec *spec)
-{
-	HinawaFwUnit *self = HINAWA_FW_UNIT(obj);
-	HinawaFwUnitPrivate *priv = hinawa_fw_unit_get_instance_private(self);
-	GObject *node = G_OBJECT(priv->node);
-
-	switch (id) {
-	case FW_UNIT_PROP_TYPE_NODE_ID:
-	case FW_UNIT_PROP_TYPE_LOCAL_NODE_ID:
-	case FW_UNIT_PROP_TYPE_BUS_MANAGER_NODE_ID:
-	case FW_UNIT_PROP_TYPE_IR_MANAGER_NODE_ID:
-	case FW_UNIT_PROP_TYPE_ROOT_NODE_ID:
-	case FW_UNIT_PROP_TYPE_GENERATION:
-		g_object_get_property(node, fw_unit_props[id]->name, val);
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
-		break;
-	}
-}
 
 static void fw_unit_finalize(GObject *obj)
 {
@@ -95,48 +61,7 @@ static void hinawa_fw_unit_class_init(HinawaFwUnitClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
-	gobject_class->get_property = fw_unit_get_property;
 	gobject_class->finalize = fw_unit_finalize;
-
-	fw_unit_props[FW_UNIT_PROP_TYPE_NODE_ID] =
-		g_param_spec_uint("node-id", "node-id",
-				  "Node-ID of this unit at this generation.",
-				  0, G_MAXUINT32, 0,
-				  G_PARAM_READABLE | G_PARAM_DEPRECATED);
-	fw_unit_props[FW_UNIT_PROP_TYPE_LOCAL_NODE_ID] =
-		g_param_spec_uint("local-node-id", "local-node-id",
-				  "Node-ID for a unit which this unit use to "
-				  "communicate to the other units on the bus "
-				  "at this generation.",
-				  0, G_MAXUINT32, 0,
-				  G_PARAM_READABLE | G_PARAM_DEPRECATED);
-	fw_unit_props[FW_UNIT_PROP_TYPE_BUS_MANAGER_NODE_ID] =
-		g_param_spec_uint("bus-manager-node-id", "bus-manager-node-id",
-				  "Node-ID for bus manager on the bus at this "
-				  "generation.",
-				  0, G_MAXUINT32, 0,
-				  G_PARAM_READABLE | G_PARAM_DEPRECATED);
-	fw_unit_props[FW_UNIT_PROP_TYPE_IR_MANAGER_NODE_ID] =
-		g_param_spec_uint("ir-manager-node-id", "ir-manager-node-id",
-				  "Node-ID for isochronous resource manager "
-				  "on the bus at this generation",
-				  0, G_MAXUINT32, 0,
-				  G_PARAM_READABLE | G_PARAM_DEPRECATED);
-	fw_unit_props[FW_UNIT_PROP_TYPE_ROOT_NODE_ID] =
-		g_param_spec_uint("root-node-id", "root-node-id",
-				  "Node-ID for root of bus topology at this "
-				  "generation.",
-				  0, G_MAXUINT32, 0,
-				  G_PARAM_READABLE | G_PARAM_DEPRECATED);
-	fw_unit_props[FW_UNIT_PROP_TYPE_GENERATION] =
-		g_param_spec_uint("generation", "generation",
-				  "current level of generation on this bus.",
-				  0, G_MAXUINT32, 0,
-				  G_PARAM_READABLE | G_PARAM_DEPRECATED);
-
-	g_object_class_install_properties(gobject_class,
-					  FW_UNIT_PROP_TYPE_COUNT,
-					  fw_unit_props);
 
 	/**
 	 * HinawaFwUnit::bus-update:
