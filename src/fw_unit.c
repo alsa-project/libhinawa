@@ -9,12 +9,6 @@
 
 #include "internal.h"
 
-// For error handling.
-G_DEFINE_QUARK("HinawaFwUnit", hinawa_fw_unit)
-#define raise(exception, errno)						\
-	g_set_error(exception, hinawa_fw_unit_quark(), errno,		\
-		    "%d: %s", __LINE__, strerror(errno))
-
 /**
  * SECTION:fw_unit
  * @Title: HinawaFwUnit
@@ -63,21 +57,6 @@ static void hinawa_fw_unit_init(HinawaFwUnit *self)
 }
 
 /**
- * hinawa_fw_unit_new:
- *
- * Instantiate #HinawaFwUnit object and return the instance.
- *
- * Returns: an instance of #HinawaFwUnit.
- * Since: 1.3.
- * Deprecated: 1.4: HinawaFwUnit is planned to be an abstract class in future
- *		    release. Please instantiate for derived class, instead.
- */
-HinawaFwUnit *hinawa_fw_unit_new(void)
-{
-	return g_object_new(HINAWA_TYPE_FW_UNIT, NULL);
-}
-
-/**
  * hinawa_fw_unit_open:
  * @self: A #HinawaFwUnit
  * @path: A path to Linux FireWire character device
@@ -93,37 +72,6 @@ void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception)
 	priv = hinawa_fw_unit_get_instance_private(self);
 
 	hinawa_fw_node_open(priv->node, path, exception);
-}
-
-/**
- * hinawa_fw_unit_get_config_rom:
- * @self: A #HinawaFwUnit
- * @length: (out)(optional): the number of bytes consists of the config rom
- *
- * Get cached content of configuration ROM.
- *
- * Returns: (element-type guint8)(array length=length)(transfer none): config
- *	    rom image.
- *
- * Deprecated: 1.4: Instead, use hinawa_fw_node_get_config_rom() for an instance
- *		    of HinawaFwNode retrieved by a call of
- *		    hinawa_fw_unit_get_node().
- */
-const guint8 *hinawa_fw_unit_get_config_rom(HinawaFwUnit *self, guint *length)
-{
-	HinawaFwUnitPrivate *priv;
-	const guint8 *image;
-	GError *exception;
-
-	g_return_val_if_fail(HINAWA_IS_FW_UNIT(self), NULL);
-	priv = hinawa_fw_unit_get_instance_private(self);
-
-	exception = NULL;
-	hinawa_fw_node_get_config_rom(priv->node, &image, length, &exception);
-	if (exception != NULL)
-		return NULL;
-
-	return image;
 }
 
 /**

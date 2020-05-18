@@ -12,9 +12,7 @@ from gi.repository import Hinawa
 target = Hinawa.FwUnit()
 props = ()
 methods = (
-    'new',
     'open',
-    'get_config_rom',
     'get_node',
 )
 vmethods = ()

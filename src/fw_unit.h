@@ -45,11 +45,7 @@ struct _HinawaFwUnitClass {
 
 GType hinawa_fw_unit_get_type(void) G_GNUC_CONST;
 
-HinawaFwUnit *hinawa_fw_unit_new(void);
-
 void hinawa_fw_unit_open(HinawaFwUnit *self, gchar *path, GError **exception);
-
-const guint8 *hinawa_fw_unit_get_config_rom(HinawaFwUnit *self, guint *length);
 
 void hinawa_fw_unit_get_node(HinawaFwUnit *self, HinawaFwNode **node);
 

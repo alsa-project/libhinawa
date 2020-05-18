@@ -2,7 +2,6 @@ HINAWA_0_6_0 {
   global:
     "hinawa_fw_unit_get_type";
     "hinawa_fw_unit_open";
-    "hinawa_fw_unit_quark";
 
     "hinawa_fw_req_get_type";
     "hinawa_fw_req_quark";
@@ -55,8 +54,6 @@ HINAWA_1_0_0 {
     "hinawa_fw_resp_get_req_frame";
     "hinawa_fw_resp_set_resp_frame";
     "hinawa_sigs_marshal_ENUM__ENUM";
-
-    "hinawa_fw_unit_get_config_rom";
 } HINAWA_0_8_0;
 
 HINAWA_1_1_0 {
@@ -68,7 +65,6 @@ HINAWA_1_1_0 {
 } HINAWA_1_0_0;
 
 HINAWA_1_3_0 {
-    "hinawa_fw_unit_new";
     "hinawa_fw_req_new";
     "hinawa_fw_resp_new";
     "hinawa_fw_fcp_new";
