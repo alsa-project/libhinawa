@@ -138,7 +138,7 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 		g_param_spec_uint("timeout", "timeout",
 				  "An elapse to expire waiting for response "
 				  "by msec unit.",
-				  10, UINT_MAX,
+				  10, G_MAXUINT,
 				  200,
 				  G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
 	fw_fcp_props[FW_FCP_PROP_TYPE_IS_BOUND] =
