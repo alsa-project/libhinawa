@@ -11,7 +11,7 @@ import gi
 gi.require_version('GLib', '2.0')
 from gi.repository import GLib
 
-gi.require_version('Hinawa', '2.0')
+gi.require_version('Hinawa', '3.0')
 from gi.repository import Hinawa
 
 gi.require_version('Gtk', '3.0')

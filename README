@@ -1,6 +1,6 @@
 # libhinawa
 
-2019/10/12
+2020/05/16
 Takashi Sakamoto
 
 ## Instruction
@@ -105,35 +105,31 @@ qt5 - PyQt5 is required.
 
 ## How to make RPM package
 
-1. archive all source code into libhinawa-1.4.5.tar.gz
-  $ git archive --format tar.gz --prefix='libhinawa-1.4.5/' 1.4.5 -o ~/rpmbuild/SOURCES/libhinawa-1.4.5.tar.gz
+1. archive all source code into libhinawa-2.0.0.tar.gz
+  $ git archive --format tar.gz --prefix='libhinawa-2.0.0/' 2.0.0 -o ~/rpmbuild/SOURCES/libhinawa-2.0.0.tar.gz
 2. rpmbuild -bb libhinawa.spec
 
-## Future plan for libhinawa v2 and backward compatibility
+## Lose of backward compatibility from v1 release.
  * HinawaFwUnit
-   * This gobject class is planned to be an abstract class. Instead, any
-     derived class such as HinawaSndUnit should be used for instantiation.
+   * This gobject class is dropped. Instead, HinawaFwNode should be used
+     to communicate to the node on IEEE 1394 bus.
  * HinawaFwReq/HinawaFwResp/HinawaFwFcp
-  * Any API with arguments for HinawaFwUnit is planned to be dropped. Instead,
-    use APIs with arguments for HinawaFwNode.
-  * Any API with arguments for GByteArray is planned to be dropped. Instead,
-    use APIs with arguments for guint8(buffer) and gsize(buffer length).
+  * Any API with arguments for HinawaFwUnit is dropped. Instead, use APIs
+    with arguments for HinawaFwNode.
+  * Any API with arguments for GByteArray is dropped. Instead, use APIs with
+    arguments for guint8(buffer) and gsize(buffer length).
  * HinawaSndEfw/HinawaSndDice
-  * Any API with arguments for GArray is planned to be dropped. Instead, use
-    APIs with arguments for guint32(buffer) and gsize(buffer length).
+  * Any API with arguments for GArray is dropped. Instead, use APIs with
+    arguments for guint32(buffer) and gsize(buffer length).
  * I/O thread
-  * No thread is planned to be launched internally for event dispatcher.
-    Instead, retrieve GSource from HinawaFwNode and HinawaSndUnit and use it
-    with GMainContext for event dispatcher. When no dispatcher runs, timeout
-    occurs for any transaction.
+  * No thread is launched internally for event dispatcher. Instead, retrieve
+    GSource from HinawaFwNode and HinawaSndUnit and use it with GMainContext
+    for event dispatcher. When no dispatcher runs, timeout occurs for any
+    transaction.
  * Notifier thread
-  * No thread is planned to be launched internally for GObject signal notifier.
-    Instead, launch another thread for your notifier and delegate any
+  * No thread is launched internally for GObject signal notifier. Instead,
+    implement another thread for your notifier by your own and delegate any
     transaction into it. This is required to prevent I/O thread to be stalled
     because of waiting for an additional event of the transaction.
-
-For backward compatibility, the deprecated APIs and features are kept during v1
-period, however application developers should migrate to new APIs and implement
-alternatives for the lost features.
 
 end
