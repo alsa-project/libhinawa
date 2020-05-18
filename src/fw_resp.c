@@ -70,12 +70,6 @@ static void fw_resp_get_property(GObject *obj, guint id, GValue *val,
 	}
 }
 
-static void fw_resp_set_property(GObject *obj, guint id, const GValue *val,
-				 GParamSpec *spec)
-{
-	G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
-}
-
 static void fw_resp_finalize(GObject *obj)
 {
 	HinawaFwResp *self = HINAWA_FW_RESP(obj);
@@ -90,7 +84,6 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
 	gobject_class->get_property = fw_resp_get_property;
-	gobject_class->set_property = fw_resp_set_property;
 	gobject_class->finalize = fw_resp_finalize;
 
 	fw_resp_props[FW_RESP_PROP_TYPE_IS_RESERVED] =
