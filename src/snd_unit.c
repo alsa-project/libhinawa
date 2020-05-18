@@ -78,7 +78,8 @@ static void snd_unit_get_property(GObject *obj, guint id,
 		g_value_set_int(val, priv->info.card);
 		break;
 	case SND_UNIT_PROP_TYPE_DEVICE:
-		g_value_set_string(val, (const gchar *)priv->info.device_name);
+		g_value_set_static_string(val,
+					(const gchar *)priv->info.device_name);
 		break;
 	case SND_UNIT_PROP_TYPE_GUID:
 		g_value_set_uint64(val,
