@@ -4,7 +4,6 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include "fw_unit.h"
 
 G_BEGIN_DECLS
 
@@ -35,13 +34,13 @@ typedef struct _HinawaSndUnitClass	HinawaSndUnitClass;
 typedef struct _HinawaSndUnitPrivate	HinawaSndUnitPrivate;
 
 struct _HinawaSndUnit {
-	HinawaFwUnit parent_instance;
+	GObject parent_instance;
 
 	HinawaSndUnitPrivate *priv;
 };
 
 struct _HinawaSndUnitClass {
-	HinawaFwUnitClass parent_class;
+	GObjectClass parent_class;
 
 	/**
 	 * HinawaSndUnitClass::lock_status:

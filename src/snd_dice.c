@@ -144,7 +144,6 @@ void hinawa_snd_dice_transaction(HinawaSndDice *self, guint64 addr,
 				 guint32 bit_flag, GError **exception)
 {
 	HinawaSndDicePrivate *priv;
-	HinawaSndUnit *unit;
 	HinawaFwTcode tcode;
 	gsize length;
 	guint8 *req_frame;
@@ -187,8 +186,7 @@ void hinawa_snd_dice_transaction(HinawaSndDice *self, guint64 addr,
 
 	// NOTE: I believe that a pair of this action/subaction is done within
 	// default timeout of HinawaFwReq.
-	unit = &self->parent_instance;
-	hinawa_fw_unit_get_node(&unit->parent_instance, &node);
+	hinawa_snd_unit_get_node(&self->parent_instance, &node);
 	hinawa_fw_req_transaction(priv->req, node, tcode, addr, length,
 				  &req_frame, &length, exception);
 	g_free(req_frame);
