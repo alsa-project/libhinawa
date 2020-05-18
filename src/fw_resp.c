@@ -34,9 +34,6 @@ struct _HinawaFwRespPrivate {
 	unsigned int req_length;
 	guint8 *resp_frame;
 	unsigned int resp_length;
-
-	// For backward compatibility.
-	gboolean registered;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwResp, hinawa_fw_resp, G_TYPE_OBJECT)
 
@@ -233,59 +230,6 @@ void hinawa_fw_resp_release(HinawaFwResp *self)
 }
 
 /**
- * hinawa_fw_resp_register:
- * @self: A #HinawaFwResp
- * @unit: A #HinawaFwUnit
- * @addr: A start address to listen to in host controller
- * @width: The byte width of address to listen to host controller
- * @exception: A #GError
- *
- * Start to listen to a range of address in host controller
- *
- * Deprecated: 1.4: Use hinawa_fw_resp_reserve() with an instance of
- *		    HinawaFwNode, instead.
- */
-void hinawa_fw_resp_register(HinawaFwResp *self, HinawaFwUnit *unit,
-			     guint64 addr, guint width, GError **exception)
-{
-	HinawaFwRespPrivate *priv;
-	HinawaFwNode *node;
-
-	g_return_if_fail(HINAWA_IS_FW_RESP(self));
-	priv = hinawa_fw_resp_get_instance_private(self);
-
-	hinawa_fw_unit_get_node(unit, &node);
-	g_object_ref(node);
-	hinawa_fw_resp_reserve(self, node, addr, width, exception);
-	g_object_unref(node);
-
-	if (*exception != NULL)
-		return;
-
-	priv->registered = TRUE;
-}
-
-/**
- * hinawa_fw_resp_unregister:
- * @self: A HinawaFwResp
- *
- * stop to listen to a range of address in host controller
- *
- * Deprecated: 1.4: Use hinawa_fw_resp_release() with an instance of
- *		    HinawaFwNode, instead.
- */
-void hinawa_fw_resp_unregister(HinawaFwResp *self)
-{
-	HinawaFwRespPrivate *priv;
-
-	g_return_if_fail(HINAWA_IS_FW_RESP(self));
-	priv = hinawa_fw_resp_get_instance_private(self);
-
-	hinawa_fw_resp_release(self);
-	priv->registered = FALSE;
-}
-
-/**
  * hinawa_fw_resp_get_req_frame:
  * @self: A #HinawaFwResp
  * @frame: (array length=length)(out)(transfer none): a 8bit array for response
@@ -331,15 +275,26 @@ void hinawa_fw_resp_set_resp_frame(HinawaFwResp *self, guint8 *frame,
 	}
 }
 
-static void fw_resp_notify_requested(void *target, void *data,
-				     unsigned int length)
+// NOTE: For HinawaFwUnit, internal.
+void hinawa_fw_resp_handle_request(HinawaFwResp *self,
+				   struct fw_cdev_event_request2 *event)
 {
-	HinawaFwResp *self = target;
-	HinawaFwRespPrivate *priv = hinawa_fw_resp_get_instance_private(self);
-	struct fw_cdev_event_request2 *event = data;
+	HinawaFwRespPrivate *priv;
 	struct fw_cdev_send_response resp = {0};
 	HinawaFwRcode rcode;
-	int err = 0;
+	int err;
+
+	g_return_if_fail(HINAWA_IS_FW_RESP(self));
+	priv = hinawa_fw_resp_get_instance_private(self);
+
+	if (!priv->node || event->length > priv->width) {
+		resp.rcode = RCODE_CONFLICT_ERROR;
+		resp.handle = event->handle;
+
+		hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_SEND_RESPONSE,
+				     &resp, &err);
+		return;
+	}
 
 	memcpy(priv->req_frame, event->data, event->length);
 	priv->req_length = event->length;
@@ -360,37 +315,4 @@ static void fw_resp_notify_requested(void *target, void *data,
 
 	memset(priv->resp_frame, 0, priv->width);
 	priv->resp_length = 0;
-}
-
-/* NOTE: For HinawaFwUnit, internal. */
-void hinawa_fw_resp_handle_request(HinawaFwResp *self,
-				   struct fw_cdev_event_request2 *event)
-{
-	HinawaFwRespPrivate *priv;
-	struct fw_cdev_send_response resp = {0};
-	unsigned int length;
-	int err;
-
-	g_return_if_fail(HINAWA_IS_FW_RESP(self));
-	priv = hinawa_fw_resp_get_instance_private(self);
-
-	if (!priv->node || event->length > priv->width) {
-		resp.rcode = RCODE_CONFLICT_ERROR;
-		resp.handle = event->handle;
-
-		hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_SEND_RESPONSE,
-				     &resp, &err);
-		return;
-	}
-
-	length = sizeof(*event) + event->length;
-
-	// For backward compatibility.
-	if (priv->registered) {
-		hinawa_context_schedule_notification(self, event, length,
-					     fw_resp_notify_requested, &err);
-		return;
-	}
-
-	fw_resp_notify_requested(self, (void *)event, length);
 }

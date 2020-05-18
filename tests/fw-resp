@@ -15,8 +15,6 @@ props = (
 )
 methods = (
     'new',
-    'register',
-    'unregister',
     'get_req_frame',
     'set_resp_frame',
     'reserve',
