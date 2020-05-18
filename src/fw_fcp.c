@@ -194,8 +194,8 @@ HinawaFwFcp *hinawa_fw_fcp_new(void)
  * Since: 1.4.
  */
 void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
-			       const guint8 *req_frame, guint req_frame_size,
-			       guint8 *const *resp_frame, guint *resp_frame_size,
+			       const guint8 *req_frame, gsize req_frame_size,
+			       guint8 *const *resp_frame, gsize *resp_frame_size,
 			       GError **exception)
 {
 	HinawaFwFcpPrivate *priv;

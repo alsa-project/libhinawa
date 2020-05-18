@@ -51,8 +51,8 @@ GType hinawa_fw_fcp_get_type(void) G_GNUC_CONST;
 HinawaFwFcp *hinawa_fw_fcp_new(void);
 
 void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
-			       const guint8 *req_frame, guint req_frame_size,
-			       guint8 *const *resp_frame, guint *resp_frame_size,
+			       const guint8 *req_frame, gsize req_frame_size,
+			       guint8 *const *resp_frame, gsize *resp_frame_size,
 			       GError **exception);
 
 void hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node,
