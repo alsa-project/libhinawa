@@ -48,18 +48,12 @@ if 'unit' not in locals():
     print('No sound FireWire devices found.')
     exit()
 
-# Start a thread to dispatch events from the sound unit and node.
-ctx = GLib.MainContext.new()
+# Setup sound unit and start a thread to dispatch events from the sound unit.
+unit_ctx = GLib.MainContext.new()
 unit_src = unit.create_source()
-unit_src.attach(ctx)
-node = unit.get_node()
-node_src = node.create_source()
-node_src.attach(ctx)
-dispatcher = GLib.MainLoop.new(ctx, False)
-dispatch_th = Thread(target=lambda d: d.run(), args=(dispatcher,))
-dispatch_th.start()
+unit_src.attach(unit_ctx)
+unit_dispatcher = GLib.MainLoop.new(unit_ctx, False)
 
-# Setup sound unit.
 def handle_lock_status(unit, status):
     if status:
         print("streaming is locked.");
@@ -70,16 +64,28 @@ def handle_disconnected(unit):
 unit.connect("lock-status", handle_lock_status)
 unit.connect("disconnected", handle_disconnected)
 
+unit_th = Thread(target=lambda d: d.run(), args=(unit_dispatcher,))
+unit_th.start()
+
 print('Sound device info:')
 print(' type:\t\t{0}'.format(unit.get_property("type").value_nick))
 print(' card:\t\t{0}'.format(unit.get_property("card")))
 print(' device:\t{0}'.format(unit.get_property("device")))
 print(' GUID:\t\t{0:016x}'.format(unit.get_property("guid")))
 
-# Setup firewire node.
+# Setup firewire node and start a thread to dispatch events from the node.
+node = unit.get_node()
+node_ctx = GLib.MainContext.new()
+node_src = node.create_source()
+node_src.attach(node_ctx)
+node_dispatcher = GLib.MainLoop.new(node_ctx, False)
+
 def handle_bus_update(node):
     print('bus-reset: generation {0}'.format(node.get_property('generation')))
 node.connect("bus-update", handle_bus_update)
+
+node_th = Thread(target=lambda d: d.run(), args=(node_dispatcher,))
+node_th.start()
 
 print('\nIEEE1394 node info:')
 print(' Node IDs:')
@@ -243,11 +249,10 @@ Gtk.main()
 del win
 print('delete window object')
 
-dispatcher.quit()
-dispatch_th.join()
-del unit_src
-del node_src
-del dispatcher
+unit_dispatcher.quit()
+node_dispatcher.quit()
+unit_th.join()
+node_th.join()
 
 resp.release()
 del resp
