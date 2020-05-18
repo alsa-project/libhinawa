@@ -129,46 +129,26 @@ const guint32 *hinawa_snd_tscm_get_state(HinawaSndTscm *self,
 	return priv->state;
 }
 
-static void snd_tscm_notify_control(void *target, void *data,
-				    unsigned int length)
-{
-	HinawaSndTscm *self = target;
-	struct snd_firewire_event_tascam_control *event = data;
-	struct snd_firewire_tascam_change *change;
-
-	length -= sizeof(event->type);
-
-	change = event->changes;
-	while (length >= sizeof(*change)) {
-		g_signal_emit(self, tscm_sigs[TSCM_SIG_TYPE_CTL], 0,
-			      change->index,
-			      GUINT32_FROM_BE(change->before),
-			      GUINT32_FROM_BE(change->after));
-		++change;
-		length -= sizeof(*change);
-	}
-}
-
 void hinawa_snd_tscm_handle_control(HinawaSndTscm *self, const void *buf,
 				    unsigned int len)
 {
-	struct snd_firewire_event_tascam_control *event =
+	const struct snd_firewire_event_tascam_control *event =
 			(struct snd_firewire_event_tascam_control *)buf;
-	gboolean listening;
-	int err = 0;
+	const struct snd_firewire_tascam_change *change;
 
 	g_return_if_fail(HINAWA_IS_SND_TSCM(self));
 
 	if (len < sizeof(event->type))
 		return;
+	len -= sizeof(event->type);
 
-	// For backward compatibility.
-	g_object_get(&self->parent_instance, "listening", &listening, NULL);
-	if (listening) {
-		hinawa_context_schedule_notification(self, buf, len,
-					     snd_tscm_notify_control, &err);
-		return;
+	change = event->changes;
+	while (len >= sizeof(*change)) {
+		g_signal_emit(self, tscm_sigs[TSCM_SIG_TYPE_CTL], 0,
+			      change->index,
+			      GUINT32_FROM_BE(change->before),
+			      GUINT32_FROM_BE(change->after));
+		++change;
+		len -= sizeof(*change);
 	}
-
-	snd_tscm_notify_control(self, (void *)buf, len);
 }
