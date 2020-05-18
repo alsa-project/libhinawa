@@ -16,9 +16,6 @@ props = (
 )
 methods = (
     'new',
-    'listen',
-    'unlisten',
-    'transact',
     'transaction',
     'bind',
     'unbind',

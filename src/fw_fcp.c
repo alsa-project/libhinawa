@@ -287,30 +287,6 @@ end:
 	g_clear_object(&req);
 }
 
-/**
- * hinawa_fw_fcp_transact:
- * @self: A #HinawaFwFcp
- * @req_frame:  (element-type guint8) (array) (in): a byte frame for request
- * @resp_frame: (element-type guint8) (array) (out caller-allocates): a byte
- *		frame for response
- * @exception: A #GError
- *
- * Execute fCP transaction.
- * Deprecated: 1.4: Use hinawa_fw_fcp_transaction() instead,
- */
-void hinawa_fw_fcp_transact(HinawaFwFcp *self,
-			    GByteArray *req_frame, GByteArray *resp_frame,
-			    GError **exception)
-{
-	// Some vendor specific FCP transaction has such response that the
-	// size does not equal to the size of request...
-	g_byte_array_set_size(resp_frame, FCP_MAXIMUM_FRAME_BYTES);
-
-	hinawa_fw_fcp_transaction(self, req_frame->data, req_frame->len,
-				  &(resp_frame->data), &(resp_frame->len),
-				  exception);
-}
-
 static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode)
 {
 	HinawaFwFcp *self = HINAWA_FW_FCP(resp);
@@ -404,42 +380,4 @@ void hinawa_fw_fcp_unbind(HinawaFwFcp *self)
 		g_object_unref(priv->node);
 		priv->node = NULL;
 	}
-}
-
-/**
- * hinawa_fw_fcp_listen:
- * @self: A #HinawaFwFcp
- * @unit: A #HinawaFwUnit
- * @exception: A #GError
- *
- * Start to listen to FCP responses.
- *
- * Deprecated: 1.4: Use hinawa_fw_fcp_bind() with an instance of HinawaFwNode,
- *		    instead.
- */
-void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
-			  GError **exception)
-{
-	HinawaFwNode *node;
-
-	g_return_if_fail(HINAWA_IS_FW_FCP(self));
-
-	hinawa_fw_unit_get_node(unit, &node);
-
-	g_object_ref(node);
-	hinawa_fw_fcp_bind(self, node, exception);
-	g_object_unref(node);
-}
-
-/**
- * hinawa_fw_fcp_unlisten:
- * @self: A #HinawaFwFcp
- *
- * Stop to listen to FCP responses.
- *
- * Deprecated: 1.4: Use hinawa_fw_fcp_unbind(), instead.
- */
-void hinawa_fw_fcp_unlisten(HinawaFwFcp *self)
-{
-	hinawa_fw_fcp_unbind(self);
 }

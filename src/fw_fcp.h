@@ -4,7 +4,6 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include "fw_unit.h"
 #include "fw_resp.h"
 
 G_BEGIN_DECLS
@@ -49,8 +48,6 @@ GType hinawa_fw_fcp_get_type(void) G_GNUC_CONST;
 
 HinawaFwFcp *hinawa_fw_fcp_new(void);
 
-void hinawa_fw_fcp_listen(HinawaFwFcp *self, HinawaFwUnit *unit,
-			  GError **exception);
 void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
 			       const guint8 *req_frame, guint req_frame_size,
 			       guint8 *const *resp_frame, guint *resp_frame_size,
@@ -59,11 +56,6 @@ void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
 void hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node,
 			GError **exception);
 void hinawa_fw_fcp_unbind(HinawaFwFcp *self);
-
-void hinawa_fw_fcp_transact(HinawaFwFcp *self,
-			    GByteArray *req_frame, GByteArray *resp_frame,
-			    GError **exception);
-void hinawa_fw_fcp_unlisten(HinawaFwFcp *self);
 
 G_END_DECLS
 
