@@ -363,31 +363,31 @@ static gboolean check_src(GSource *gsrc)
 	FwNodeSource *src = (FwNodeSource *)gsrc;
 	GIOCondition condition;
 
+	// Don't go to dispatch if nothing available. As an exception, return
+	// TRUE for POLLERR to call .dispatch for internal destruction.
 	condition = g_source_query_unix_fd(gsrc, src->tag);
-	if (condition & G_IO_ERR) {
-		g_signal_emit(src->self,
-			      fw_node_sigs[FW_NODE_SIG_TYPE_DISCONNECTED], 0);
-		return FALSE;
-	}
-
-	// Don't go to dispatch if nothing available.
-	return !!(condition & G_IO_IN);
+	return !!(condition & (G_IO_IN | G_IO_ERR));
 }
 
 static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 {
 	FwNodeSource *src = (FwNodeSource *)gsrc;
 	HinawaFwNodePrivate *priv;
+	GIOCondition condition;
 	struct fw_cdev_event_common *common;
 	GError *exception = NULL;
 	int len;
 
-	if (src->self == NULL || !HINAWA_IS_FW_NODE(src->self))
-		return G_SOURCE_REMOVE;
 	priv = hinawa_fw_node_get_instance_private(src->self);
-
 	if (priv->fd < 0)
 		return G_SOURCE_REMOVE;
+
+	condition = g_source_query_unix_fd(gsrc, src->tag);
+	if (condition & G_IO_ERR) {
+		g_signal_emit(src->self,
+			fw_node_sigs[FW_NODE_SIG_TYPE_DISCONNECTED], 0);
+		return G_SOURCE_REMOVE;
+	}
 
 	len = read(priv->fd, src->buf, src->len);
 	if (len < 0) {
