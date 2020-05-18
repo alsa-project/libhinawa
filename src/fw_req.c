@@ -108,7 +108,7 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 	fw_req_props[FW_REQ_PROP_TYPE_TIMEOUT] =
 		g_param_spec_uint("timeout", "timeout",
 				  "An elapse to expire waiting for response by ms unit.",
-				  10, UINT_MAX,
+				  10, G_MAXUINT,
 				  200,
 				  G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
 
