@@ -70,8 +70,8 @@ static void hinawa_snd_dice_class_init(HinawaSndDiceClass *klass)
 			     G_SIGNAL_RUN_LAST,
 			     G_STRUCT_OFFSET(HinawaSndDiceClass, notified),
 			     NULL, NULL,
-			     g_cclosure_marshal_VOID__ULONG,
-			     G_TYPE_NONE, 1, G_TYPE_ULONG);
+			     g_cclosure_marshal_VOID__UINT,
+			     G_TYPE_NONE, 1, G_TYPE_UINT);
 }
 
 static void hinawa_snd_dice_init(HinawaSndDice *self)
