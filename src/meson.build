@@ -64,14 +64,13 @@ marshallers = gnome.genmarshal('hinawa_sigs_marshal',
 )
 sources += marshallers
 
-enums = gnome.mkenums('hinawa_enums',
+enums = gnome.mkenums_simple('hinawa_enums',
   sources: ['hinawa_enum_types.h'],
   identifier_prefix: 'Hinawa',
   symbol_prefix: 'hinawa',
-  c_template: 'hinawa_enums.c.template',
-  h_template: 'hinawa_enums.h.template',
   install_header: true,
   install_dir: join_paths(get_option('includedir'), meson.project_name()),
+  header_prefix: '#include <hinawa_enum_types.h>',
 )
 headers += 'hinawa_enum_types.h'
 sources += enums
