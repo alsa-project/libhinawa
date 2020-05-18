@@ -102,4 +102,6 @@ HINAWA_2_0_0 {
     "hinawa_fw_resp_set_resp_frame";
 
     "hinawa_fw_req_transaction";
+
+    "hinawa_snd_unit_get_node";
 } HINAWA_1_4_0;

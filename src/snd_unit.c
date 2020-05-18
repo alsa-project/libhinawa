@@ -31,6 +31,7 @@ G_DEFINE_QUARK("HinawaSndUnit", hinawa_snd_unit)
 struct _HinawaSndUnitPrivate {
 	int fd;
 	struct snd_firewire_get_info info;
+	HinawaFwNode *node;
 
 	gboolean streaming;
 };
@@ -98,6 +99,7 @@ static void snd_unit_finalize(GObject *obj)
 	HinawaSndUnitPrivate *priv = hinawa_snd_unit_get_instance_private(self);
 
 	close(priv->fd);
+	g_object_unref(priv->node);
 
 	G_OBJECT_CLASS(hinawa_snd_unit_parent_class)->finalize(obj);
 }
@@ -179,7 +181,9 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 
 static void hinawa_snd_unit_init(HinawaSndUnit *self)
 {
-	return;
+	HinawaSndUnitPrivate *priv = hinawa_snd_unit_get_instance_private(self);
+
+	priv->node = g_object_new(HINAWA_TYPE_FW_NODE, NULL);
 }
 
 /**
@@ -230,6 +234,24 @@ end:
 		close(priv->fd);
 }
 
+/**
+ * hinawa_snd_unit_get_node:
+ * @self: A #HinawaSndUnit.
+ * @node: (out)(transfer none): A #HinawaFwNode.
+ *
+ * Retrieve an instance of #HinawaFwNode associated to the given unit.
+ *
+ * Since: 2.0.
+ */
+void hinawa_snd_unit_get_node(HinawaSndUnit *self, HinawaFwNode **node)
+{
+	HinawaSndUnitPrivate *priv;
+
+	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	priv = hinawa_snd_unit_get_instance_private(self);
+
+	*node = priv->node;
+}
 /**
  * hinawa_snd_unit_lock:
  * @self: A #HinawaSndUnit

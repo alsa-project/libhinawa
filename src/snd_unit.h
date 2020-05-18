@@ -71,6 +71,8 @@ HinawaSndUnit *hinawa_snd_unit_new(void);
 
 void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception);
 
+void hinawa_snd_unit_get_node(HinawaSndUnit *self, HinawaFwNode **node);
+
 void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception);
 void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception);
 
