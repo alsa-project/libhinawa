@@ -146,7 +146,7 @@ void hinawa_snd_dice_transaction(HinawaSndDice *self, guint64 addr,
 	HinawaSndDicePrivate *priv;
 	HinawaSndUnit *unit;
 	HinawaFwTcode tcode;
-	unsigned int length;
+	gsize length;
 	guint8 *req_frame;
 	HinawaFwNode *node;
 	gint i;

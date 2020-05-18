@@ -49,8 +49,8 @@ GType hinawa_fw_req_get_type(void) G_GNUC_CONST;
 HinawaFwReq *hinawa_fw_req_new(void);
 
 void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
-			       HinawaFwTcode tcode, guint64 addr, guint length,
-			       guint8 *const *frame, guint *frame_size,
+			       HinawaFwTcode tcode, guint64 addr, gsize length,
+			       guint8 *const *frame, gsize *frame_size,
 			       GError **exception);
 
 G_END_DECLS

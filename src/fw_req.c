@@ -34,7 +34,7 @@ static GParamSpec *fw_req_props[FW_REQ_PROP_TYPE_COUNT] = { NULL, };
 struct _HinawaFwReqPrivate {
 	guint timeout;
 	guint8 *frame;
-	guint length;
+	gsize length;
 
 	guint rcode;
 	GMutex mutex;
@@ -159,8 +159,8 @@ HinawaFwReq *hinawa_fw_req_new(void)
  * Since: 1.4.
  */
 void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
-			       HinawaFwTcode tcode, guint64 addr, guint length,
-			       guint8 *const *frame, guint *frame_size,
+			       HinawaFwTcode tcode, guint64 addr, gsize length,
+			       guint8 *const *frame, gsize *frame_size,
 			       GError **exception)
 {
 	struct fw_cdev_send_request req = {0};
@@ -307,7 +307,7 @@ void hinawa_fw_req_handle_response(HinawaFwReq *self,
 
 	/* Copy transaction frame if needed. */
 	if (priv->frame && priv->length > 0) {
-		guint length = MIN(priv->length, event->length);
+		gsize length = MIN(priv->length, event->length);
 		memcpy(priv->frame, event->data, length);
 	}
 

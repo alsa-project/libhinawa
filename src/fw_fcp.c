@@ -52,7 +52,7 @@ enum avc_status {
 
 struct fcp_transaction {
 	const guint8 *req_frame;
-	guint req_frame_size;
+	gsize req_frame_size;
 	guint8 *resp_frame;
 	gsize resp_frame_size;
 	GCond cond;
