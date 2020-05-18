@@ -52,6 +52,17 @@ struct _HinawaSndUnitClass {
 	 * handler is called.
 	 */
 	void (*lock_status)(HinawaSndUnit *self, gboolean state);
+
+	/**
+	 * HinawaSndUnitClass::disconnected:
+	 * @self: A #HinawaSndUnit
+	 *
+	 * When the sound card is not available anymore due to unbinding driver
+	 * or hot unplugging, this signal is emit. The owner of this object
+	 * should call g_object_free() as quickly as possible to release ALSA
+	 * hwdep character device.
+	 */
+	void (*disconnected)(HinawaSndUnit *self);
 };
 
 GType hinawa_snd_unit_get_type(void) G_GNUC_CONST;

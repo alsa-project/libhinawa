@@ -25,6 +25,7 @@ methods = (
 )
 vmethods = (
     'do_lock_status',
+    'do_disconnected',
 )
 signals = (
     'lock-status',

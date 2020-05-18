@@ -171,7 +171,7 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 		g_signal_new("disconnected",
 			     G_OBJECT_CLASS_TYPE(klass),
 			     G_SIGNAL_RUN_LAST,
-			     0,
+			     G_STRUCT_OFFSET(HinawaSndUnitClass, disconnected),
 			     NULL, NULL,
 			     g_cclosure_marshal_VOID__VOID,
 			     G_TYPE_NONE, 0, G_TYPE_NONE, 0);
