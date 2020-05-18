@@ -4,7 +4,6 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include "fw_unit.h"
 #include "hinawa_enum_types.h"
 
 G_BEGIN_DECLS
@@ -48,16 +47,6 @@ struct _HinawaFwReqClass {
 GType hinawa_fw_req_get_type(void) G_GNUC_CONST;
 
 HinawaFwReq *hinawa_fw_req_new(void);
-
-void hinawa_fw_req_write(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
-			 GByteArray *frame, GError **exception);
-
-void hinawa_fw_req_read(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
-			GByteArray *frame, guint length, GError **exception);
-
-void hinawa_fw_req_lock(HinawaFwReq *self, HinawaFwUnit *unit, guint64 addr,
-			GByteArray **frame, HinawaFwTcode lock_tcode,
-			GError **exception);
 
 void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 			       HinawaFwTcode tcode, guint64 addr, guint length,

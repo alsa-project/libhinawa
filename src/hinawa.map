@@ -56,10 +56,6 @@ HINAWA_1_0_0 {
     "hinawa_fw_resp_set_resp_frame";
     "hinawa_sigs_marshal_ENUM__ENUM";
 
-    "hinawa_fw_req_read";
-    "hinawa_fw_req_write";
-    "hinawa_fw_req_lock";
-
     "hinawa_fw_unit_get_config_rom";
 } HINAWA_0_8_0;
 
