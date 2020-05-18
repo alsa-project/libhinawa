@@ -209,7 +209,7 @@ end:
 }
 
 void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
-					 const void *buf, unsigned int len)
+					 const void *buf, ssize_t len)
 {
 	const struct snd_firewire_event_dice_notification *event =
 			(struct snd_firewire_event_dice_notification *)buf;

@@ -260,7 +260,7 @@ end:
 }
 
 void hinawa_snd_efw_handle_response(HinawaSndEfw *self,
-				    const void *buf, unsigned int len)
+				    const void *buf, ssize_t len)
 {
 	HinawaSndEfwPrivate *priv;
 	struct snd_firewire_event_efw_response *event =

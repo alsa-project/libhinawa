@@ -41,7 +41,7 @@ typedef struct {
 	HinawaSndUnit *unit;
 	gpointer tag;
 	void *buf;
-	unsigned int len;
+	size_t len;
 } SndUnitSource;
 
 enum snd_unit_prop_type {
@@ -267,8 +267,7 @@ void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
 }
 
 /* For internal use. */
-void hinawa_snd_unit_write(HinawaSndUnit *self,
-			   const void *buf, unsigned int length,
+void hinawa_snd_unit_write(HinawaSndUnit *self, const void *buf, size_t length,
 			   GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
@@ -293,10 +292,10 @@ void hinawa_snd_unit_ioctl(HinawaSndUnit *self, unsigned long request,
 }
 
 static void handle_lock_event(HinawaSndUnit *self,
-			      void *buf, unsigned int length)
+			      const void *buf, ssize_t length)
 {
 	HinawaSndUnitPrivate *priv = hinawa_snd_unit_get_instance_private(self);
-	struct snd_firewire_event_lock_status *event = buf;
+	const struct snd_firewire_event_lock_status *event = buf;
 
 	priv->streaming = event->status;
 
@@ -322,7 +321,7 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	HinawaSndUnitPrivate *priv;
 	GIOCondition condition;
 	struct snd_firewire_event_common *common;
-	int len;
+	ssize_t len;
 
 	priv = hinawa_snd_unit_get_instance_private(unit);
 	if (priv->fd < 0)

@@ -95,7 +95,7 @@ void hinawa_snd_motu_open(HinawaSndMotu *self, gchar *path, GError **exception)
 }
 
 void hinawa_snd_motu_handle_notification(HinawaSndMotu *self,
-					 const void *buf, unsigned int len)
+					 const void *buf, ssize_t len)
 {
 	const struct snd_firewire_event_motu_notification *event = buf;
 

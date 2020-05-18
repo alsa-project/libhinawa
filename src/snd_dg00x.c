@@ -92,7 +92,7 @@ void hinawa_snd_dg00x_open(HinawaSndDg00x *self, gchar *path, GError **exception
 }
 
 void hinawa_snd_dg00x_handle_msg(HinawaSndDg00x *self, const void *buf,
-				 unsigned int len)
+				 ssize_t len)
 {
 	const struct snd_firewire_event_digi00x_message *event = buf;
 

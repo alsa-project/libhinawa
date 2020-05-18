@@ -130,7 +130,7 @@ const guint32 *hinawa_snd_tscm_get_state(HinawaSndTscm *self,
 }
 
 void hinawa_snd_tscm_handle_control(HinawaSndTscm *self, const void *buf,
-				    unsigned int len)
+				    ssize_t len)
 {
 	const struct snd_firewire_event_tascam_control *event =
 			(struct snd_firewire_event_tascam_control *)buf;
