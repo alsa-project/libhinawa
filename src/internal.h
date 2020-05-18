@@ -14,7 +14,6 @@
 #endif
 
 #include "fw_node.h"
-#include "fw_unit.h"
 #include "fw_resp.h"
 #include "fw_req.h"
 #include "snd_unit.h"

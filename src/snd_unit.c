@@ -35,7 +35,7 @@ struct _HinawaSndUnitPrivate {
 
 	gboolean streaming;
 };
-G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndUnit, hinawa_snd_unit, HINAWA_TYPE_FW_UNIT)
+G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndUnit, hinawa_snd_unit, G_TYPE_OBJECT)
 
 typedef struct {
 	GSource src;

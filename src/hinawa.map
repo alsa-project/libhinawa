@@ -1,8 +1,5 @@
 HINAWA_0_6_0 {
   global:
-    "hinawa_fw_unit_get_type";
-    "hinawa_fw_unit_open";
-
     "hinawa_fw_req_get_type";
     "hinawa_fw_req_quark";
 
@@ -78,8 +75,6 @@ HINAWA_1_4_0 {
     "hinawa_fw_node_quark";
     "hinawa_fw_node_open";
     "hinawa_fw_node_create_source";
-
-    "hinawa_fw_unit_get_node";
 
     "hinawa_snd_unit_create_source";
 

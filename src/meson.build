@@ -14,8 +14,6 @@ dependencies = [
 sources = [
   'fw_node.h',
   'fw_node.c',
-  'fw_unit.h',
-  'fw_unit.c',
   'fw_resp.h',
   'fw_resp.c',
   'fw_req.h',
@@ -28,7 +26,6 @@ sources = [
 
 headers = [
   'fw_node.h',
-  'fw_unit.h',
   'fw_resp.h',
   'fw_req.h',
   'fw_fcp.h',
