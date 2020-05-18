@@ -94,31 +94,13 @@ void hinawa_snd_motu_open(HinawaSndMotu *self, gchar *path, GError **exception)
 	}
 }
 
-static void snd_motu_notify_notification(void *target, void *data,
-					 unsigned int length)
-{
-	HinawaSndMotu *self = target;
-	struct snd_firewire_event_motu_notification *event = data;
-
-	g_signal_emit(self, motu_sigs[MOTU_SIG_TYPE_NOTIFIED], 0,
-		      event->message);
-}
-
 void hinawa_snd_motu_handle_notification(HinawaSndMotu *self,
 					 const void *buf, unsigned int len)
 {
-	gboolean listening;
-	int err = 0;
+	const struct snd_firewire_event_motu_notification *event = buf;
 
 	g_return_if_fail(HINAWA_IS_SND_MOTU(self));
 
-	// For backward compatibility.
-	g_object_get(&self->parent_instance, "listening", &listening, NULL);
-	if (listening) {
-		hinawa_context_schedule_notification(self, buf, len,
-					snd_motu_notify_notification, &err);
-		return;
-	}
-
-	snd_motu_notify_notification(self, (void *)buf, len);
+	g_signal_emit(self, motu_sigs[MOTU_SIG_TYPE_NOTIFIED], 0,
+		      event->message);
 }
