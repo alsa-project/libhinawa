@@ -52,7 +52,7 @@ typedef struct {
 	GSource src;
 	HinawaFwNode *self;
 	gpointer tag;
-	unsigned int len;
+	size_t len;
 	void *buf;
 } FwNodeSource;
 
@@ -360,7 +360,7 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	GIOCondition condition;
 	struct fw_cdev_event_common *common;
 	GError *exception = NULL;
-	int len;
+	ssize_t len;
 
 	priv = hinawa_fw_node_get_instance_private(src->self);
 	if (priv->fd < 0)
