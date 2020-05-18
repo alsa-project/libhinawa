@@ -330,8 +330,9 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 
 	condition = g_source_query_unix_fd(gsrc, src->tag);
 	if (condition & G_IO_ERR) {
-		g_signal_emit_by_name(&unit->parent_instance, "disconnected",
-				      NULL);
+		g_signal_emit(unit,
+			      snd_unit_sigs[SND_UNIT_SIG_TYPE_DISCONNECTED], 0,
+			      NULL);
 
 		return G_SOURCE_REMOVE;
 	}
