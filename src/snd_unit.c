@@ -48,7 +48,7 @@ typedef struct {
 
 enum snd_unit_prop_type {
 	SND_UNIT_PROP_TYPE_FW_TYPE = 1,
-	SND_UNIT_PROP_TYPE_CARD,
+	SND_UNIT_PROP_TYPE_CARD_ID,
 	SND_UNIT_PROP_TYPE_DEVICE,
 	SND_UNIT_PROP_TYPE_GUID,
 	SND_UNIT_PROP_TYPE_STREAMING,
@@ -74,8 +74,8 @@ static void snd_unit_get_property(GObject *obj, guint id,
 	case SND_UNIT_PROP_TYPE_FW_TYPE:
 		g_value_set_enum(val, (HinawaSndUnitType)priv->info.type);
 		break;
-	case SND_UNIT_PROP_TYPE_CARD:
-		g_value_set_int(val, priv->info.card);
+	case SND_UNIT_PROP_TYPE_CARD_ID:
+		g_value_set_uint(val, priv->info.card);
 		break;
 	case SND_UNIT_PROP_TYPE_DEVICE:
 		g_value_set_static_string(val,
@@ -129,12 +129,12 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 				  HINAWA_TYPE_SND_UNIT_TYPE,
 				  HINAWA_SND_UNIT_TYPE_DICE,
 				  G_PARAM_READABLE);
-	snd_unit_props[SND_UNIT_PROP_TYPE_CARD] =
-		g_param_spec_int("card", "card",
-				 "A numerical ID for ALSA sound card",
-				 0, INT_MAX,
-				 0,
-				 G_PARAM_READABLE);
+	snd_unit_props[SND_UNIT_PROP_TYPE_CARD_ID] =
+		g_param_spec_uint("card", "card",
+				  "The numerical ID for ALSA sound card",
+				  0, G_MAXUINT,
+				  0,
+				  G_PARAM_READABLE);
 	snd_unit_props[SND_UNIT_PROP_TYPE_DEVICE] =
 		g_param_spec_string("device", "device",
 				    "A name of special file as FireWire unit.",
