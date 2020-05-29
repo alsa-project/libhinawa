@@ -358,9 +358,8 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	FwNodeSource *src = (FwNodeSource *)gsrc;
 	HinawaFwNodePrivate *priv;
 	GIOCondition condition;
-	struct fw_cdev_event_common *common;
-	GError *exception = NULL;
 	ssize_t len;
+	guint8 *buf;
 
 	priv = hinawa_fw_node_get_instance_private(src->self);
 	if (priv->fd < 0)
@@ -381,35 +380,55 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		return G_SOURCE_REMOVE;
 	}
 
-	common = (struct fw_cdev_event_common *)src->buf;
+	buf = src->buf;
+	while (len > 0) {
+		union fw_cdev_event *ev = (union fw_cdev_event *)buf;
+		size_t size = 0;
 
-	if (HINAWA_IS_FW_NODE(common->closure) &&
-	    common->type == FW_CDEV_EVENT_BUS_RESET)
-		handle_update(src->self, &exception);
-	else if (HINAWA_IS_FW_RESP(common->closure) &&
-		 common->type == FW_CDEV_EVENT_REQUEST2)
-		hinawa_fw_resp_handle_request(HINAWA_FW_RESP(common->closure),
-				(struct fw_cdev_event_request2 *)common);
-	else if (HINAWA_IS_FW_REQ(common->closure) &&
-		 common->type == FW_CDEV_EVENT_RESPONSE) {
-		struct fw_cdev_event_response *ev =
-				(struct fw_cdev_event_response *)common;
-		HinawaFwReq *req = HINAWA_FW_REQ(ev->closure);
-		GList *entry;
+		switch (ev->common.type) {
+		case FW_CDEV_EVENT_BUS_RESET:
+			if (HINAWA_IS_FW_NODE(ev->bus_reset.closure)) {
+				GError *exception = NULL;
+				handle_update(src->self, &exception);
+				if (exception != NULL)
+					return G_SOURCE_REMOVE;
+			}
+			size = sizeof(ev->bus_reset);
+			break;
+		case FW_CDEV_EVENT_REQUEST2:
+			if (HINAWA_IS_FW_RESP(ev->request2.closure)) {
+				hinawa_fw_resp_handle_request(
+					HINAWA_FW_RESP(ev->request2.closure),
+					&ev->request2);
+			}
+			size = sizeof(ev->request2) + ev->request2.length;
+			break;
+		case FW_CDEV_EVENT_RESPONSE:
+			if (HINAWA_IS_FW_REQ(ev->response.closure)) {
+				HinawaFwReq *req =
+					HINAWA_FW_REQ(ev->response.closure);
+				GList *entry;
 
-		// Don't process request invalidated in advance.
-		g_mutex_lock(&priv->transactions_mutex);
-		entry = g_list_find(priv->transactions, req);
-		if (entry) {
-			priv->transactions =
-				g_list_delete_link(priv->transactions, entry);
-			hinawa_fw_req_handle_response(req, ev);
+				// Don't process request invalidated in advance.
+				g_mutex_lock(&priv->transactions_mutex);
+				entry = g_list_find(priv->transactions, req);
+				if (entry) {
+					priv->transactions =
+						g_list_delete_link(priv->transactions,
+								   entry);
+					hinawa_fw_req_handle_response(req, &ev->response);
+				}
+				g_mutex_unlock(&priv->transactions_mutex);
+			}
+			size = sizeof(ev->response) + ev->response.length;
+			break;
+		default:
+			break;
 		}
-		g_mutex_unlock(&priv->transactions_mutex);
-	}
 
-	if (exception != NULL)
-		return G_SOURCE_REMOVE;
+		len -= size;
+		buf += size;
+	}
 
 	// Just be sure to continue to process this source.
 	return G_SOURCE_CONTINUE;
