@@ -162,6 +162,7 @@ void hinawa_snd_efw_transaction(HinawaSndEfw *self,
 	unsigned int quads;
 	gint64 expiration;
 	unsigned int i;
+	guint32 status;
 
 	g_return_if_fail(HINAWA_IS_SND_EFW(self));
 	priv = hinawa_snd_efw_get_instance_private(self);
@@ -222,10 +223,11 @@ void hinawa_snd_efw_transaction(HinawaSndEfw *self,
 	}
 
 	// Check transaction status.
-	if (GUINT32_FROM_BE(trans.frame->status) != EFT_STATUS_OK) {
+	status = GUINT32_FROM_BE(trans.frame->status);
+	if (status != EFT_STATUS_OK) {
 		g_set_error(exception, hinawa_snd_efw_quark(),
 			    EPROTO, "%s",
-			    efw_status_names[trans.frame->status]);
+			    efw_status_names[status]);
 		goto end;
 	}
 
