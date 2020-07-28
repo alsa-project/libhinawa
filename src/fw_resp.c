@@ -169,7 +169,7 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 	allocate.region_end = addr + width;
 
 	hinawa_fw_node_ioctl(node, FW_CDEV_IOC_ALLOCATE, &allocate, &err);
-	if (err != 0) {
+	if (err < 0) {
 		raise(exception, err);
 		return;
 	}
