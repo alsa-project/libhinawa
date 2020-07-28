@@ -4,7 +4,7 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include "hinawa_enums.h"
+#include <hinawa_enums.h>
 
 G_BEGIN_DECLS
 

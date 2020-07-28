@@ -4,7 +4,7 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include "snd_unit.h"
+#include <snd_unit.h>
 
 G_BEGIN_DECLS
 
