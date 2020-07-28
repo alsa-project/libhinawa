@@ -282,8 +282,10 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
 	}
 
 	priv->fd = open(path, O_RDONLY);
-	if (priv->fd < 0)
+	if (priv->fd < 0) {
 		raise(exception, errno);
+		return;
+	}
 
 	g_mutex_lock(&priv->mutex);
 	update_info(self, exception);
