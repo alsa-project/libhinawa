@@ -9,6 +9,7 @@
 
 #include <sound/firewire.h>
 
+#include "hinawa_error.h"
 #include "fw_node.h"
 #include "fw_resp.h"
 #include "fw_req.h"
@@ -18,6 +19,10 @@
 #include "snd_dg00x.h"
 #include "snd_motu.h"
 #include "snd_tscm.h"
+
+#define generate_error(exception, errno)			\
+	g_set_error(exception, HINAWA_ERROR, errno,		\
+		    "%s:%d: %s", __FILE__, __LINE__, strerror(errno))
 
 void hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args,
 			  int *err);

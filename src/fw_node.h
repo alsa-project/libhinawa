@@ -5,6 +5,8 @@
 #include <glib.h>
 #include <glib-object.h>
 
+#include <hinawa_error.h>
+
 G_BEGIN_DECLS
 
 #define HINAWA_TYPE_FW_NODE	(hinawa_fw_node_get_type())

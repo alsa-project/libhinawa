@@ -43,12 +43,6 @@ struct _HinawaFwNodePrivate {
 
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwNode, hinawa_fw_node, G_TYPE_OBJECT)
 
-// For error handling.
-G_DEFINE_QUARK("HinawaFwNode", hinawa_fw_node)
-#define raise(exception, errno)						\
-	g_set_error(exception, hinawa_fw_node_quark(), errno,		\
-		    "%d: %s", __LINE__, strerror(errno))
-
 typedef struct {
 	GSource src;
 	HinawaFwNode *self;
@@ -246,7 +240,7 @@ static void update_info(HinawaFwNode *self, GError **exception)
 	info.bus_reset = (__u64)&priv->generation;
 	info.bus_reset_closure = (__u64)self;
 	if (ioctl(priv->fd, FW_CDEV_IOC_GET_INFO, &info) < 0) {
-		raise(exception, errno);
+		generate_error(exception, errno);
 		return;
 	}
 
@@ -278,13 +272,13 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
 	priv = hinawa_fw_node_get_instance_private(self);
 
 	if (priv->fd >= 0) {
-		raise(exception, EBUSY);
+		generate_error(exception, EBUSY);
 		return;
 	}
 
 	priv->fd = open(path, O_RDONLY);
 	if (priv->fd < 0) {
-		raise(exception, errno);
+		generate_error(exception, errno);
 		return;
 	}
 
@@ -314,12 +308,12 @@ void hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
 	priv = hinawa_fw_node_get_instance_private(self);
 
 	if (priv->fd < 0) {
-		raise(exception, ENXIO);
+		generate_error(exception, ENXIO);
 		return;
 	}
 
 	if (image == NULL || length == NULL) {
-		raise(exception, EINVAL);
+		generate_error(exception, EINVAL);
 		return;
 	}
 
@@ -446,7 +440,7 @@ void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
 	priv = hinawa_fw_node_get_instance_private(self);
 
 	if (priv->fd < 0) {
-		raise(exception, ENXIO);
+		generate_error(exception, ENXIO);
 		return;
 	}
 
@@ -462,7 +456,7 @@ void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
         src->len = sysconf(_SC_PAGESIZE);
         src->buf = g_malloc0(src->len);
         if (src->buf == NULL) {
-                raise(exception, ENOMEM);
+                generate_error(exception, ENOMEM);
 		g_source_unref(*gsrc);
                 return;
         }
