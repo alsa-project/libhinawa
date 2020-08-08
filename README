@@ -64,7 +64,7 @@ dispatcher.quit()
 ## Dependencies
 - Glib 2.34.0 or later
 - GObject Introspection 1.32.1 or later
-- Linux kernel 3.12 or later
+- Linux kernel 5.00 or later
 
 ## Requirements to build
 - Meson 0.46.0 or later

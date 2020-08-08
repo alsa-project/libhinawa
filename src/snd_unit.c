@@ -366,36 +366,26 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 
 	if (common->type == SNDRV_FIREWIRE_EVENT_LOCK_STATUS)
 		handle_lock_event(unit, src->buf, len);
-#if HAVE_SND_DICE
 	else if (HINAWA_IS_SND_DICE(unit) &&
 		 common->type == SNDRV_FIREWIRE_EVENT_DICE_NOTIFICATION)
 		hinawa_snd_dice_handle_notification(HINAWA_SND_DICE(unit),
 						    src->buf, len);
-#endif
-#if HAVE_SND_EFW
 	else if (HINAWA_IS_SND_EFW(unit) &&
 		 common->type == SNDRV_FIREWIRE_EVENT_EFW_RESPONSE)
 		hinawa_snd_efw_handle_response(HINAWA_SND_EFW(unit),
 					       src->buf, len);
-#endif
-#if HAVE_SND_DG00X
 	else if (HINAWA_IS_SND_DG00X(unit) &&
 		 common->type == SNDRV_FIREWIRE_EVENT_DIGI00X_MESSAGE)
 		hinawa_snd_dg00x_handle_msg(HINAWA_SND_DG00X(unit),
 					    src->buf, len);
-#endif
-#if HAVE_SND_MOTU
 	else if (HINAWA_IS_SND_MOTU(unit) &&
 		 common->type == SNDRV_FIREWIRE_EVENT_MOTU_NOTIFICATION)
 		hinawa_snd_motu_handle_notification(HINAWA_SND_MOTU(unit),
 						    src->buf, len);
-#endif
-#if HAVE_SND_TSCM
 	else if (HINAWA_IS_SND_TSCM(unit) &&
 		 common->type == SNDRV_FIREWIRE_EVENT_TASCAM_CONTROL)
 		hinawa_snd_tscm_handle_control(HINAWA_SND_TSCM(unit),
 						    src->buf, len);
-#endif
 end:
 	/* Just be sure to continue to process this source. */
 	return G_SOURCE_CONTINUE;
