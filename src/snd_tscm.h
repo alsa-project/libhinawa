@@ -6,6 +6,7 @@
 #include <glib-object.h>
 
 #include <snd_unit.h>
+#include <hinawa_error.h>
 
 G_BEGIN_DECLS
 
