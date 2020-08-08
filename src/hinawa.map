@@ -3,7 +3,6 @@ HINAWA_0_6_0 {
     "hinawa_fw_req_get_type";
 
     "hinawa_fw_resp_get_type";
-    "hinawa_fw_resp_quark";
 
     "hinawa_fw_fcp_get_type";
     "hinawa_fw_fcp_quark";

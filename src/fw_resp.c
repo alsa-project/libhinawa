@@ -19,12 +19,6 @@
  * utilize ioctl(2) with subsystem specific request commands.
  */
 
-/* For error handling. */
-G_DEFINE_QUARK("HinawaFwResp", hinawa_fw_resp)
-#define raise(exception, errno)						\
-	g_set_error(exception, hinawa_fw_resp_quark(), errno,		\
-		    "%d: %s", __LINE__, strerror(errno))
-
 struct _HinawaFwRespPrivate {
 	HinawaFwNode *node;
 
@@ -160,7 +154,7 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 	priv = hinawa_fw_resp_get_instance_private(self);
 
 	if (priv->node != NULL) {
-		raise(exception, EINVAL);
+		generate_error(exception, EINVAL);
 		return;
 	}
 
@@ -171,21 +165,21 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 
 	hinawa_fw_node_ioctl(node, FW_CDEV_IOC_ALLOCATE, &allocate, &err);
 	if (err < 0) {
-		raise(exception, err);
+		generate_error(exception, -err);
 		return;
 	}
 	priv->node = g_object_ref(node);
 
 	priv->req_frame = g_malloc(allocate.length);
 	if (!priv->req_frame) {
-		raise(exception, ENOMEM);
+		generate_error(exception, ENOMEM);
 		hinawa_fw_resp_release(self);
 		return;
 	}
 
 	priv->resp_frame = g_malloc0(allocate.length);
 	if (!priv->resp_frame) {
-		raise(exception, ENOMEM);
+		generate_error(exception, ENOMEM);
 		hinawa_fw_resp_release(self);
 		return;
 	}
