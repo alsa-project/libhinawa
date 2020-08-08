@@ -10,7 +10,6 @@ images = [
 
 private_headers = [
   'internal.h',
-  'backport.h',
 ]
 
 gnome.gtkdoc('hinawa',

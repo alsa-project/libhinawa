@@ -56,10 +56,6 @@ dispatcher.quit()
 ## License
 
 - GNU Lesser General Public License version 2.1 or later
-- A UAPI header of Linux kernel (include/uapi/sound/firewire.h) is included
-  for backport (src/backport.h). This is licensed under GNU General Public
-  License version 2. You can build libhinawa without the backport header. In
-  this case libhinawa is built with the UAPI header installed in your system.
 
 ## Dependencies
 - Glib 2.34.0 or later
