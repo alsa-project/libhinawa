@@ -27,6 +27,10 @@ headers = [
   'snd_unit.h',
 ]
 
+privates = [
+  'internal.h',
+]
+
 if with_snd_dice
   sources += 'snd_dice.c'
   headers += 'snd_dice.h'
@@ -67,21 +71,15 @@ enums = gnome.mkenums_simple('hinawa_enums',
 headers += 'hinawa_enum_types.h'
 sources += enums
 
-sources_to_build = [
-  'internal.h',
-]
-
 if with_backport
-  sources_to_build += 'backport.h'
+  privates += 'backport.h'
 endif
-
-sources_to_build += sources
 
 mapfile = 'hinawa.map'
 vflag = '-Wl,--version-script,' + join_paths(meson.current_source_dir(), mapfile)
 
 myself = library('hinawa',
-  sources: sources_to_build + headers,
+  sources: sources + headers + privates,
   version: meson.project_version(),
   soversion: meson.project_version().split('.')[0],
   install: true,
