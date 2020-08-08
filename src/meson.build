@@ -60,10 +60,6 @@ enums = gnome.mkenums_simple('hinawa_enums',
 headers += 'hinawa_enum_types.h'
 sources += enums
 
-if with_backport
-  privates += 'backport.h'
-endif
-
 mapfile = 'hinawa.map'
 vflag = '-Wl,--version-script,' + join_paths(meson.current_source_dir(), mapfile)
 

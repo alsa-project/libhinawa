@@ -7,11 +7,7 @@
 #include <linux/firewire-cdev.h>
 #include <linux/firewire-constants.h>
 
-#if WITH_BACKPORT
-#include "backport.h"
-#else
 #include <sound/firewire.h>
-#endif
 
 #include "fw_node.h"
 #include "fw_resp.h"
