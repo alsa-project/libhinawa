@@ -14,12 +14,6 @@
  * Mark of the Unicorn (MOTU). This inherits #HinawaSndUnit.
  */
 
-/* For error handling. */
-G_DEFINE_QUARK("HinawaSndMotu", hinawa_snd_motu)
-#define raise(exception, errno)						\
-	g_set_error(exception, hinawa_snd_motu_quark(), errno,		\
-		    "%d: %s", __LINE__, strerror(errno))
-
 struct _HinawaSndMotuPrivate {
 	struct snd_firewire_motu_status *status;
 };
@@ -90,7 +84,7 @@ void hinawa_snd_motu_open(HinawaSndMotu *self, gchar *path, GError **exception)
 
 	g_object_get(G_OBJECT(self), "type", &type, NULL);
 	if (type != SNDRV_FIREWIRE_TYPE_MOTU) {
-		raise(exception, EINVAL);
+		generate_error(exception, EINVAL);
 		return;
 	}
 }
