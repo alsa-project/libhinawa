@@ -8,7 +8,6 @@ HINAWA_0_6_0 {
 
     "hinawa_snd_unit_get_type";
     "hinawa_snd_unit_open";
-    "hinawa_snd_unit_quark";
     "hinawa_snd_unit_lock";
     "hinawa_snd_unit_unlock";
 

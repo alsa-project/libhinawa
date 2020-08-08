@@ -23,12 +23,6 @@
  * ALSA drivers in the stack can be available.
  */
 
-/* For error handling. */
-G_DEFINE_QUARK("HinawaSndUnit", hinawa_snd_unit)
-#define raise(exception, errno)						\
-	g_set_error(exception, hinawa_snd_unit_quark(), errno,		\
-		    "%d: %s", __LINE__, strerror(errno))
-
 struct _HinawaSndUnitPrivate {
 	int fd;
 	struct snd_firewire_get_info info;
@@ -218,13 +212,13 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 
 	priv->fd = open(path, O_RDWR);
 	if (priv->fd < 0) {
-		raise(exception, errno);
+		generate_error(exception, errno);
 		goto end;
 	}
 
 	/* Get FireWire sound device information. */
 	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_GET_INFO, &priv->info) < 0) {
-		raise(exception, errno);
+		generate_error(exception, errno);
 		goto end;
 	}
 
@@ -268,7 +262,7 @@ void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception)
 	priv = hinawa_snd_unit_get_instance_private(self);
 
 	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_LOCK, NULL) < 0)
-		raise(exception, errno);
+		generate_error(exception, errno);
 }
 
 /**
@@ -286,7 +280,7 @@ void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
 	priv = hinawa_snd_unit_get_instance_private(self);
 
 	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL) < 0)
-		raise(exception, errno);
+		generate_error(exception, errno);
 }
 
 /* For internal use. */
@@ -299,7 +293,7 @@ void hinawa_snd_unit_write(HinawaSndUnit *self, const void *buf, size_t length,
 	priv = hinawa_snd_unit_get_instance_private(self);
 
 	if (write(priv->fd, buf, length) != length)
-		raise(exception, errno);
+		generate_error(exception, errno);
 }
 
 void hinawa_snd_unit_ioctl(HinawaSndUnit *self, unsigned long request,
@@ -311,7 +305,7 @@ void hinawa_snd_unit_ioctl(HinawaSndUnit *self, unsigned long request,
 	priv = hinawa_snd_unit_get_instance_private(self);
 
 	if (ioctl(priv->fd, request, arg) < 0)
-		raise(exception, errno);
+		generate_error(exception, errno);
 }
 
 static void handle_lock_event(HinawaSndUnit *self,
@@ -440,7 +434,7 @@ void hinawa_snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
 	src->len = sysconf(_SC_PAGESIZE);
 	src->buf = g_malloc(src->len);
 	if (src->buf == NULL) {
-		raise(exception, ENOMEM);
+		generate_error(exception, ENOMEM);
 		g_source_unref(*gsrc);
 		return;
 	}
