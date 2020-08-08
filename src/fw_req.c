@@ -18,12 +18,6 @@
  * utilize ioctl(2) with subsystem specific request commands.
  */
 
-/* For error handling. */
-G_DEFINE_QUARK("HinawaFwReq", hinawa_fw_req)
-#define raise(exception, errno)						\
-	g_set_error(exception, hinawa_fw_req_quark(), errno,		\
-		    "%d: %s", __LINE__, strerror(errno))
-
 /* This object has one property. */
 enum fw_req_prop_type {
 	FW_REQ_PROP_TYPE_TIMEOUT = 1,
@@ -174,7 +168,7 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 	priv = hinawa_fw_req_get_instance_private(self);
 
 	if (length == 0 || *frame == NULL || *frame_size == 0) {
-		raise(exception, EINVAL);
+		generate_error(exception, EINVAL);
 		return;
 	}
 
@@ -189,7 +183,7 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 	    tcode == HINAWA_FW_TCODE_LOCK_WRAP_ADD ||
 	    tcode == HINAWA_FW_TCODE_LOCK_VENDOR_DEPENDENT) {
 		if ((addr & 0x3) || (length & 0x3)) {
-			raise(exception, EINVAL);
+			generate_error(exception, EINVAL);
 			return;
 		}
 	}
@@ -200,7 +194,7 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 	    tcode == HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST ||
 	    tcode == HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST) {
 		if (*frame_size < length) {
-			raise(exception, ENOBUFS);
+			generate_error(exception, ENOBUFS);
 			return;
 		}
 	} else if (tcode == HINAWA_FW_TCODE_LOCK_MASK_SWAP ||
@@ -211,13 +205,13 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 		   tcode == HINAWA_FW_TCODE_LOCK_WRAP_ADD ||
 		   tcode == HINAWA_FW_TCODE_LOCK_VENDOR_DEPENDENT) {
 		if (*frame_size < length * 2) {
-			raise(exception, ENOBUFS);
+			generate_error(exception, ENOBUFS);
 			return;
 		}
 		length *= 2;
 	} else {
 		// Not supported due to no test.
-		raise(exception, ENOTSUP);
+		generate_error(exception, ENOTSUP);
 		return;
 	}
 
@@ -257,7 +251,7 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 	if (err < 0) {
 		g_mutex_unlock(&priv->mutex);
 		g_cond_clear(&priv->cond);
-		raise(exception, err);
+		generate_error(exception, -err);
 		goto end;
 	}
 
@@ -273,15 +267,15 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 
 	if (priv->rcode == G_MAXUINT) {
 		hinawa_fw_node_invalidate_transaction(node, self);
-		raise(exception, ETIMEDOUT);
+		generate_error(exception, ETIMEDOUT);
 		goto end;
 	}
 
 	if (priv->rcode != RCODE_COMPLETE) {
 		if (priv->rcode > RCODE_NO_ACK) {
-			raise(exception, EIO);
+			generate_error(exception, EIO);
 		} else {
-			g_set_error(exception, hinawa_fw_req_quark(), EIO,
+			g_set_error(exception, HINAWA_ERROR, EIO,
 				"%d: %s", __LINE__, rcode_labels[priv->rcode]);
 		}
 	}

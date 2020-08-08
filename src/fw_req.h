@@ -6,6 +6,7 @@
 #include <glib-object.h>
 
 #include <fw_node.h>
+#include <hinawa_error.h>
 #include <hinawa_enums.h>
 
 G_BEGIN_DECLS
