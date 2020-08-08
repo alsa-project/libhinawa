@@ -12,15 +12,10 @@ dependencies = [
 ]
 
 sources = [
-  'fw_node.h',
   'fw_node.c',
-  'fw_resp.h',
   'fw_resp.c',
-  'fw_req.h',
   'fw_req.c',
-  'fw_fcp.h',
   'fw_fcp.c',
-  'snd_unit.h',
   'snd_unit.c',
 ]
 
@@ -33,23 +28,23 @@ headers = [
 ]
 
 if with_snd_dice
-  sources += ['snd_dice.h', 'snd_dice.c']
+  sources += 'snd_dice.c'
   headers += 'snd_dice.h'
 endif
 if with_snd_efw
-  sources += ['snd_efw.h', 'snd_efw.c']
+  sources += 'snd_efw.c'
   headers += 'snd_efw.h'
 endif
 if with_snd_dg00x
-  sources += ['snd_dg00x.h', 'snd_dg00x.c']
+  sources += 'snd_dg00x.c'
   headers += 'snd_dg00x.h'
 endif
 if with_snd_motu
-  sources += ['snd_motu.h', 'snd_motu.c']
+  sources += 'snd_motu.c'
   headers += 'snd_motu.h'
 endif
 if with_snd_tscm
-  sources += ['snd_tscm.h', 'snd_tscm.c']
+  sources += 'snd_tscm.c'
   headers += 'snd_tscm.h'
 endif
 
