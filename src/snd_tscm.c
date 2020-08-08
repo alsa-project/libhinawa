@@ -10,6 +10,7 @@
  * SECTION:snd_tscm
  * @Title: HinawaSndTscm
  * @Short_description: A state reader for Tascam FireWire models
+ * @include: snd_tscm.h
  *
  * A #HinawaSndTscm is an application of protocol defined by TASCAM. This
  * inherits #HinawaSndUnit.

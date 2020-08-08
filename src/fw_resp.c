@@ -11,6 +11,7 @@
  * SECTION:fw_resp
  * @Title: HinawaFwResp
  * @Short_description: A transaction responder for a FireWire node.
+ * @include: fw_resp.h
  *
  * A HinawaFwResp responds requests from any units.
  *

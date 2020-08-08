@@ -8,6 +8,7 @@
  * SECTION:snd_motu
  * @Title: HinawaSndMotu
  * @Short_description: A notification listener for Motu models
+ * @include: snd_motu.h
  *
  * A #HinawaSndMotu is an application of asynchronous notification defined by
  * Mark of the Unicorn (MOTU). This inherits #HinawaSndUnit.

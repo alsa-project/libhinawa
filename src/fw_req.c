@@ -9,6 +9,7 @@
  * SECTION:fw_req
  * @Title: HinawaFwReq
  * @Short_description: A transaction executor to a FireWire unit.
+ * @include: fw_req.h
  *
  * A HinawaFwReq supports some types of transactions in IEEE 1212. Mainly for
  * read, write and lock operations.
