@@ -78,6 +78,8 @@ $ ninja install
 ($ ninja test)
 ```
 
+When disabling object-introspection support, use `-Dgir=false` for meson command.
+
 ## How to refer document
 
 ```
