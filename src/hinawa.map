@@ -100,3 +100,7 @@ HINAWA_2_0_0 {
 
     "hinawa_snd_unit_get_node";
 } HINAWA_1_4_0;
+
+HINAWA_2_1_0 {
+    "hinawa_error_quark";
+} HINAWA_2_0_0;

@@ -22,6 +22,7 @@ sources = [
   'snd_dg00x.c',
   'snd_motu.c',
   'snd_tscm.c',
+  'hinawa_error.c',
 ]
 
 headers = [
@@ -35,6 +36,7 @@ headers = [
   'snd_dg00x.h',
   'snd_motu.h',
   'snd_tscm.h',
+  'hinawa_error.h',
 ]
 
 privates = [

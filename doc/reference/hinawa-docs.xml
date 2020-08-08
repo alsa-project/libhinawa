@@ -44,6 +44,11 @@
         <xi:include href="xml/hinawa_enum_types.xml"/>
     </chapter>
 
+    <chapter id="hinawa-error">
+        <title>Hinawa errors</title>
+        <xi:include href="xml/hinawa_error.xml"/>
+    </chapter>
+
     <chapter id="hinawa-fw">
         <title>Hinawa objects for Linux FireWire subsystem.</title>
         <para>This library gives 5 objects for abstractions of some
