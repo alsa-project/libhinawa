@@ -8,6 +8,7 @@
  * SECTION:snd_efw
  * @Title: HinawaSndEfw
  * @Short_description: A transaction executor for Fireworks models
+ * @include: snd_efw.h
  *
  * A #HinawaSndEfw is an application of Echo Fireworks Transaction (EFT).
  * This inherits #HinawaSndUnit.

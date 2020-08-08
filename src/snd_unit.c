@@ -17,6 +17,7 @@
  * SECTION:snd_unit
  * @Title: HinawaSndUnit
  * @Short_description: An event listener for ALSA FireWire sound devices
+ * @include: snd_unit.h
  *
  * This class is an application of ALSA FireWire stack. Any functionality which
  * ALSA drivers in the stack can be available.

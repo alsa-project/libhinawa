@@ -14,6 +14,7 @@
  * SECTION:fw_node
  * @Title: HinawaFwNode
  * @Short_description: An event listener for FireWire node
+ * @include: fw_node.h
  *
  * A #HinawaFwNode is an event listener for a specified node on IEEE 1394 bus.
  * This class is an application of Linux FireWire subsystem.

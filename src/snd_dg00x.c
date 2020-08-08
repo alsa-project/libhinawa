@@ -8,6 +8,7 @@
  * SECTION:snd_dg00x
  * @Title: HinawaSndDg00x
  * @Short_description: A notification listener for Dg00x models
+ * @include: snd_dg00x.h
  *
  * A #HinawaSndDg00x listen to Dg00x notification and generates signal when
  * received. This inherits #HinawaSndUnit.

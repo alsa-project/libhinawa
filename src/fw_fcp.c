@@ -9,6 +9,7 @@
  * SECTION:fw_fcp
  * @Title: HinawaFwFcp
  * @Short_description: A FCP transaction executor to a FireWire unit
+ * @include: fw_fcp.h
  *
  * A HinawaFwFcp supports Function Control Protocol (FCP) in IEC 61883-1.
  * Some types of transaction in 'AV/C Digital Interface Command Set General

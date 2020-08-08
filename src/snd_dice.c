@@ -8,6 +8,7 @@
  * SECTION:snd_dice
  * @Title: HinawaSndDice
  * @Short_description: A notification listener for Dice models
+ * @include: snd_dice.h
  *
  * A #HinawaSndDice listen to Dice notification and generates signal when
  * received. This inherits #HinawaSndUnit.
