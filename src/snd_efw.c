@@ -14,12 +14,6 @@
  * This inherits #HinawaSndUnit.
  */
 
-/* For error handling. */
-G_DEFINE_QUARK("HinawaSndEfw", hinawa_snd_efw)
-#define raise(exception, errno)						\
-	g_set_error(exception, hinawa_snd_efw_quark(), errno,		\
-		    "%d: %s", __LINE__, strerror(errno))
-
 #define MINIMUM_SUPPORTED_VERSION	1
 #define MAXIMUM_FRAME_BYTES		0x200U
 
@@ -121,7 +115,7 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
 
 	g_object_get(G_OBJECT(self), "type", &type, NULL);
 	if (type != SNDRV_FIREWIRE_TYPE_FIREWORKS) {
-		raise(exception, EINVAL);
+		generate_error(exception, EINVAL);
 		return;
 	}
 
@@ -169,13 +163,13 @@ void hinawa_snd_efw_transaction(HinawaSndEfw *self,
 	priv = hinawa_snd_efw_get_instance_private(self);
 
 	if (*params == NULL || *param_count == 0) {
-		raise(exception, EINVAL);
+		generate_error(exception, EINVAL);
 		return;
 	}
 
 	trans.frame = g_malloc0(MAXIMUM_FRAME_BYTES);
 	if (trans.frame == NULL) {
-		raise(exception, ENOMEM);
+		generate_error(exception, ENOMEM);
 		return;
 	}
 
@@ -219,14 +213,14 @@ void hinawa_snd_efw_transaction(HinawaSndEfw *self,
 			break;
 	}
 	if (trans.frame->status == 0xffffffff) {
-		raise(exception, ETIMEDOUT);
+		generate_error(exception, ETIMEDOUT);
 		goto end;
 	}
 
 	// Check transaction status.
 	status = GUINT32_FROM_BE(trans.frame->status);
 	if (status != EFT_STATUS_OK) {
-		g_set_error(exception, hinawa_snd_efw_quark(),
+		g_set_error(exception, HINAWA_ERROR,
 			    EPROTO, "%s",
 			    efw_status_names[status]);
 		goto end;
@@ -236,14 +230,14 @@ void hinawa_snd_efw_transaction(HinawaSndEfw *self,
 	if (GUINT32_FROM_BE(trans.frame->version) < MINIMUM_SUPPORTED_VERSION ||
 	    GUINT32_FROM_BE(trans.frame->category) != category ||
 	    GUINT32_FROM_BE(trans.frame->command) != command) {
-		raise(exception, EIO);
+		generate_error(exception, EIO);
 		goto end;
 	}
 
 	// Check size.
 	quads = GUINT32_FROM_BE(trans.frame->length) - sizeof(*trans.frame) / 4;
 	if (quads > *param_count) {
-		raise(exception, ENOBUFS);
+		generate_error(exception, ENOBUFS);
 		goto end;
 
 	}

@@ -16,7 +16,6 @@ HINAWA_0_6_0 {
 
     "hinawa_snd_efw_get_type";
     "hinawa_snd_efw_open";
-    "hinawa_snd_efw_quark";
   local:
     *;
 };
