@@ -20,12 +20,6 @@
  * This class is an application of #HinawaFwReq / #HinawaFwResp.
  */
 
-/* For error handling. */
-G_DEFINE_QUARK("HinawaFwFcp", hinawa_fw_fcp)
-#define raise(exception, errno)						\
-	g_set_error(exception, hinawa_fw_fcp_quark(), errno,		\
-		    "%d: %s", __LINE__, strerror(errno))
-
 #define FCP_MAXIMUM_FRAME_BYTES	0x200U
 #define FCP_REQUEST_ADDR	0xfffff0000b00
 #define FCP_RESPOND_ADDR	0xfffff0000d00
@@ -211,7 +205,7 @@ void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
 	if (req_frame == NULL || *resp_frame == NULL ||
 	    req_frame_size == 0 || *resp_frame_size == 0 ||
 	    req_frame_size > FCP_MAXIMUM_FRAME_BYTES) {
-		raise(exception, EINVAL);
+		generate_error(exception, EINVAL);
 		return;
 	}
 
@@ -260,7 +254,7 @@ deferred:
 			break;
 	}
 	if (trans.resp_frame[0] == 0x00) {
-		raise(exception, ETIMEDOUT);
+		generate_error(exception, ETIMEDOUT);
 	} else if (trans.resp_frame[0] == AVC_STATUS_INTERIM) {
 		// It's a deffered transaction, wait again.
 		trans.resp_frame[0] = 0x00;
@@ -272,7 +266,7 @@ deferred:
 	if (trans.resp_frame_size > NOTIFY_ENOBUFS)
 		*resp_frame_size = trans.resp_frame_size;
 	else
-		raise(exception, ENOBUFS);
+		generate_error(exception, ENOBUFS);
 end:
 	g_mutex_unlock(&trans.mutex);
 	g_cond_clear(&trans.cond);

@@ -5,7 +5,6 @@ HINAWA_0_6_0 {
     "hinawa_fw_resp_get_type";
 
     "hinawa_fw_fcp_get_type";
-    "hinawa_fw_fcp_quark";
 
     "hinawa_snd_unit_get_type";
     "hinawa_snd_unit_open";
