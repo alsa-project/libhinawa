@@ -4,8 +4,9 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include <fw_resp.h>
 
+#include <fw_node.h>
+#include <fw_resp.h>
 #include <hinawa_enums.h>
 
 G_BEGIN_DECLS
