@@ -5,6 +5,8 @@
 #include <glib.h>
 #include <glib-object.h>
 
+#include <fw_node.h>
+
 G_BEGIN_DECLS
 
 #define HINAWA_TYPE_SND_UNIT	(hinawa_snd_unit_get_type())

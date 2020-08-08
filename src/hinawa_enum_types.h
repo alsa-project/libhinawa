@@ -5,7 +5,6 @@
 #include <glib-object.h>
 #include <linux/firewire-constants.h>
 
-
 /**
  * HinawaFwTcode:
  * @HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST:	For request to write quadlet.
