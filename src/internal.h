@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
-#ifndef __ALSA_TOOLS_HINAWA_INTERNAL_H__
-#define __ALSA_TOOLS_HINAWA_INTERNAL_H__
+#ifndef __ALSA_HINAWA_INTERNAL_H__
+#define __ALSA_HINAWA_INTERNAL_H__
 
 #include <config.h>
 

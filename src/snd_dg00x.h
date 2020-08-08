@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
-#ifndef __ALSA_TOOLS_HINAWA_SND_DG00X_H__
-#define __ALSA_TOOLS_HINAWA_SND_DG00X_H__
+#ifndef __ALSA_HINAWA_SND_DG00X_H__
+#define __ALSA_HINAWA_SND_DG00X_H__
 
 #include <glib.h>
 #include <glib-object.h>
