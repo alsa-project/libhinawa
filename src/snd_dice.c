@@ -106,6 +106,8 @@ void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
 	HinawaSndDicePrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_SND_DICE(self));
+	g_return_if_fail(exception == NULL || *exception == NULL);
+
 	priv = hinawa_snd_dice_get_instance_private(self);
 
 	hinawa_snd_unit_open(&self->parent_instance, path, exception);
@@ -148,6 +150,8 @@ void hinawa_snd_dice_transaction(HinawaSndDice *self, guint64 addr,
 	gint64 expiration;
 
 	g_return_if_fail(HINAWA_IS_SND_DICE(self));
+	g_return_if_fail(exception == NULL || *exception == NULL);
+
 	priv = hinawa_snd_dice_get_instance_private(self);
 
 	if (frame_count == 1)
