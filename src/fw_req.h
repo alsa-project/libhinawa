@@ -32,6 +32,10 @@ G_BEGIN_DECLS
 				   HINAWA_TYPE_FW_REQ,		\
 				   HinawaFwReqClass))
 
+#define HINAWA_FW_REQ_ERROR	hinawa_fw_req_error_quark()
+
+GQuark hinawa_fw_req_error_quark();
+
 typedef struct _HinawaFwReq		HinawaFwReq;
 typedef struct _HinawaFwReqClass	HinawaFwReqClass;
 typedef struct _HinawaFwReqPrivate	HinawaFwReqPrivate;

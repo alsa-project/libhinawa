@@ -18,11 +18,14 @@
  * utilize ioctl(2) with subsystem specific request commands.
  */
 
-/* For error handling. */
-G_DEFINE_QUARK("HinawaFwReq", hinawa_fw_req)
-#define raise(exception, errno)						\
-	g_set_error(exception, hinawa_fw_req_quark(), errno,		\
-		    "%d: %s", __LINE__, strerror(errno))
+/**
+ * hinawa_fw_req_error_quark:
+ *
+ * Return the GQuark for error domain of GError which has code in #HinawaFwRcode.
+ *
+ * Returns: A #GQuark.
+ */
+G_DEFINE_QUARK(hinawa-fw-req-error-quark, hinawa_fw_req_error)
 
 /* This object has one property. */
 enum fw_req_prop_type {
@@ -55,6 +58,9 @@ static const char *const rcode_labels[] = {
 	[RCODE_GENERATION]	= "bus reset",
 	[RCODE_NO_ACK]		= "no ack",
 };
+
+#define generate_local_error(exception, code)						\
+	g_set_error_literal(exception, HINAWA_FW_REQ_ERROR, code, rcode_labels[code])
 
 static void fw_req_get_property(GObject *obj, guint id, GValue *val,
 				GParamSpec *spec)
@@ -154,7 +160,8 @@ HinawaFwReq *hinawa_fw_req_new(void)
  * @frame_size: The size of array in byte unit. The value of this argument
  *		should point to the numerical number and mutable for read and
  *		lock transaction.
- * @exception: A #GError.
+ * @exception: A #GError. Error can be generated with three domains; #g_file_error_quark(),
+ *	       #hinawa_fw_node_error_quark(), and #hinawa_fw_req_error_quark().
  *
  * Execute transactions to the given node according to given code.
  * Since: 1.4.
@@ -260,17 +267,30 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 
 	if (priv->rcode == G_MAXUINT) {
 		hinawa_fw_node_invalidate_transaction(node, self);
-		raise(exception, ETIMEDOUT);
+		generate_local_error(exception, HINAWA_FW_RCODE_CANCELLED);
 		goto end;
 	}
 
 	if (priv->rcode != RCODE_COMPLETE) {
-		if (priv->rcode > RCODE_NO_ACK) {
-			raise(exception, EIO);
-		} else {
-			g_set_error(exception, hinawa_fw_req_quark(), EIO,
-				"%d: %s", __LINE__, rcode_labels[priv->rcode]);
+		switch (priv->rcode) {
+		case RCODE_COMPLETE:
+		case RCODE_CONFLICT_ERROR:
+		case RCODE_DATA_ERROR:
+		case RCODE_TYPE_ERROR:
+		case RCODE_ADDRESS_ERROR:
+		case RCODE_SEND_ERROR:
+		case RCODE_CANCELLED:
+		case RCODE_BUSY:
+		case RCODE_GENERATION:
+		case RCODE_NO_ACK:
+			break;
+		default:
+			priv->rcode = HINAWA_FW_RCODE_INVALID;
+			break;
 		}
+
+		generate_local_error(exception, priv->rcode);
+		goto end;
 	}
 
 	if (tcode == HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST &&
