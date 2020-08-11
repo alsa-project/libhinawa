@@ -87,6 +87,7 @@ HinawaSndTscm *hinawa_snd_tscm_new(void)
 void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **exception)
 {
 	g_return_if_fail(HINAWA_IS_SND_TSCM(self));
+	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	hinawa_snd_unit_open(&self->parent_instance, path, exception);
 }
@@ -109,6 +110,8 @@ const guint32 *hinawa_snd_tscm_get_state(HinawaSndTscm *self,
 	int i;
 
 	g_return_val_if_fail(HINAWA_IS_SND_TSCM(self), NULL);
+	g_return_val_if_fail(exception == NULL || *exception == NULL, NULL);
+
 	priv = hinawa_snd_tscm_get_instance_private(self);
 
 	hinawa_snd_unit_ioctl(&self->parent_instance,
