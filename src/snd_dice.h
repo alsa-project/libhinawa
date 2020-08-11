@@ -31,6 +31,10 @@ G_BEGIN_DECLS
 				   HINAWA_TYPE_SND_DICE,	\
 				   HinawaSndDiceClass))
 
+#define HINAWA_SND_DICE_ERROR	hinawa_snd_dice_error_quark()
+
+GQuark hinawa_snd_dice_error_quark();
+
 typedef struct _HinawaSndDice		HinawaSndDice;
 typedef struct _HinawaSndDiceClass	HinawaSndDiceClass;
 typedef struct _HinawaSndDicePrivate	HinawaSndDicePrivate;
