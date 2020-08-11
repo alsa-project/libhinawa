@@ -171,7 +171,7 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 
 	hinawa_fw_node_ioctl(node, FW_CDEV_IOC_ALLOCATE, &allocate, &err);
 	if (err < 0) {
-		raise(exception, err);
+		raise(exception, -err);
 		return;
 	}
 	priv->node = g_object_ref(node);
