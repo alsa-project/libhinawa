@@ -110,7 +110,6 @@ HinawaSndEfw *hinawa_snd_efw_new(void)
 void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
 {
 	HinawaSndEfwPrivate *priv;
-	int type;
 
 	g_return_if_fail(HINAWA_IS_SND_EFW(self));
 	priv = hinawa_snd_efw_get_instance_private(self);
@@ -118,12 +117,6 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
 	hinawa_snd_unit_open(&self->parent_instance, path, exception);
 	if (*exception != NULL)
 		return;
-
-	g_object_get(G_OBJECT(self), "type", &type, NULL);
-	if (type != SNDRV_FIREWIRE_TYPE_FIREWORKS) {
-		raise(exception, EINVAL);
-		return;
-	}
 
 	priv = hinawa_snd_efw_get_instance_private(self);
 	priv->seqnum = 0;

@@ -86,19 +86,9 @@ HinawaSndTscm *hinawa_snd_tscm_new(void)
  */
 void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **exception)
 {
-	int type;
-
 	g_return_if_fail(HINAWA_IS_SND_TSCM(self));
 
 	hinawa_snd_unit_open(&self->parent_instance, path, exception);
-	if (*exception != NULL)
-		return;
-
-	g_object_get(G_OBJECT(self), "type", &type, NULL);
-	if (type != SNDRV_FIREWIRE_TYPE_TASCAM) {
-		raise(exception, EINVAL);
-		return;
-	}
 }
 
 /**
