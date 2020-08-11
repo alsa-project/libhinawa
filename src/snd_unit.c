@@ -100,6 +100,7 @@ static void snd_unit_finalize(GObject *obj)
 	HinawaSndUnitPrivate *priv = hinawa_snd_unit_get_instance_private(self);
 
 	close(priv->fd);
+	priv->fd = -1;
 	g_object_unref(priv->node);
 
 	G_OBJECT_CLASS(hinawa_snd_unit_parent_class)->finalize(obj);
@@ -184,6 +185,7 @@ static void hinawa_snd_unit_init(HinawaSndUnit *self)
 {
 	HinawaSndUnitPrivate *priv = hinawa_snd_unit_get_instance_private(self);
 
+	priv->fd = -1;
 	priv->node = g_object_new(HINAWA_TYPE_FW_NODE, NULL);
 }
 
@@ -216,6 +218,11 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
 
+	if (priv->fd >= 0) {
+		raise(exception, EBUSY);
+		return;
+	}
+
 	priv->fd = open(path, O_RDWR);
 	if (priv->fd < 0) {
 		raise(exception, errno);
@@ -231,8 +238,10 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 	snprintf(fw_cdev, sizeof(fw_cdev), "/dev/%s", priv->info.device_name);
 	hinawa_fw_node_open(priv->node, fw_cdev, exception);
 end:
-	if (*exception != NULL)
+	if (*exception != NULL) {
 		close(priv->fd);
+		priv->fd = -1;
+	}
 }
 
 /**
@@ -267,6 +276,11 @@ void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception)
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
 
+	if (priv->fd < 0) {
+		raise(exception, ENXIO);
+		return;
+	}
+
 	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_LOCK, NULL) < 0)
 		raise(exception, errno);
 }
@@ -285,6 +299,11 @@ void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
 
+	if (priv->fd < 0) {
+		raise(exception, ENXIO);
+		return;
+	}
+
 	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL) < 0)
 		raise(exception, errno);
 }
@@ -298,6 +317,11 @@ void hinawa_snd_unit_write(HinawaSndUnit *self, const void *buf, size_t length,
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
 
+	if (priv->fd < 0) {
+		raise(exception, ENXIO);
+		return;
+	}
+
 	if (write(priv->fd, buf, length) != length)
 		raise(exception, errno);
 }
@@ -309,6 +333,11 @@ void hinawa_snd_unit_ioctl(HinawaSndUnit *self, unsigned long request,
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
+
+	if (priv->fd < 0) {
+		raise(exception, ENXIO);
+		return;
+	}
 
 	if (ioctl(priv->fd, request, arg) < 0)
 		raise(exception, errno);
@@ -427,6 +456,11 @@ void hinawa_snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
+
+	if (priv->fd < 0) {
+		raise(exception, ENXIO);
+		return;
+	}
 
 	*gsrc = g_source_new(&funcs, sizeof(SndUnitSource));
 
