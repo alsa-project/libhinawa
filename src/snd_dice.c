@@ -158,10 +158,6 @@ void hinawa_snd_dice_transaction(HinawaSndDice *self, guint64 addr,
 	// Alignment data on given buffer to local buffer for transaction.
 	length = frame_count * sizeof(*frame);
 	req_frame = g_malloc0(length);
-	if (req_frame == NULL) {
-		raise(exception, ENOMEM);
-		return;
-	}
 	for (i = 0; i < frame_count; ++i) {
 		__be32 quad = GUINT32_TO_BE(frame[i]);
 		memcpy(req_frame + i * sizeof(quad), &quad, sizeof(quad));
