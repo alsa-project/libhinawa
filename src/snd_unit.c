@@ -313,6 +313,7 @@ void hinawa_snd_unit_write(HinawaSndUnit *self, const void *buf, size_t length,
 			   GError **exception)
 {
 	HinawaSndUnitPrivate *priv;
+	ssize_t len;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
 	priv = hinawa_snd_unit_get_instance_private(self);
@@ -322,8 +323,11 @@ void hinawa_snd_unit_write(HinawaSndUnit *self, const void *buf, size_t length,
 		return;
 	}
 
-	if (write(priv->fd, buf, length) != length)
+	len = write(priv->fd, buf, length);
+	if (len < 0)
 		raise(exception, errno);
+	else if (len != length)
+		raise(exception, EIO);
 }
 
 void hinawa_snd_unit_ioctl(HinawaSndUnit *self, unsigned long request,
