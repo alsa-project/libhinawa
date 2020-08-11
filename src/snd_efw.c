@@ -112,6 +112,7 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
 	HinawaSndEfwPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_SND_EFW(self));
+	g_return_if_fail(path != NULL && strlen(path) > 0);
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_snd_efw_get_instance_private(self);
@@ -161,14 +162,11 @@ void hinawa_snd_efw_transaction(HinawaSndEfw *self,
 	guint32 status;
 
 	g_return_if_fail(HINAWA_IS_SND_EFW(self));
+	g_return_if_fail(params != NULL);
+	g_return_if_fail(param_count != NULL && *param_count > 0);
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_snd_efw_get_instance_private(self);
-
-	if (*params == NULL || *param_count == 0) {
-		raise(exception, EINVAL);
-		return;
-	}
 
 	trans.frame = g_malloc0(MAXIMUM_FRAME_BYTES);
 
