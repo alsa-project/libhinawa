@@ -78,6 +78,7 @@ HinawaSndDg00x *hinawa_snd_dg00x_new(void)
 void hinawa_snd_dg00x_open(HinawaSndDg00x *self, gchar *path, GError **exception)
 {
 	g_return_if_fail(HINAWA_IS_SND_DG00X(self));
+	g_return_if_fail(path != NULL && strlen(path) > 0);
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	hinawa_snd_unit_open(&self->parent_instance, path, exception);
