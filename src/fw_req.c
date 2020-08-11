@@ -170,6 +170,8 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 	guint64 expiration;
 
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
+	g_return_if_fail(exception == NULL || *exception == NULL);
+
 	priv = hinawa_fw_req_get_instance_private(self);
 
 	if (length == 0 || *frame == NULL || *frame_size == 0) {
