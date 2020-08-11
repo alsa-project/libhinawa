@@ -30,7 +30,6 @@ HINAWA_0_8_0 {
   global:
     "hinawa_snd_motu_get_type";
     "hinawa_snd_motu_open";
-    "hinawa_snd_motu_quark";
 } HINAWA_0_7_0;
 
 HINAWA_1_0_0 {
