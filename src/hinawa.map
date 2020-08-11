@@ -24,7 +24,6 @@ HINAWA_0_7_0 {
   global:
     "hinawa_snd_dg00x_get_type";
     "hinawa_snd_dg00x_open";
-    "hinawa_snd_dg00x_quark";
 } HINAWA_0_6_0;
 
 HINAWA_0_8_0 {
