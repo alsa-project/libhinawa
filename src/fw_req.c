@@ -257,7 +257,7 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 	if (err < 0) {
 		g_mutex_unlock(&priv->mutex);
 		g_cond_clear(&priv->cond);
-		raise(exception, err);
+		raise(exception, -err);
 		goto end;
 	}
 
