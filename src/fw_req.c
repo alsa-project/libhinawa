@@ -168,7 +168,6 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 	HinawaFwReqPrivate *priv;
 	guint64 generation;
 	guint64 expiration;
-	int err = 0;
 
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 	priv = hinawa_fw_req_get_instance_private(self);
@@ -253,11 +252,10 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 	g_mutex_lock(&priv->mutex);
 
 	// Send this transaction.
-	hinawa_fw_node_ioctl(node, FW_CDEV_IOC_SEND_REQUEST, &req, &err);
-	if (err < 0) {
+	hinawa_fw_node_ioctl(node, FW_CDEV_IOC_SEND_REQUEST, &req, exception);
+	if (*exception != NULL) {
 		g_mutex_unlock(&priv->mutex);
 		g_cond_clear(&priv->cond);
-		raise(exception, -err);
 		goto end;
 	}
 

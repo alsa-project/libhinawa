@@ -154,7 +154,6 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 {
 	HinawaFwRespPrivate *priv;
 	struct fw_cdev_allocate allocate = {0};
-	int err;
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
 	priv = hinawa_fw_resp_get_instance_private(self);
@@ -169,11 +168,10 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 	allocate.length = width;
 	allocate.region_end = addr + width;
 
-	hinawa_fw_node_ioctl(node, FW_CDEV_IOC_ALLOCATE, &allocate, &err);
-	if (err < 0) {
-		raise(exception, -err);
+	hinawa_fw_node_ioctl(node, FW_CDEV_IOC_ALLOCATE, &allocate, exception);
+	if (*exception != NULL)
 		return;
-	}
+
 	priv->node = g_object_ref(node);
 
 	priv->req_frame = g_malloc(allocate.length);
@@ -206,7 +204,7 @@ void hinawa_fw_resp_release(HinawaFwResp *self)
 {
 	HinawaFwRespPrivate *priv;
 	struct fw_cdev_deallocate deallocate = {0};
-	int err;
+	GError *exception = NULL;
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
 	priv = hinawa_fw_resp_get_instance_private(self);
@@ -215,8 +213,8 @@ void hinawa_fw_resp_release(HinawaFwResp *self)
 		return;
 
 	deallocate.handle = priv->addr_handle;
-	hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_DEALLOCATE, &deallocate,
-			     &err);
+	hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_DEALLOCATE, &deallocate, &exception);
+	g_clear_error(&exception);
 	g_object_unref(priv->node);
 	priv->node = NULL;
 
@@ -283,7 +281,7 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 	HinawaFwRespPrivate *priv;
 	struct fw_cdev_send_response resp = {0};
 	HinawaFwRcode rcode;
-	int err;
+	GError *exception = NULL;
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
 	priv = hinawa_fw_resp_get_instance_private(self);
@@ -292,8 +290,8 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 		resp.rcode = RCODE_CONFLICT_ERROR;
 		resp.handle = event->handle;
 
-		hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_SEND_RESPONSE,
-				     &resp, &err);
+		hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_SEND_RESPONSE, &resp, &exception);
+		g_clear_error(&exception);
 		return;
 	}
 
@@ -311,8 +309,8 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 	}
 
 	resp.handle = event->handle;
-	hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_SEND_RESPONSE, &resp,
-			     &err);
+	hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_SEND_RESPONSE, &resp, &exception);
+	g_clear_error(&exception);
 
 	memset(priv->resp_frame, 0, priv->width);
 	priv->resp_length = 0;
