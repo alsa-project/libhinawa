@@ -206,16 +206,13 @@ void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
 	gint64 expiration;
 
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
+	g_return_if_fail(req_frame != NULL);
+	g_return_if_fail(req_frame_size > 0 && req_frame_size < FCP_MAXIMUM_FRAME_BYTES);
+	g_return_if_fail(resp_frame != NULL);
+	g_return_if_fail(resp_frame_size != NULL && *resp_frame_size > 0);
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_fw_fcp_get_instance_private(self);
-
-	if (req_frame == NULL || *resp_frame == NULL ||
-	    req_frame_size == 0 || *resp_frame_size == 0 ||
-	    req_frame_size > FCP_MAXIMUM_FRAME_BYTES) {
-		raise(exception, EINVAL);
-		return;
-	}
 
 	g_object_get(G_OBJECT(self), "timeout", &timeout_ms, NULL);
 
@@ -346,6 +343,7 @@ void hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node,
 	HinawaFwFcpPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
+	g_return_if_fail(node != NULL);
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_fw_fcp_get_instance_private(self);
