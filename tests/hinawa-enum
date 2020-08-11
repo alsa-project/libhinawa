@@ -73,6 +73,10 @@ snd_unit_error_enumerators = (
     'UNLOCKED',
 )
 
+snd_dice_error_enumerators = (
+    'TIMEOUT',
+)
+
 types = {
     Hinawa.FwTcode: fw_tcode_enumerators,
     Hinawa.FwRcode: fw_rcode_enumerators,
@@ -80,6 +84,7 @@ types = {
     Hinawa.FwNodeError: fw_node_error_enumerators,
     Hinawa.FwFcpError: fw_fcp_error_enumerators,
     Hinawa.SndUnitError: snd_unit_error_enumerators,
+    Hinawa.SndDiceError: snd_dice_error_enumerators,
 }
 
 for obj, types in types.items():

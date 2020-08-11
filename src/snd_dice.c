@@ -14,11 +14,21 @@
  * received. This inherits #HinawaSndUnit.
  */
 
-/* For error handling. */
-G_DEFINE_QUARK("HinawaSndDice", hinawa_snd_dice)
-#define raise(exception, errno)						\
-	g_set_error(exception, hinawa_snd_dice_quark(), errno,		\
-		    "%d: %s", __LINE__, strerror(errno))
+/**
+ * hinawa_snd_dice_error_quark:
+ *
+ * Return the GQuark for error domain of GError which has code in #HinawaSndDiceError.
+ *
+ * Returns: A #GQuark.
+ */
+G_DEFINE_QUARK(hinawa-snd-dice-error-quark, hinawa_snd_dice_error)
+
+const char *const err_msgs[] = {
+	[HINAWA_SND_DICE_ERROR_TIMEOUT] = "The transaction is canceled due to response timeout",
+};
+
+#define generate_local_error(exception, code)						\
+	g_set_error_literal(exception, HINAWA_SND_DICE_ERROR, code, err_msgs[code])
 
 struct notification_waiter {
 	guint32 bit_flag;
@@ -130,7 +140,9 @@ void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
  *	   data to transmit.
  * @frame_count: The number of quadlets in the frame.
  * @bit_flag: bit flag to wait
- * @exception: A #GError
+ * @exception: A #GError. Error can be generated with four domains; #g_file_error_quark(),
+ *	       #hinawa_fw_node_error_quark(), #hinawa_fw_req_error_quark(), and
+ *	       #hinawa_snd_dice_error_quark().
  *
  * Execute write transactions to the given address, then wait and check
  * notification.
@@ -196,7 +208,7 @@ void hinawa_snd_dice_transaction(HinawaSndDice *self, guint64 addr,
 			break;
 	}
 	if (!waiter.awakened)
-		raise(exception, ETIMEDOUT);
+		generate_local_error(exception, HINAWA_SND_DICE_ERROR_TIMEOUT);
 end:
 	priv->waiters = g_list_remove(priv->waiters, (gpointer *)&waiter);
 

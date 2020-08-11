@@ -154,4 +154,14 @@ typedef enum {
 	HINAWA_SND_UNIT_ERROR_WRONG_CLASS,
 } HinawaSndUnitError;
 
+/**
+ * HinawaSndDiceError:
+ * @HINAWA_SND_DICE_ERROR_TIMEOUT:	The transaction is canceled due to response timeout.
+ *
+ * A set of error code for GError with domain which equals to #hinawa_snd_dice_error_quark().
+ */
+typedef enum {
+	HINAWA_SND_DICE_ERROR_TIMEOUT,
+} HinawaSndDiceError;
+
 #endif
