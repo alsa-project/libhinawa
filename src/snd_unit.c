@@ -235,6 +235,15 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 		goto end;
 	}
 
+	if ((HINAWA_IS_SND_DICE(self) && priv->info.type != SNDRV_FIREWIRE_TYPE_DICE) ||
+	    (HINAWA_IS_SND_EFW(self) && priv->info.type != SNDRV_FIREWIRE_TYPE_FIREWORKS) ||
+	    (HINAWA_IS_SND_DG00X(self) && priv->info.type != SNDRV_FIREWIRE_TYPE_DIGI00X) ||
+	    (HINAWA_IS_SND_MOTU(self) && priv->info.type != SNDRV_FIREWIRE_TYPE_MOTU) ||
+	    (HINAWA_IS_SND_TSCM(self) && priv->info.type != SNDRV_FIREWIRE_TYPE_TASCAM)) {
+		raise(exception, EINVAL);
+		goto end;
+	}
+
 	snprintf(fw_cdev, sizeof(fw_cdev), "/dev/%s", priv->info.device_name);
 	hinawa_fw_node_open(priv->node, fw_cdev, exception);
 end:

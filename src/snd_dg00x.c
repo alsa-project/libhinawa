@@ -77,19 +77,9 @@ HinawaSndDg00x *hinawa_snd_dg00x_new(void)
  */
 void hinawa_snd_dg00x_open(HinawaSndDg00x *self, gchar *path, GError **exception)
 {
-	int type;
-
 	g_return_if_fail(HINAWA_IS_SND_DG00X(self));
 
 	hinawa_snd_unit_open(&self->parent_instance, path, exception);
-	if (*exception != NULL)
-		return;
-
-	g_object_get(G_OBJECT(self), "type", &type, NULL);
-	if (type != SNDRV_FIREWIRE_TYPE_DIGI00X) {
-		raise(exception, EINVAL);
-		return;
-	}
 }
 
 void hinawa_snd_dg00x_handle_msg(HinawaSndDg00x *self, const void *buf,

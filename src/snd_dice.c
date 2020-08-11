@@ -104,7 +104,6 @@ HinawaSndDice *hinawa_snd_dice_new(void)
 void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
 {
 	HinawaSndDicePrivate *priv;
-	int type;
 
 	g_return_if_fail(HINAWA_IS_SND_DICE(self));
 	priv = hinawa_snd_dice_get_instance_private(self);
@@ -112,12 +111,6 @@ void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
 	hinawa_snd_unit_open(&self->parent_instance, path, exception);
 	if (*exception != NULL)
 		return;
-
-	g_object_get(G_OBJECT(self), "type", &type, NULL);
-	if (type != SNDRV_FIREWIRE_TYPE_DICE) {
-		raise(exception, EINVAL);
-		return;
-	}
 
 	priv->req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
 
