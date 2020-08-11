@@ -63,6 +63,7 @@ typedef enum {
  * @HINAWA_FW_RCODE_BUSY:		For busyness.
  * @HINAWA_FW_RCODE_GENERATION:		For generation.
  * @HINAWA_FW_RCODE_NO_ACK:		For no acknowledge.
+ * @HINAWA_FW_RCODE_INVALID:		For rcode out of specification.
  *
  * A representation for rcode of asynchronous transaction on IEEE 1394 bus.
  *
@@ -78,6 +79,7 @@ typedef enum {
 	HINAWA_FW_RCODE_BUSY		= RCODE_BUSY,
 	HINAWA_FW_RCODE_GENERATION	= RCODE_GENERATION,
 	HINAWA_FW_RCODE_NO_ACK		= RCODE_NO_ACK,
+	HINAWA_FW_RCODE_INVALID,
 } HinawaFwRcode;
 
 /**
