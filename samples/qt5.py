@@ -107,7 +107,7 @@ print(' Config ROM:')
 config_rom = node.get_config_rom()
 quads = unpack('>{}I'.format(len(config_rom) // 4), config_rom)
 for i, q in enumerate(quads):
-    print('  0xfffff000{:04x}: {:08x}'.format(i * 4, q))
+    print('  0xfffff00004{:02x}: {:08x}'.format(i * 4, q))
 
 # create firewire responder
 resp = Hinawa.FwResp()
