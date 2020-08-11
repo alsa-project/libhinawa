@@ -406,8 +406,10 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		g_mutex_unlock(&priv->transactions_mutex);
 	}
 
-	if (exception != NULL)
+	if (exception != NULL) {
+		g_clear_error(&exception);
 		return G_SOURCE_REMOVE;
+	}
 
 	// Just be sure to continue to process this source.
 	return G_SOURCE_CONTINUE;
