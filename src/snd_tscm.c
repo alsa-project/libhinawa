@@ -16,12 +16,6 @@
  * inherits #HinawaSndUnit.
  */
 
-/* For error handling. */
-G_DEFINE_QUARK("HinawaSndTscm", hinawa_snd_tscm)
-#define raise(exception, errno)					\
-	g_set_error(exception, hinawa_snd_tscm_quark(), errno,	\
-		    "%d: %s", __LINE__, strerror(errno))
-
 struct _HinawaSndTscmPrivate {
 	struct snd_firewire_tascam_state image;
 	guint32 state[SNDRV_FIREWIRE_TASCAM_STATE_COUNT];
