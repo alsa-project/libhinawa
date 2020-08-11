@@ -156,6 +156,8 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 	struct fw_cdev_allocate allocate = {0};
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
+	g_return_if_fail(exception == NULL || *exception == NULL);
+
 	priv = hinawa_fw_resp_get_instance_private(self);
 
 	if (priv->node != NULL) {
