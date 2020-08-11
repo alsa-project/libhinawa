@@ -16,12 +16,6 @@
 
 G_DEFINE_TYPE(HinawaSndDg00x, hinawa_snd_dg00x, HINAWA_TYPE_SND_UNIT)
 
-/* For error handling. */
-G_DEFINE_QUARK("HinawaSndDg00x", hinawa_snd_dg00x)
-#define raise(exception, errno)						\
-	g_set_error(exception, hinawa_snd_dg00x_quark(), errno,		\
-		    "%d: %s", __LINE__, strerror(errno))
-
 /* This object has one signal. */
 enum dg00x_sig_type {
 	DG00X_SIG_TYPE_MESSAGE,
