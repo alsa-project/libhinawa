@@ -474,12 +474,13 @@ void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
 }
 
 // Internal use only.
-void hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args,
-			  int *err)
+void hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args, GError **exception)
 {
 	HinawaFwNodePrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_FW_NODE(self));
+	g_return_if_fail(exception != NULL);
+
 	priv = hinawa_fw_node_get_instance_private(self);
 
 	// To invalidate the transaction in a case of timeout.
@@ -489,9 +490,8 @@ void hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args,
 		priv->transactions = g_list_prepend(priv->transactions, req);
 	}
 
-	*err = 0;
 	if (ioctl(priv->fd, req, args) < 0)
-		*err = -errno;
+		raise(exception, errno);
 }
 
 void hinawa_fw_node_invalidate_transaction(HinawaFwNode *self, HinawaFwReq *req)
