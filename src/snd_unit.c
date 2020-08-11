@@ -216,6 +216,7 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 	char fw_cdev[32];
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	g_return_if_fail(path != NULL && strlen(path) > 0);
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_snd_unit_get_instance_private(self);
@@ -269,6 +270,8 @@ void hinawa_snd_unit_get_node(HinawaSndUnit *self, HinawaFwNode **node)
 	HinawaSndUnitPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	g_return_if_fail(node != NULL);
+
 	priv = hinawa_snd_unit_get_instance_private(self);
 
 	*node = priv->node;
@@ -478,6 +481,7 @@ void hinawa_snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
 	SndUnitSource *src;
 
 	g_return_if_fail(HINAWA_IS_SND_UNIT(self));
+	g_return_if_fail(gsrc != NULL);
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_snd_unit_get_instance_private(self);
