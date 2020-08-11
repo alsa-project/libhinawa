@@ -19,12 +19,6 @@
  * utilize ioctl(2) with subsystem specific request commands.
  */
 
-/* For error handling. */
-G_DEFINE_QUARK("HinawaFwResp", hinawa_fw_resp)
-#define raise(exception, errno)						\
-	g_set_error(exception, hinawa_fw_resp_quark(), errno,		\
-		    "%d: %s", __LINE__, strerror(errno))
-
 struct _HinawaFwRespPrivate {
 	HinawaFwNode *node;
 
@@ -142,7 +136,8 @@ HinawaFwResp *hinawa_fw_resp_new(void)
  * @node: A #HinawaFwNode.
  * @addr: A start address to listen to in host controller.
  * @width: The byte width of address to listen to host controller.
- * @exception: A #GError.
+ * @exception: A #GError. Error can be generated with two domains; #g_file_error_quark() and
+ *	       #hinawa_fw_node_error_quark().
  *
  * Start to listen to a range of address in host controller which connects to
  * the node.
