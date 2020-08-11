@@ -175,18 +175,8 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 	priv->node = g_object_ref(node);
 
 	priv->req_frame = g_malloc(allocate.length);
-	if (!priv->req_frame) {
-		raise(exception, ENOMEM);
-		hinawa_fw_resp_release(self);
-		return;
-	}
 
 	priv->resp_frame = g_malloc0(allocate.length);
-	if (!priv->resp_frame) {
-		raise(exception, ENOMEM);
-		hinawa_fw_resp_release(self);
-		return;
-	}
 
 	priv->width = allocate.length;
 	priv->addr_handle = allocate.handle;
