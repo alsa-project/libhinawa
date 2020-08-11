@@ -156,14 +156,11 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 	struct fw_cdev_allocate allocate = {0};
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
+	g_return_if_fail(width > 0);
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_fw_resp_get_instance_private(self);
-
-	if (priv->node != NULL) {
-		raise(exception, EINVAL);
-		return;
-	}
+	g_return_if_fail(priv->node == NULL);
 
 	allocate.offset = addr;
 	allocate.closure = (guint64)self;
@@ -235,6 +232,9 @@ void hinawa_fw_resp_get_req_frame(HinawaFwResp *self, const guint8 **frame,
 	HinawaFwRespPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
+	g_return_if_fail(frame != NULL);
+	g_return_if_fail(length != NULL);
+
 	priv = hinawa_fw_resp_get_instance_private(self);
 
 	if (frame && length && priv->req_length > 0) {
@@ -258,6 +258,9 @@ void hinawa_fw_resp_set_resp_frame(HinawaFwResp *self, guint8 *frame,
 	HinawaFwRespPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
+	g_return_if_fail(frame != NULL);
+	g_return_if_fail(length > 0);
+
 	priv = hinawa_fw_resp_get_instance_private(self);
 
 	if (frame && length <= priv->width) {
