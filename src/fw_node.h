@@ -29,6 +29,10 @@ G_BEGIN_DECLS
 				   HINAWA_TYPE_FW_NODE,		\
 				   HinawaFwNodeClass))
 
+#define HINAWA_FW_NODE_ERROR	hinawa_fw_node_error_quark()
+
+GQuark hinawa_fw_node_error_quark();
+
 typedef struct _HinawaFwNode		HinawaFwNode;
 typedef struct _HinawaFwNodeClass	HinawaFwNodeClass;
 typedef struct _HinawaFwNodePrivate	HinawaFwNodePrivate;

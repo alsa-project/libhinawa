@@ -43,11 +43,26 @@ struct _HinawaFwNodePrivate {
 
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwNode, hinawa_fw_node, G_TYPE_OBJECT)
 
-// For error handling.
-G_DEFINE_QUARK("HinawaFwNode", hinawa_fw_node)
-#define raise(exception, errno)						\
-	g_set_error(exception, hinawa_fw_node_quark(), errno,		\
-		    "%d: %s", __LINE__, strerror(errno))
+/**
+ * hinawa_fw_node_error_quark:
+ *
+ * Return the GQuark for error domain of GError which has code in #HinawaFwNodeError.
+ *
+ * Returns: A #GQuark.
+ */
+G_DEFINE_QUARK(hinawa-fw-node-error-quark, hinawa_fw_node_error)
+
+static const char *const err_msgs[] = {
+	[HINAWA_FW_NODE_ERROR_DISCONNECTED] = "The associated node is not available for communication",
+	[HINAWA_FW_NODE_ERROR_OPENED] = "The instance is already associated to node",
+	[HINAWA_FW_NODE_ERROR_NOT_OPENED] = "The instance is not associated to node",
+};
+
+#define generate_local_error(exception, code) \
+	g_set_error_literal(exception, HINAWA_FW_NODE_ERROR, code, err_msgs[code])
+
+#define generate_syscall_error(exception, errno, format, arg) \
+	g_set_error(exception, G_FILE_ERROR, g_file_error_from_errno(errno), format, arg)
 
 typedef struct {
 	GSource src;
@@ -246,7 +261,10 @@ static void update_info(HinawaFwNode *self, GError **exception)
 	info.bus_reset = (__u64)&priv->generation;
 	info.bus_reset_closure = (__u64)self;
 	if (ioctl(priv->fd, FW_CDEV_IOC_GET_INFO, &info) < 0) {
-		raise(exception, errno);
+		if (errno == ENODEV)
+			generate_local_error(exception, HINAWA_FW_NODE_ERROR_DISCONNECTED);
+		else
+			generate_syscall_error(exception, errno, "ioctl: %s", "FW_CDEV_IOC_GET_INFO");
 		return;
 	}
 
@@ -263,7 +281,8 @@ static void update_info(HinawaFwNode *self, GError **exception)
  * hinawa_fw_node_open:
  * @self: A #HinawaFwNode
  * @path: A path to Linux FireWire character device
- * @exception: A #GError
+ * @exception: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
+ *	       #hinawa_fw_node_error_quark().
  *
  * Open Linux FireWire character device to operate node on IEEE 1394 bus.
  *
@@ -279,15 +298,17 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_fw_node_get_instance_private(self);
-
 	if (priv->fd >= 0) {
-		raise(exception, EBUSY);
+		generate_local_error(exception, HINAWA_FW_NODE_ERROR_OPENED);
 		return;
 	}
 
 	priv->fd = open(path, O_RDONLY);
 	if (priv->fd < 0) {
-		raise(exception, errno);
+		if (errno == ENODEV)
+			generate_local_error(exception, HINAWA_FW_NODE_ERROR_DISCONNECTED);
+		else
+			generate_syscall_error(exception, errno, "open: %s", path);
 		return;
 	}
 
@@ -318,10 +339,10 @@ void hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
 	g_return_if_fail(length != NULL);
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
-	priv = hinawa_fw_node_get_instance_private(self);
 
+	priv = hinawa_fw_node_get_instance_private(self);
 	if (priv->fd < 0) {
-		raise(exception, ENXIO);
+		generate_local_error(exception, HINAWA_FW_NODE_ERROR_NOT_OPENED);
 		return;
 	}
 
@@ -428,7 +449,8 @@ static void finalize_src(GSource *gsrc)
  * hinawa_fw_node_create_source:
  * @self: A #HinawaFwNode.
  * @gsrc: (out): A #GSource.
- * @exception: A #GError.
+ * @exception: A #GError. Error can be generated with domain of #hinawa_fw_node_error_quark()
+ *	       and code of #HinawaFwNodeError.
  *
  * Create Gsource for GMainContext to dispatch events for the node on IEEE 1394
  * bus.
@@ -451,9 +473,8 @@ void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_fw_node_get_instance_private(self);
-
 	if (priv->fd < 0) {
-		raise(exception, ENXIO);
+		generate_local_error(exception, HINAWA_FW_NODE_ERROR_NOT_OPENED);
 		return;
 	}
 
@@ -482,6 +503,10 @@ void hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args, GEr
 	g_return_if_fail(exception != NULL);
 
 	priv = hinawa_fw_node_get_instance_private(self);
+	if (priv->fd < 0) {
+		generate_local_error(exception, HINAWA_FW_NODE_ERROR_NOT_OPENED);
+		return;
+	}
 
 	// To invalidate the transaction in a case of timeout.
 	if (req == FW_CDEV_IOC_SEND_REQUEST) {
@@ -490,8 +515,33 @@ void hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args, GEr
 		priv->transactions = g_list_prepend(priv->transactions, req);
 	}
 
-	if (ioctl(priv->fd, req, args) < 0)
-		raise(exception, errno);
+	if (ioctl(priv->fd, req, args) < 0) {
+		if (errno == ENODEV) {
+			generate_local_error(exception, HINAWA_FW_NODE_ERROR_DISCONNECTED);
+		} else {
+			const char *arg;
+
+			switch (req) {
+			case FW_CDEV_IOC_SEND_REQUEST:
+				arg = "FW_CDEV_IOC_SEND_REQUEST";
+				break;
+			case FW_CDEV_IOC_SEND_RESPONSE:
+				arg = "FW_CDEV_IOC_SEND_RESPONSE";
+				break;
+			case FW_CDEV_IOC_ALLOCATE:
+				arg = "FW_CDEV_IOC_ALLOCATE";
+				break;
+			case FW_CDEV_IOC_DEALLOCATE:
+				arg = "FW_CDEV_IOC_DEALLOCATE";
+				break;
+			default:
+				arg = "Uknown";
+				break;
+			}
+
+			generate_syscall_error(exception, errno, "ioctl: %s", arg);
+		}
+	}
 }
 
 void hinawa_fw_node_invalidate_transaction(HinawaFwNode *self, HinawaFwReq *req)
