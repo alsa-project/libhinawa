@@ -132,4 +132,26 @@ typedef enum {
 	HINAWA_FW_FCP_ERROR_LARGE_RESP,
 } HinawaFwFcpError;
 
+/**
+ * HinawaSndUnitError:
+ * @HINAWA_SND_UNIT_ERROR_DISCONNECTED:	The hwdep device associated to the instance is disconnected.
+ * @HINAWA_SND_UNIT_ERROR_OPENED:	The instance is already associated to unit by opening hwdep
+ *					character device.
+ * @HINAWA_SND_UNIT_ERROR_NOT_OPENED:	The instance is not associated to unit yet by opening hwdep
+ *					character device.
+ * @HINAWA_SND_UNIT_ERROR_LOCKED:	The hwdep device is already locked for kernel packet streaming.
+ * @HINAWA_SND_UNIT_ERROR_UNLOCKED:	The hwdep device is not locked for kernel packet streaming yet.
+ * @HINAWA_SND_UNIT_ERROR_WRONG_CLASS:	The hwdep device is not for the unit expected by the class.
+ *
+ * A set of error code for GError with domain of #HinawaSndUnitError.
+ */
+typedef enum {
+	HINAWA_SND_UNIT_ERROR_DISCONNECTED,
+	HINAWA_SND_UNIT_ERROR_OPENED,
+	HINAWA_SND_UNIT_ERROR_NOT_OPENED,
+	HINAWA_SND_UNIT_ERROR_LOCKED,
+	HINAWA_SND_UNIT_ERROR_UNLOCKED,
+	HINAWA_SND_UNIT_ERROR_WRONG_CLASS,
+} HinawaSndUnitError;
+
 #endif

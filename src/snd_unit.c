@@ -23,11 +23,29 @@
  * ALSA drivers in the stack can be available.
  */
 
-/* For error handling. */
-G_DEFINE_QUARK("HinawaSndUnit", hinawa_snd_unit)
-#define raise(exception, errno)						\
-	g_set_error(exception, hinawa_snd_unit_quark(), errno,		\
-		    "%d: %s", __LINE__, strerror(errno))
+/**
+ * hinawa_snd_unit_error_quark:
+ *
+ * Return the GQuark for error domain of GError which has code in #HinawaSndUnitError.
+ *
+ * Returns: A #GQuark.
+ */
+G_DEFINE_QUARK(hinawa-snd-unit-error-quark, hinawa_snd_unit_error)
+
+static const char *const err_msgs[] = {
+	[HINAWA_SND_UNIT_ERROR_DISCONNECTED] = "The associated hwdep device is not available",
+	[HINAWA_SND_UNIT_ERROR_OPENED] = "The instance is already associated to unit",
+	[HINAWA_SND_UNIT_ERROR_NOT_OPENED] = "The instance is not associated to unit yet",
+	[HINAWA_SND_UNIT_ERROR_LOCKED] = "The associated hwdep device is already locked or kernel packet streaming runs",
+	[HINAWA_SND_UNIT_ERROR_UNLOCKED] = "The associated hwdep device is not locked against kernel packet streaming",
+	[HINAWA_SND_UNIT_ERROR_WRONG_CLASS] = "The hwdep device is not for the unit expected by the class",
+};
+
+#define generate_local_error(exception, code) \
+	g_set_error_literal(exception, HINAWA_FW_NODE_ERROR, code, err_msgs[code])
+
+#define generate_syscall_error(exception, errno, format, arg) \
+	g_set_error(exception, G_FILE_ERROR, g_file_error_from_errno(errno), format, arg)
 
 struct _HinawaSndUnitPrivate {
 	int fd;
@@ -187,6 +205,7 @@ static void hinawa_snd_unit_init(HinawaSndUnit *self)
 
 	priv->fd = -1;
 	priv->node = g_object_new(HINAWA_TYPE_FW_NODE, NULL);
+	priv->fd = -1;
 }
 
 /**
@@ -206,7 +225,8 @@ HinawaSndUnit *hinawa_snd_unit_new(void)
  * hinawa_snd_unit_open:
  * @self: A #HinawaSndUnit
  * @path: A full path of a special file for ALSA hwdep character device
- * @exception: A #GError
+ * @exception: A #GError. Error can be generated with three domains; #g_file_error_quark(),
+ *	       #hinawa_fw_node_error_quark(), and #hinawa_snd_unit_error_quark().
  *
  * Open ALSA hwdep character device and check it for FireWire sound devices.
  */
@@ -220,21 +240,26 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_snd_unit_get_instance_private(self);
-
 	if (priv->fd >= 0) {
-		raise(exception, EBUSY);
+		generate_local_error(exception, HINAWA_SND_UNIT_ERROR_OPENED);
 		return;
 	}
 
 	priv->fd = open(path, O_RDWR);
 	if (priv->fd < 0) {
-		raise(exception, errno);
-		goto end;
+		if (errno == ENODEV)
+			generate_local_error(exception, HINAWA_SND_UNIT_ERROR_DISCONNECTED);
+		else
+			generate_syscall_error(exception, errno, "open: %s", path);
+		return;
 	}
 
 	/* Get FireWire sound device information. */
 	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_GET_INFO, &priv->info) < 0) {
-		raise(exception, errno);
+		if (errno == ENODEV)
+			generate_local_error(exception, HINAWA_SND_UNIT_ERROR_DISCONNECTED);
+		else
+			generate_syscall_error(exception, errno, "ioctl: %s", "SNDRV_FIREWIRE_IOCTL_GET_INFO");
 		goto end;
 	}
 
@@ -243,7 +268,7 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 	    (HINAWA_IS_SND_DG00X(self) && priv->info.type != SNDRV_FIREWIRE_TYPE_DIGI00X) ||
 	    (HINAWA_IS_SND_MOTU(self) && priv->info.type != SNDRV_FIREWIRE_TYPE_MOTU) ||
 	    (HINAWA_IS_SND_TSCM(self) && priv->info.type != SNDRV_FIREWIRE_TYPE_TASCAM)) {
-		raise(exception, EINVAL);
+		generate_local_error(exception, HINAWA_SND_UNIT_ERROR_WRONG_CLASS);
 		goto end;
 	}
 
@@ -273,13 +298,15 @@ void hinawa_snd_unit_get_node(HinawaSndUnit *self, HinawaFwNode **node)
 	g_return_if_fail(node != NULL);
 
 	priv = hinawa_snd_unit_get_instance_private(self);
+	g_return_if_fail(priv->fd >= 0);
 
 	*node = priv->node;
 }
 /**
  * hinawa_snd_unit_lock:
  * @self: A #HinawaSndUnit
- * @exception: A #GError
+ * @exception: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
+ *	       #hinawa_snd_unit_error_quark().
  *
  * Disallow ALSA to start kernel-streaming.
  */
@@ -291,20 +318,26 @@ void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception)
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_snd_unit_get_instance_private(self);
-
 	if (priv->fd < 0) {
-		raise(exception, ENXIO);
+		generate_local_error(exception, HINAWA_SND_UNIT_ERROR_NOT_OPENED);
 		return;
 	}
 
-	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_LOCK, NULL) < 0)
-		raise(exception, errno);
+	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_LOCK, NULL) < 0) {
+		if (errno == ENODEV)
+			generate_local_error(exception, HINAWA_SND_UNIT_ERROR_DISCONNECTED);
+		else if (errno == EBUSY)
+			generate_local_error(exception, HINAWA_SND_UNIT_ERROR_LOCKED);
+		else
+			generate_syscall_error(exception, errno, "ioctl: %s", "SNDRV_FIREWIRE_IOCTL_LOCK");
+	}
 }
 
 /**
  * hinawa_snd_unit_unlock:
  * @self: A #HinawaSndUnit
- * @exception: A #GError
+ * @exception: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
+ *	       #hinawa_snd_unit_error_quark().
  *
  * Allow ALSA to start kernel-streaming.
  */
@@ -316,14 +349,19 @@ void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_snd_unit_get_instance_private(self);
-
 	if (priv->fd < 0) {
-		raise(exception, ENXIO);
+		generate_local_error(exception, HINAWA_SND_UNIT_ERROR_NOT_OPENED);
 		return;
 	}
 
-	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL) < 0)
-		raise(exception, errno);
+	if (ioctl(priv->fd, SNDRV_FIREWIRE_IOCTL_UNLOCK, NULL) < 0) {
+		if (errno == ENODEV)
+			generate_local_error(exception, HINAWA_SND_UNIT_ERROR_DISCONNECTED);
+		else if (errno == EBADFD)
+			generate_local_error(exception, HINAWA_SND_UNIT_ERROR_UNLOCKED);
+		else
+			generate_syscall_error(exception, errno, "ioctl: %s", "SNDRV_FIREWIRE_IOCTL_UNLOCK");
+	}
 }
 
 /* For internal use. */
@@ -337,17 +375,20 @@ void hinawa_snd_unit_write(HinawaSndUnit *self, const void *buf, size_t length,
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_snd_unit_get_instance_private(self);
-
 	if (priv->fd < 0) {
-		raise(exception, ENXIO);
+		generate_local_error(exception, HINAWA_SND_UNIT_ERROR_NOT_OPENED);
 		return;
 	}
 
 	len = write(priv->fd, buf, length);
-	if (len < 0)
-		raise(exception, errno);
-	else if (len != length)
-		raise(exception, EIO);
+	if (len < 0) {
+		if (errno == ENODEV)
+			generate_local_error(exception, HINAWA_SND_UNIT_ERROR_DISCONNECTED);
+		else
+			generate_syscall_error(exception, errno, "write: %zu", length);
+	} else if (len != length){
+		generate_syscall_error(exception, EIO, "write: %zu", length);
+	}
 }
 
 void hinawa_snd_unit_ioctl(HinawaSndUnit *self, unsigned long request,
@@ -359,14 +400,29 @@ void hinawa_snd_unit_ioctl(HinawaSndUnit *self, unsigned long request,
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_snd_unit_get_instance_private(self);
-
 	if (priv->fd < 0) {
-		raise(exception, ENXIO);
+		generate_local_error(exception, HINAWA_SND_UNIT_ERROR_NOT_OPENED);
 		return;
 	}
 
-	if (ioctl(priv->fd, request, arg) < 0)
-		raise(exception, errno);
+	if (ioctl(priv->fd, request, arg) < 0) {
+		if (errno == ENODEV) {
+			generate_local_error(exception, HINAWA_SND_UNIT_ERROR_DISCONNECTED);
+		} else {
+			const char *arg;
+
+			switch (request) {
+			case SNDRV_FIREWIRE_IOCTL_TASCAM_STATE:
+				arg = "SNDRV_FIREWIRE_IOCTL_TASCAM_STATE";
+				break;
+			default:
+				arg = "Unknown";
+				break;
+			}
+
+			generate_syscall_error(exception, errno, "ioctl %s", arg);
+		}
+	}
 }
 
 static void handle_lock_event(HinawaSndUnit *self,
@@ -463,7 +519,7 @@ static void finalize_src(GSource *gsrc)
  * hinawa_snd_unit_create_source:
  * @self: A #HinawaSndUnit.
  * @gsrc: (out): A #GSource.
- * @exception: A #GError.
+ * @exception: A #GError. Error can be generated with domain with #hinawa_snd_unit_error_quark().
  *
  * Create Gsource for GMainContext to dispatch events for the sound device.
  *
@@ -485,9 +541,8 @@ void hinawa_snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_snd_unit_get_instance_private(self);
-
 	if (priv->fd < 0) {
-		raise(exception, ENXIO);
+		generate_local_error(exception, HINAWA_SND_UNIT_ERROR_NOT_OPENED);
 		return;
 	}
 
