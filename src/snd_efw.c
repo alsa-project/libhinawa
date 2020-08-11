@@ -167,10 +167,6 @@ void hinawa_snd_efw_transaction(HinawaSndEfw *self,
 	}
 
 	trans.frame = g_malloc0(MAXIMUM_FRAME_BYTES);
-	if (trans.frame == NULL) {
-		raise(exception, ENOMEM);
-		return;
-	}
 
 	quads = sizeof(*trans.frame) / 4;
 	if (args)
