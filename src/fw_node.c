@@ -275,6 +275,7 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
 	HinawaFwNodePrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_FW_NODE(self));
+	g_return_if_fail(path != NULL && strlen(path) > 0);
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_fw_node_get_instance_private(self);
@@ -313,17 +314,14 @@ void hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
 	HinawaFwNodePrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_FW_NODE(self));
+	g_return_if_fail(image != NULL);
+	g_return_if_fail(length != NULL);
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_fw_node_get_instance_private(self);
 
 	if (priv->fd < 0) {
 		raise(exception, ENXIO);
-		return;
-	}
-
-	if (image == NULL || length == NULL) {
-		raise(exception, EINVAL);
 		return;
 	}
 
@@ -449,6 +447,7 @@ void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
 	FwNodeSource *src;
 
 	g_return_if_fail(HINAWA_IS_FW_NODE(self));
+	g_return_if_fail(gsrc != NULL);
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_fw_node_get_instance_private(self);
