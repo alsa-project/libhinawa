@@ -206,6 +206,8 @@ void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
 	gint64 expiration;
 
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
+	g_return_if_fail(exception == NULL || *exception == NULL);
+
 	priv = hinawa_fw_fcp_get_instance_private(self);
 
 	if (req_frame == NULL || *resp_frame == NULL ||
@@ -344,6 +346,8 @@ void hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node,
 	HinawaFwFcpPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
+	g_return_if_fail(exception == NULL || *exception == NULL);
+
 	priv = hinawa_fw_fcp_get_instance_private(self);
 
 	if (priv->node == NULL) {
