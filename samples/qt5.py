@@ -24,6 +24,7 @@ snd_specific_types = {
     Hinawa.SndUnitType.FIREWORKS:   Hinawa.SndEfw,
     Hinawa.SndUnitType.DIGI00X:     Hinawa.SndDg00x,
     Hinawa.SndUnitType.MOTU:        Hinawa.SndMotu,
+    Hinawa.SndUnitType.TASCAM:      Hinawa.SndTscm,
 }
 for p in Path('/dev/snd/').glob('hw*'):
     fullpath = str(p)
@@ -194,6 +195,12 @@ def handle_motu_notification(self, message):
     print("Motu Notification: {0:08x}".format(message))
 if unit.get_property('type') is Hinawa.SndUnitType.MOTU:
     unit.connect('notified', handle_motu_notification)
+
+# Tascam control
+def handle_tscm_control(self, index, before, after):
+    print('control:{}: {:08x}'.format(index, before ^ after))
+if unit.get_property('type') is Hinawa.SndUnitType.TASCAM:
+    unit.connect('control', handle_tscm_control)
 
 # GUI
 class Sample(QWidget):
