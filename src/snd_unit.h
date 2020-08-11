@@ -31,6 +31,10 @@ G_BEGIN_DECLS
 				   HINAWA_TYPE_SND_UNIT,	\
 				   HinawaSndUnitClass))
 
+#define HINAWA_SND_UNIT_ERROR	hinawa_snd_unit_error_quark()
+
+GQuark hinawa_snd_unit_error_quark();
+
 typedef struct _HinawaSndUnit		HinawaSndUnit;
 typedef struct _HinawaSndUnitClass	HinawaSndUnitClass;
 typedef struct _HinawaSndUnitPrivate	HinawaSndUnitPrivate;

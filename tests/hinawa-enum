@@ -65,12 +65,21 @@ fw_fcp_error_enumerators = (
     'LARGE_RESP',
 )
 
+snd_unit_error_enumerators = (
+    'DISCONNECTED',
+    'OPENED',
+    'NOT_OPENED',
+    'LOCKED',
+    'UNLOCKED',
+)
+
 types = {
     Hinawa.FwTcode: fw_tcode_enumerators,
     Hinawa.FwRcode: fw_rcode_enumerators,
     Hinawa.SndUnitType: snd_unit_type_enumerators,
     Hinawa.FwNodeError: fw_node_error_enumerators,
     Hinawa.FwFcpError: fw_fcp_error_enumerators,
+    Hinawa.SndUnitError: snd_unit_error_enumerators,
 }
 
 for obj, types in types.items():
