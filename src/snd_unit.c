@@ -486,11 +486,6 @@ void hinawa_snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
 	src = (SndUnitSource *)(*gsrc);
 	src->len = sysconf(_SC_PAGESIZE);
 	src->buf = g_malloc(src->len);
-	if (src->buf == NULL) {
-		raise(exception, ENOMEM);
-		g_source_unref(*gsrc);
-		return;
-	}
 
 	src->unit = self;
 	src->tag = g_source_add_unix_fd(*gsrc, priv->fd, G_IO_IN);
