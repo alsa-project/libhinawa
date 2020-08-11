@@ -81,6 +81,7 @@ HinawaSndMotu *hinawa_snd_motu_new(void)
 void hinawa_snd_motu_open(HinawaSndMotu *self, gchar *path, GError **exception)
 {
 	g_return_if_fail(HINAWA_IS_SND_MOTU(self));
+	g_return_if_fail(path != NULL && strlen(path) > 0);
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	hinawa_snd_unit_open(&self->parent_instance, path, exception);
