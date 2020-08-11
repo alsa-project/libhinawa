@@ -77,6 +77,25 @@ snd_dice_error_enumerators = (
     'TIMEOUT',
 )
 
+snd_efw_error_enumerators = (
+    'BAD',
+    'BAD_COMMAND',
+    'COMM_ERR',
+    'BAD_QUAD_COUNT',
+    'UNSUPPORTED',
+    'TIMEOUT',
+    'DSP_TIMEOUT',
+    'BAD_RATE',
+    'BAD_CLOCK',
+    'BAD_CHANNEL',
+    'BAD_PAN',
+    'FLASH_BUSY',
+    'BAD_MIRROR',
+    'BAD_LED',
+    'BAD_PARAMETER',
+    'LARGE_RESP',
+)
+
 types = {
     Hinawa.FwTcode: fw_tcode_enumerators,
     Hinawa.FwRcode: fw_rcode_enumerators,
@@ -85,6 +104,7 @@ types = {
     Hinawa.FwFcpError: fw_fcp_error_enumerators,
     Hinawa.SndUnitError: snd_unit_error_enumerators,
     Hinawa.SndDiceError: snd_dice_error_enumerators,
+    Hinawa.SndEfwError: snd_efw_error_enumerators,
 }
 
 for obj, types in types.items():
