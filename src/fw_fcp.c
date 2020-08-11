@@ -20,11 +20,22 @@
  * This class is an application of #HinawaFwReq / #HinawaFwResp.
  */
 
-/* For error handling. */
-G_DEFINE_QUARK("HinawaFwFcp", hinawa_fw_fcp)
-#define raise(exception, errno)						\
-	g_set_error(exception, hinawa_fw_fcp_quark(), errno,		\
-		    "%d: %s", __LINE__, strerror(errno))
+/**
+ * hinawa_fw_fcp_error_quark:
+ *
+ * Return the GQuark for error domain of GError which has code in #HinawaFwFcpError.
+ *
+ * Returns: A #GQuark.
+ */
+G_DEFINE_QUARK(hinawa-fw-fcp-error-quark, hinawa_fw_fcp_error)
+
+static const char *const local_err_msgs[] = {
+	[HINAWA_FW_FCP_ERROR_TIMEOUT]		= "The transaction is canceled due to response timeout",
+	[HINAWA_FW_FCP_ERROR_LARGE_RESP]	= "The size of response is larger than expected",
+};
+
+#define generate_local_error(exception, code)						\
+	g_set_error_literal(exception, HINAWA_FW_FCP_ERROR, code, local_err_msgs[code])
 
 #define FCP_MAXIMUM_FRAME_BYTES	0x200U
 #define FCP_REQUEST_ADDR	0xfffff0000b00
@@ -189,7 +200,9 @@ HinawaFwFcp *hinawa_fw_fcp_new(void)
  * @resp_frame_size: The size of array for response in byte unit. The value of
  *		     this argument should point to the numerical number and
  *		     mutable.
- * @exception: A #GError.
+ * @exception: A #GError. Error can be generated with four domains; #g_file_error_quark(),
+ *	       #hinawa_fw_node_error_quark(), #hinawa_fw_req_error_quark(), and
+ *	       #hinawa_fw_fcp_error_quark().
  *
  * Execute FCP transaction.
  * Since: 1.4.
@@ -259,7 +272,7 @@ deferred:
 			break;
 	}
 	if (trans.resp_frame[0] == 0x00) {
-		raise(exception, ETIMEDOUT);
+		generate_local_error(exception, HINAWA_FW_FCP_ERROR_TIMEOUT);
 	} else if (trans.resp_frame[0] == AVC_STATUS_INTERIM) {
 		// It's a deffered transaction, wait again.
 		trans.resp_frame[0] = 0x00;
@@ -268,10 +281,11 @@ deferred:
 		goto deferred;
 	}
 
-	if (trans.resp_frame_size > NOTIFY_ENOBUFS)
+	if (trans.resp_frame_size > NOTIFY_ENOBUFS) {
 		*resp_frame_size = trans.resp_frame_size;
-	else
-		raise(exception, ENOBUFS);
+	} else {
+		generate_local_error(exception, HINAWA_FW_FCP_ERROR_LARGE_RESP);
+	}
 end:
 	g_mutex_unlock(&trans.mutex);
 	g_cond_clear(&trans.cond);

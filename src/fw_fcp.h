@@ -33,6 +33,10 @@ G_BEGIN_DECLS
 				   HINAWA_TYPE_FW_FCP,		\
 				   HinawaFwFcpClass))
 
+#define HINAWA_FW_FCP_ERROR	hinawa_fw_fcp_error_quark()
+
+GQuark hinawa_fw_fcp_error_quark();
+
 typedef struct _HinawaFwFcp		HinawaFwFcp;
 typedef struct _HinawaFwFcpClass	HinawaFwFcpClass;
 typedef struct _HinawaFwFcpPrivate	HinawaFwFcpPrivate;

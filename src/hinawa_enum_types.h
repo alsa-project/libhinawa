@@ -122,4 +122,14 @@ typedef enum {
 	HINAWA_FW_NODE_ERROR_NOT_OPENED,
 } HinawaFwNodeError;
 
+/**
+ * HinawaFwFcpError:
+ * @HINAWA_FW_FCP_ERROR_TIMEOUT:	The transaction is canceled due to response timeout.
+ * @HINAWA_FW_FCP_ERROR_LARGE_RESP:	The size of response is larger than expected.
+ */
+typedef enum {
+	HINAWA_FW_FCP_ERROR_TIMEOUT,
+	HINAWA_FW_FCP_ERROR_LARGE_RESP,
+} HinawaFwFcpError;
+
 #endif

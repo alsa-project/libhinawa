@@ -5,7 +5,6 @@ HINAWA_0_6_0 {
     "hinawa_fw_resp_get_type";
 
     "hinawa_fw_fcp_get_type";
-    "hinawa_fw_fcp_quark";
 
     "hinawa_snd_unit_get_type";
     "hinawa_snd_unit_open";
@@ -103,4 +102,7 @@ HINAWA_2_1_0 {
     "hinawa_fw_node_error_quark";
 
     "hinawa_fw_req_error_quark";
+
+    "hinawa_fw_fcp_error_get_type";
+    "hinawa_fw_fcp_error_quark";
 } HINAWA_2_0_0;
