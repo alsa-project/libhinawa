@@ -170,14 +170,12 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 	guint64 expiration;
 
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
+	g_return_if_fail(length > 0);
+	g_return_if_fail(frame != NULL);
+	g_return_if_fail(frame_size != NULL && *frame_size > 0);
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_fw_req_get_instance_private(self);
-
-	if (length == 0 || *frame == NULL || *frame_size == 0) {
-		raise(exception, EINVAL);
-		return;
-	}
 
 	// Should be aligned to quadlet.
 	if (tcode == HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST ||
@@ -188,22 +186,15 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 	    tcode == HINAWA_FW_TCODE_LOCK_LITTLE_ADD ||
 	    tcode == HINAWA_FW_TCODE_LOCK_BOUNDED_ADD ||
 	    tcode == HINAWA_FW_TCODE_LOCK_WRAP_ADD ||
-	    tcode == HINAWA_FW_TCODE_LOCK_VENDOR_DEPENDENT) {
-		if ((addr & 0x3) || (length & 0x3)) {
-			raise(exception, EINVAL);
-			return;
-		}
-	}
+	    tcode == HINAWA_FW_TCODE_LOCK_VENDOR_DEPENDENT)
+		g_return_if_fail(!(addr & 0x3) && !(length & 0x3));
 
 	// Should have enough space for read/written data.
 	if (tcode == HINAWA_FW_TCODE_READ_QUADLET_REQUEST ||
 	    tcode == HINAWA_FW_TCODE_READ_BLOCK_REQUEST ||
 	    tcode == HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST ||
 	    tcode == HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST) {
-		if (*frame_size < length) {
-			raise(exception, ENOBUFS);
-			return;
-		}
+		g_return_if_fail(*frame_size >= length);
 	} else if (tcode == HINAWA_FW_TCODE_LOCK_MASK_SWAP ||
 		   tcode == HINAWA_FW_TCODE_LOCK_COMPARE_SWAP ||
 		   tcode == HINAWA_FW_TCODE_LOCK_FETCH_ADD ||
@@ -211,15 +202,11 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 		   tcode == HINAWA_FW_TCODE_LOCK_BOUNDED_ADD ||
 		   tcode == HINAWA_FW_TCODE_LOCK_WRAP_ADD ||
 		   tcode == HINAWA_FW_TCODE_LOCK_VENDOR_DEPENDENT) {
-		if (*frame_size < length * 2) {
-			raise(exception, ENOBUFS);
-			return;
-		}
+		g_return_if_fail(*frame_size >= length * 2);
 		length *= 2;
 	} else {
 		// Not supported due to no test.
-		raise(exception, ENOTSUP);
-		return;
+		g_return_if_reached();
 	}
 
 	// Setup a private structure.
