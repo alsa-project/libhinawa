@@ -463,11 +463,6 @@ void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
         // transaction frame.
         src->len = sysconf(_SC_PAGESIZE);
         src->buf = g_malloc0(src->len);
-        if (src->buf == NULL) {
-                raise(exception, ENOMEM);
-		g_source_unref(*gsrc);
-                return;
-        }
 
 	src->self = self;
 	src->tag = g_source_add_unix_fd(*gsrc, priv->fd, G_IO_IN);
