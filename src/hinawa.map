@@ -72,7 +72,6 @@ HINAWA_1_3_0 {
 HINAWA_1_4_0 {
     "hinawa_fw_node_get_type";
     "hinawa_fw_node_new";
-    "hinawa_fw_node_quark";
     "hinawa_fw_node_open";
     "hinawa_fw_node_create_source";
 
@@ -100,3 +99,8 @@ HINAWA_2_0_0 {
 
     "hinawa_snd_unit_get_node";
 } HINAWA_1_4_0;
+
+HINAWA_2_1_0 {
+    "hinawa_fw_node_error_get_type";
+    "hinawa_fw_node_error_quark";
+} HINAWA_2_0_0;
