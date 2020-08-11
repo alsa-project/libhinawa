@@ -31,6 +31,10 @@ G_BEGIN_DECLS
 				   HINAWA_TYPE_SND_EFW,		\
 				   HinawaSndEfwClass))
 
+#define HINAWA_SND_EFW_ERROR	hinawa_snd_efw_error_quark()
+
+GQuark hinawa_snd_efw_error_quark();
+
 typedef struct _HinawaSndEfw		HinawaSndEfw;
 typedef struct _HinawaSndEfwClass	HinawaSndEfwClass;
 typedef struct _HinawaSndEfwPrivate	HinawaSndEfwPrivate;

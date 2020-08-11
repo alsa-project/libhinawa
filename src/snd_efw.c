@@ -14,51 +14,41 @@
  * This inherits #HinawaSndUnit.
  */
 
-/* For error handling. */
-G_DEFINE_QUARK("HinawaSndEfw", hinawa_snd_efw)
-#define raise(exception, errno)						\
-	g_set_error(exception, hinawa_snd_efw_quark(), errno,		\
-		    "%d: %s", __LINE__, strerror(errno))
+/**
+ * hinawa_snd_efw_error_quark:
+ *
+ * Return the GQuark for error domain of GError which has code in #HinawaSndEfwError.
+ *
+ * Returns: A #GQuark.
+ */
+G_DEFINE_QUARK(hinawa-snd-efw-error-quark, hinawa_snd_efw_error)
 
 #define MINIMUM_SUPPORTED_VERSION	1
 #define MAXIMUM_FRAME_BYTES		0x200U
 
-enum efw_status {
-	EFT_STATUS_OK			= 0,
-	EFT_STATUS_BAD			= 1,
-	EFT_STATUS_BAD_COMMAND		= 2,
-	EFT_STATUS_COMM_ERR		= 3,
-	EFT_STATUS_BAD_QUAD_COUNT	= 4,
-	EFT_STATUS_UNSUPPORTED		= 5,
-	EFT_STATUS_1394_TIMEOUT		= 6,
-	EFT_STATUS_DSP_TIMEOUT		= 7,
-	EFT_STATUS_BAD_RATE		= 8,
-	EFT_STATUS_BAD_CLOCK		= 9,
-	EFT_STATUS_BAD_CHANNEL		= 10,
-	EFT_STATUS_BAD_PAN		= 11,
-	EFT_STATUS_FLASH_BUSY		= 12,
-	EFT_STATUS_BAD_MIRROR		= 13,
-	EFT_STATUS_BAD_LED		= 14,
-	EFT_STATUS_BAD_PARAMETER	= 15,
-};
+#define EFT_STATUS_OK	0
+
 static const char *const efw_status_names[] = {
-	[EFT_STATUS_OK]			= "OK",
-	[EFT_STATUS_BAD]		= "bad",
-	[EFT_STATUS_BAD_COMMAND]	= "bad command",
-	[EFT_STATUS_COMM_ERR]		= "comm err",
-	[EFT_STATUS_BAD_QUAD_COUNT]	= "bad quad count",
-	[EFT_STATUS_UNSUPPORTED]	= "unsupported",
-	[EFT_STATUS_1394_TIMEOUT]	= "1394 timeout",
-	[EFT_STATUS_DSP_TIMEOUT]	= "DSP timeout",
-	[EFT_STATUS_BAD_RATE]		= "bad rate",
-	[EFT_STATUS_BAD_CLOCK]		= "bad clock",
-	[EFT_STATUS_BAD_CHANNEL]	= "bad channel",
-	[EFT_STATUS_BAD_PAN]		= "bad pan",
-	[EFT_STATUS_FLASH_BUSY]		= "flash busy",
-	[EFT_STATUS_BAD_MIRROR]		= "bad mirror",
-	[EFT_STATUS_BAD_LED]		= "bad LED",
-	[EFT_STATUS_BAD_PARAMETER]	= "bad parameter",
+	[HINAWA_SND_EFW_ERROR_BAD]		= "The request or response includes invalid header",
+	[HINAWA_SND_EFW_ERROR_BAD_COMMAND]	= "The request includes invalid category or command",
+	[HINAWA_SND_EFW_ERROR_COMM_ERR]		= "The transaction fails due to communication error",
+	[HINAWA_SND_EFW_ERROR_BAD_QUAD_COUNT]	= "The number of quadlets in transaction is invalid",
+	[HINAWA_SND_EFW_ERROR_UNSUPPORTED]	= "The request is not supported",
+	[HINAWA_SND_EFW_ERROR_TIMEOUT]		= "The transaction is canceled due to response timeout",
+	[HINAWA_SND_EFW_ERROR_DSP_TIMEOUT]	= "The operation for DSP did not finish within timeout",
+	[HINAWA_SND_EFW_ERROR_BAD_RATE]		= "The request includes invalid value for sampling frequency",
+	[HINAWA_SND_EFW_ERROR_BAD_CLOCK]	= "The request includes invalid value for source of clock",
+	[HINAWA_SND_EFW_ERROR_BAD_CHANNEL]	= "The request includes invalid value for the number of channel",
+	[HINAWA_SND_EFW_ERROR_BAD_PAN]		= "The request includes invalid value for panning",
+	[HINAWA_SND_EFW_ERROR_FLASH_BUSY]	= "The on-board flash is busy and not operable",
+	[HINAWA_SND_EFW_ERROR_BAD_MIRROR]	= "The request includes invalid value for mirroring channel",
+	[HINAWA_SND_EFW_ERROR_BAD_LED]		= "The request includes invalid value for LED",
+	[HINAWA_SND_EFW_ERROR_BAD_PARAMETER]	= "The request includes invalid value of parameter",
+	[HINAWA_SND_EFW_ERROR_LARGE_RESP]	= "The size of response is larger than expected",
 };
+
+#define generate_local_error(exception, code)							\
+	g_set_error_literal(exception, HINAWA_SND_EFW_ERROR, code, efw_status_names[code])
 
 struct efw_transaction {
 	guint seqnum;
@@ -143,7 +133,8 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
  *	    argument should point to the pointer to the array and immutable.
  *	    The content of array is mutable for parameters in response.
  * @param_count: The number of quadlets in the params array.
- * @exception: A #GError.
+ * @exception: A #GError. Error can be generated with three domains; #g_file_error_quark(),
+ *	       #hinawa_snd_unit_error_quark(), and #hinawa_snd_efw_error_quark().
  *
  * Execute transaction according to Echo Fireworks Transaction protocol.
  *
@@ -211,16 +202,16 @@ void hinawa_snd_efw_transaction(HinawaSndEfw *self,
 			break;
 	}
 	if (trans.frame->status == 0xffffffff) {
-		raise(exception, ETIMEDOUT);
+		generate_local_error(exception, HINAWA_SND_EFW_ERROR_TIMEOUT);
 		goto end;
 	}
 
 	// Check transaction status.
 	status = GUINT32_FROM_BE(trans.frame->status);
 	if (status != EFT_STATUS_OK) {
-		g_set_error(exception, hinawa_snd_efw_quark(),
-			    EPROTO, "%s",
-			    efw_status_names[status]);
+		if (status > HINAWA_SND_EFW_ERROR_BAD_PARAMETER)
+			status = HINAWA_SND_EFW_ERROR_BAD;
+		generate_local_error(exception, status);
 		goto end;
 	}
 
@@ -228,14 +219,14 @@ void hinawa_snd_efw_transaction(HinawaSndEfw *self,
 	if (GUINT32_FROM_BE(trans.frame->version) < MINIMUM_SUPPORTED_VERSION ||
 	    GUINT32_FROM_BE(trans.frame->category) != category ||
 	    GUINT32_FROM_BE(trans.frame->command) != command) {
-		raise(exception, EIO);
+		generate_local_error(exception, HINAWA_SND_EFW_ERROR_BAD);
 		goto end;
 	}
 
 	// Check size.
 	quads = GUINT32_FROM_BE(trans.frame->length) - sizeof(*trans.frame) / 4;
 	if (quads > *param_count) {
-		raise(exception, ENOBUFS);
+		generate_local_error(exception, HINAWA_SND_EFW_ERROR_LARGE_RESP);
 		goto end;
 
 	}
