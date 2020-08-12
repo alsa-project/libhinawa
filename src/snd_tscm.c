@@ -91,7 +91,7 @@ void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **exception)
 /**
  * hinawa_snd_tscm_get_state:
  * @self: A #HinawaSndTscm
- * @exception: A #GError
+ * @exception: A #GError. Error can be generated with domain of #hinawa_snd_unit_error_quark().
  *
  * Get the latest states of target device.
  *

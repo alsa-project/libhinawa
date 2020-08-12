@@ -140,9 +140,8 @@ void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
  *	   data to transmit.
  * @frame_count: The number of quadlets in the frame.
  * @bit_flag: bit flag to wait
- * @exception: A #GError. Error can be generated with four domains; #g_file_error_quark(),
- *	       #hinawa_fw_node_error_quark(), #hinawa_fw_req_error_quark(), and
- *	       #hinawa_snd_dice_error_quark().
+ * @exception: A #GError. Error can be generated with three domains; #hinawa_fw_node_error_quark(),
+ *	       #hinawa_fw_req_error_quark(), and #hinawa_snd_dice_error_quark().
  *
  * Execute write transactions to the given address, then wait and check
  * notification.

@@ -133,8 +133,8 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
  *	    argument should point to the pointer to the array and immutable.
  *	    The content of array is mutable for parameters in response.
  * @param_count: The number of quadlets in the params array.
- * @exception: A #GError. Error can be generated with three domains; #g_file_error_quark(),
- *	       #hinawa_snd_unit_error_quark(), and #hinawa_snd_efw_error_quark().
+ * @exception: A #GError. Error can be generated with three domains; #hinawa_snd_unit_error_quark(),
+ *	       and #hinawa_snd_efw_error_quark().
  *
  * Execute transaction according to Echo Fireworks Transaction protocol.
  *
