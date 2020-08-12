@@ -72,6 +72,7 @@ snd_unit_error_enumerators = (
     'NOT_OPENED',
     'LOCKED',
     'UNLOCKED',
+    'FAILED',
 )
 
 snd_dice_error_enumerators = (

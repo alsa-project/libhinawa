@@ -44,8 +44,12 @@ static const char *const err_msgs[] = {
 #define generate_local_error(exception, code) \
 	g_set_error_literal(exception, HINAWA_FW_NODE_ERROR, code, err_msgs[code])
 
-#define generate_syscall_error(exception, errno, format, arg) \
-	g_set_error(exception, G_FILE_ERROR, g_file_error_from_errno(errno), format, arg)
+#define generate_file_error(exception, code, format, arg) \
+	g_set_error(exception, G_FILE_ERROR, code, format, arg)
+
+#define generate_syscall_error(exception, errno, format, arg)				\
+	g_set_error(exception, HINAWA_SND_UNIT_ERROR, HINAWA_SND_UNIT_ERROR_FAILED,	\
+		    format " %d(%s)", arg, errno, strerror(errno))
 
 struct _HinawaSndUnitPrivate {
 	int fd;
@@ -247,10 +251,16 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 
 	priv->fd = open(path, O_RDWR);
 	if (priv->fd < 0) {
-		if (errno == ENODEV)
+		if (errno == ENODEV) {
 			generate_local_error(exception, HINAWA_SND_UNIT_ERROR_DISCONNECTED);
-		else
-			generate_syscall_error(exception, errno, "open: %s", path);
+		} else {
+			GFileError code = g_file_error_from_errno(errno);
+
+			if (code != G_FILE_ERROR_FAILED)
+				generate_file_error(exception, code, "open(%s)", path);
+			else
+				generate_syscall_error(exception, errno, "open(%s)", path);
+		}
 		return;
 	}
 
@@ -259,7 +269,7 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 		if (errno == ENODEV)
 			generate_local_error(exception, HINAWA_SND_UNIT_ERROR_DISCONNECTED);
 		else
-			generate_syscall_error(exception, errno, "ioctl: %s", "SNDRV_FIREWIRE_IOCTL_GET_INFO");
+			generate_syscall_error(exception, errno, "ioctl(%s)", "SNDRV_FIREWIRE_IOCTL_GET_INFO");
 		goto end;
 	}
 
@@ -305,8 +315,7 @@ void hinawa_snd_unit_get_node(HinawaSndUnit *self, HinawaFwNode **node)
 /**
  * hinawa_snd_unit_lock:
  * @self: A #HinawaSndUnit
- * @exception: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
- *	       #hinawa_snd_unit_error_quark().
+ * @exception: A #GError. Error can be generated with domain of #hinawa_snd_unit_error_quark().
  *
  * Disallow ALSA to start kernel-streaming.
  */
@@ -329,15 +338,14 @@ void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception)
 		else if (errno == EBUSY)
 			generate_local_error(exception, HINAWA_SND_UNIT_ERROR_LOCKED);
 		else
-			generate_syscall_error(exception, errno, "ioctl: %s", "SNDRV_FIREWIRE_IOCTL_LOCK");
+			generate_syscall_error(exception, errno, "ioctl(%s)", "SNDRV_FIREWIRE_IOCTL_LOCK");
 	}
 }
 
 /**
  * hinawa_snd_unit_unlock:
  * @self: A #HinawaSndUnit
- * @exception: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
- *	       #hinawa_snd_unit_error_quark().
+ * @exception: A #GError. Error can be generated with domain of #hinawa_snd_unit_error_quark().
  *
  * Allow ALSA to start kernel-streaming.
  */
@@ -360,7 +368,7 @@ void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
 		else if (errno == EBADFD)
 			generate_local_error(exception, HINAWA_SND_UNIT_ERROR_UNLOCKED);
 		else
-			generate_syscall_error(exception, errno, "ioctl: %s", "SNDRV_FIREWIRE_IOCTL_UNLOCK");
+			generate_syscall_error(exception, errno, "ioctl(%s)", "SNDRV_FIREWIRE_IOCTL_UNLOCK");
 	}
 }
 
@@ -420,7 +428,7 @@ void hinawa_snd_unit_ioctl(HinawaSndUnit *self, unsigned long request,
 				break;
 			}
 
-			generate_syscall_error(exception, errno, "ioctl %s", arg);
+			generate_syscall_error(exception, errno, "ioctl(%s)", arg);
 		}
 	}
 }

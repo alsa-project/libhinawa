@@ -144,6 +144,7 @@ typedef enum {
  * @HINAWA_SND_UNIT_ERROR_LOCKED:	The hwdep device is already locked for kernel packet streaming.
  * @HINAWA_SND_UNIT_ERROR_UNLOCKED:	The hwdep device is not locked for kernel packet streaming yet.
  * @HINAWA_SND_UNIT_ERROR_WRONG_CLASS:	The hwdep device is not for the unit expected by the class.
+ * @HINAWA_SND_UNIT_ERROR_FAILED:	The system call fails.
  *
  * A set of error code for GError with domain of #HinawaSndUnitError.
  */
@@ -154,6 +155,7 @@ typedef enum {
 	HINAWA_SND_UNIT_ERROR_LOCKED,
 	HINAWA_SND_UNIT_ERROR_UNLOCKED,
 	HINAWA_SND_UNIT_ERROR_WRONG_CLASS,
+	HINAWA_SND_UNIT_ERROR_FAILED,
 } HinawaSndUnitError;
 
 /**
