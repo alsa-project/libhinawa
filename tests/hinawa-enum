@@ -68,6 +68,7 @@ fw_fcp_error_enumerators = (
 
 snd_unit_error_enumerators = (
     'DISCONNECTED',
+    'USED',
     'OPENED',
     'NOT_OPENED',
     'LOCKED',
