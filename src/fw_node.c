@@ -246,7 +246,7 @@ HinawaFwNode *hinawa_fw_node_new(void)
 	return g_object_new(HINAWA_TYPE_FW_NODE, NULL);
 }
 
-static void update_info(HinawaFwNode *self, GError **exception)
+static int update_info(HinawaFwNode *self)
 {
 	HinawaFwNodePrivate *priv = hinawa_fw_node_get_instance_private(self);
 	struct fw_cdev_get_info info = {0};
@@ -260,13 +260,8 @@ static void update_info(HinawaFwNode *self, GError **exception)
 	info.rom_length = MAX_CONFIG_ROM_LENGTH;
 	info.bus_reset = (__u64)&priv->generation;
 	info.bus_reset_closure = (__u64)self;
-	if (ioctl(priv->fd, FW_CDEV_IOC_GET_INFO, &info) < 0) {
-		if (errno == ENODEV)
-			generate_local_error(exception, HINAWA_FW_NODE_ERROR_DISCONNECTED);
-		else
-			generate_syscall_error(exception, errno, "ioctl: %s", "FW_CDEV_IOC_GET_INFO");
-		return;
-	}
+	if (ioctl(priv->fd, FW_CDEV_IOC_GET_INFO, &info) < 0)
+		return errno;
 
 	// Align buffer for configuration ROM according to host endianness,
 	// because Linux firewire subsystem copies raw data to it.
@@ -275,6 +270,8 @@ static void update_info(HinawaFwNode *self, GError **exception)
 	for (i = 0; i < quads; ++i)
 		rom[i] = GUINT32_FROM_BE(rom[i]);
 	priv->config_rom_length = info.rom_length;
+
+	return 0;
 }
 
 /**
@@ -292,6 +289,7 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
 			 GError **exception)
 {
 	HinawaFwNodePrivate *priv;
+	int err;
 
 	g_return_if_fail(HINAWA_IS_FW_NODE(self));
 	g_return_if_fail(path != NULL && strlen(path) > 0);
@@ -313,8 +311,17 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
 	}
 
 	g_mutex_lock(&priv->mutex);
-	update_info(self, exception);
+	err = update_info(self);
 	g_mutex_unlock(&priv->mutex);
+
+	if (err > 0) {
+		if (err == ENODEV)
+			generate_local_error(exception, HINAWA_FW_NODE_ERROR_DISCONNECTED);
+		else
+			generate_syscall_error(exception, err, "ioctl: %s", "FW_CDEV_IOC_GET_INFO");
+		close(priv->fd);
+		priv->fd = -1;
+	}
 }
 
 /**
@@ -354,7 +361,7 @@ void hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
 	g_mutex_unlock(&priv->mutex);
 }
 
-static void handle_update(HinawaFwNode *self, GError **exception)
+static void handle_update(HinawaFwNode *self)
 {
 	HinawaFwNodePrivate *priv;
 
@@ -362,7 +369,7 @@ static void handle_update(HinawaFwNode *self, GError **exception)
 	priv = hinawa_fw_node_get_instance_private(self);
 
 	g_mutex_lock(&priv->mutex);
-	update_info(self, exception);
+	update_info(self);
 	g_mutex_unlock(&priv->mutex);
 
 	g_signal_emit(self, fw_node_sigs[FW_NODE_SIG_TYPE_BUS_UPDATE], 0, NULL);
@@ -385,7 +392,6 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	HinawaFwNodePrivate *priv;
 	GIOCondition condition;
 	struct fw_cdev_event_common *common;
-	GError *exception = NULL;
 	ssize_t len;
 
 	priv = hinawa_fw_node_get_instance_private(src->self);
@@ -410,7 +416,7 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	common = (struct fw_cdev_event_common *)src->buf;
 
 	if (HINAWA_IS_FW_NODE(common->closure) && common->type == FW_CDEV_EVENT_BUS_RESET) {
-		handle_update(src->self, &exception);
+		handle_update(src->self);
 	} else if (HINAWA_IS_FW_RESP(common->closure) && common->type == FW_CDEV_EVENT_REQUEST2) {
 		hinawa_fw_resp_handle_request(HINAWA_FW_RESP(common->closure),
 				(struct fw_cdev_event_request2 *)common);
@@ -427,11 +433,6 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 			hinawa_fw_req_handle_response(req, ev);
 		}
 		g_mutex_unlock(&priv->transactions_mutex);
-	}
-
-	if (exception != NULL) {
-		g_clear_error(&exception);
-		return G_SOURCE_REMOVE;
 	}
 
 	// Just be sure to continue to process this source.
