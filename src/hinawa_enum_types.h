@@ -113,6 +113,7 @@ typedef enum {
  *					firewire character device.
  * @HINAWA_FW_NODE_ERROR_NOT_OPENED:	The instance is not associated to node by opening
  *					firewire character device.
+ * @HINAWA_FW_NODE_ERROR_FAILED:	The system call fails.
  *
  * A set of error code for GError with domain which equals to #hinawa_fw_node_error_quark().
  */
@@ -120,6 +121,7 @@ typedef enum {
 	HINAWA_FW_NODE_ERROR_DISCONNECTED,
 	HINAWA_FW_NODE_ERROR_OPENED,
 	HINAWA_FW_NODE_ERROR_NOT_OPENED,
+	HINAWA_FW_NODE_ERROR_FAILED,
 } HinawaFwNodeError;
 
 /**

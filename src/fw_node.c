@@ -61,8 +61,12 @@ static const char *const err_msgs[] = {
 #define generate_local_error(exception, code) \
 	g_set_error_literal(exception, HINAWA_FW_NODE_ERROR, code, err_msgs[code])
 
-#define generate_syscall_error(exception, errno, format, arg) \
-	g_set_error(exception, G_FILE_ERROR, g_file_error_from_errno(errno), format, arg)
+#define generate_file_error(exception, code, format, arg) \
+	g_set_error(exception, G_FILE_ERROR, code, format, arg)
+
+#define generate_syscall_error(exception, errno, format, arg)				\
+	g_set_error(exception, HINAWA_FW_NODE_ERROR, HINAWA_FW_NODE_ERROR_FAILED,	\
+		    format " %d(%s)", arg, errno, strerror(errno))
 
 typedef struct {
 	GSource src;
@@ -303,10 +307,15 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
 
 	priv->fd = open(path, O_RDONLY);
 	if (priv->fd < 0) {
-		if (errno == ENODEV)
+		if (errno == ENODEV) {
 			generate_local_error(exception, HINAWA_FW_NODE_ERROR_DISCONNECTED);
-		else
-			generate_syscall_error(exception, errno, "open: %s", path);
+		} else {
+			GFileError code = g_file_error_from_errno(errno);
+			if (code != G_FILE_ERROR_FAILED)
+				generate_file_error(exception, code, "open(%s)", path);
+			else
+				generate_syscall_error(exception, errno, "open(%s)", path);
+		}
 		return;
 	}
 
@@ -318,7 +327,7 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
 		if (err == ENODEV)
 			generate_local_error(exception, HINAWA_FW_NODE_ERROR_DISCONNECTED);
 		else
-			generate_syscall_error(exception, err, "ioctl: %s", "FW_CDEV_IOC_GET_INFO");
+			generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_GET_INFO");
 		close(priv->fd);
 		priv->fd = -1;
 	}
@@ -540,7 +549,7 @@ void hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args, GEr
 				break;
 			}
 
-			generate_syscall_error(exception, errno, "ioctl: %s", arg);
+			generate_syscall_error(exception, errno, "ioctl(%s)", arg);
 		}
 	}
 }

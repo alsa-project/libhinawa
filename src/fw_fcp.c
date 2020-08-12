@@ -200,9 +200,8 @@ HinawaFwFcp *hinawa_fw_fcp_new(void)
  * @resp_frame_size: The size of array for response in byte unit. The value of
  *		     this argument should point to the numerical number and
  *		     mutable.
- * @exception: A #GError. Error can be generated with four domains; #g_file_error_quark(),
- *	       #hinawa_fw_node_error_quark(), #hinawa_fw_req_error_quark(), and
- *	       #hinawa_fw_fcp_error_quark().
+ * @exception: A #GError. Error can be generated with four domains; #hinawa_fw_node_error_quark(),
+ *	       #hinawa_fw_req_error_quark(), and #hinawa_fw_fcp_error_quark().
  *
  * Execute FCP transaction.
  * Since: 1.4.

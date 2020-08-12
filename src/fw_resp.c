@@ -136,8 +136,7 @@ HinawaFwResp *hinawa_fw_resp_new(void)
  * @node: A #HinawaFwNode.
  * @addr: A start address to listen to in host controller.
  * @width: The byte width of address to listen to host controller.
- * @exception: A #GError. Error can be generated with two domains; #g_file_error_quark() and
- *	       #hinawa_fw_node_error_quark().
+ * @exception: A #GError. Error can be generated with domain of #hinawa_fw_node_error_quark().
  *
  * Start to listen to a range of address in host controller which connects to
  * the node.

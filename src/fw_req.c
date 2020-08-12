@@ -160,8 +160,8 @@ HinawaFwReq *hinawa_fw_req_new(void)
  * @frame_size: The size of array in byte unit. The value of this argument
  *		should point to the numerical number and mutable for read and
  *		lock transaction.
- * @exception: A #GError. Error can be generated with three domains; #g_file_error_quark(),
- *	       #hinawa_fw_node_error_quark(), and #hinawa_fw_req_error_quark().
+ * @exception: A #GError. Error can be generated with two domains; #hinawa_fw_node_error_quark(),
+ *	       and #hinawa_fw_req_error_quark().
  *
  * Execute transactions to the given node according to given code.
  * Since: 1.4.
