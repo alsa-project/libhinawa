@@ -58,6 +58,7 @@ fw_node_error_enumerators = (
     'DISCONNECTED',
     'OPENED',
     'NOT_OPENED',
+    'FAILED',
 )
 
 fw_fcp_error_enumerators = (
