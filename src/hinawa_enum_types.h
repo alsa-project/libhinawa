@@ -171,7 +171,7 @@ typedef enum {
  * @HINAWA_SND_EFW_ERROR_COMM_ERR:		The transaction fails due to communication error.
  * @HINAWA_SND_EFW_ERROR_BAD_QUAD_COUNT:	The number of quadlets in transaction is invalid.
  * @HINAWA_SND_EFW_ERROR_UNSUPPORTED:		The request is not supported.
- * @HINAWA_SND_EFW_ERROR_1394_TIMEOUT:		The transaction is canceled due to response timeout.
+ * @HINAWA_SND_EFW_ERROR_TIMEOUT:		The transaction is canceled due to response timeout.
  * @HINAWA_SND_EFW_ERROR_DSP_TIMEOUT:		The operation for DSP did not finish within timeout.
  * @HINAWA_SND_EFW_ERROR_BAD_RATE:		The request includes invalid value for sampling frequency.
  * @HINAWA_SND_EFW_ERROR_BAD_CLOCK:		The request includes invalid value for source of clock.
