@@ -137,6 +137,7 @@ typedef enum {
 /**
  * HinawaSndUnitError:
  * @HINAWA_SND_UNIT_ERROR_DISCONNECTED:	The hwdep device associated to the instance is disconnected.
+ * @HINAWA_SND_UNIT_ERROR_USED:		The hedep device is already in use.
  * @HINAWA_SND_UNIT_ERROR_OPENED:	The instance is already associated to unit by opening hwdep
  *					character device.
  * @HINAWA_SND_UNIT_ERROR_NOT_OPENED:	The instance is not associated to unit yet by opening hwdep
@@ -150,6 +151,7 @@ typedef enum {
  */
 typedef enum {
 	HINAWA_SND_UNIT_ERROR_DISCONNECTED,
+	HINAWA_SND_UNIT_ERROR_USED,
 	HINAWA_SND_UNIT_ERROR_OPENED,
 	HINAWA_SND_UNIT_ERROR_NOT_OPENED,
 	HINAWA_SND_UNIT_ERROR_LOCKED,

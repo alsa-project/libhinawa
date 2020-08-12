@@ -34,6 +34,7 @@ G_DEFINE_QUARK(hinawa-snd-unit-error-quark, hinawa_snd_unit_error)
 
 static const char *const err_msgs[] = {
 	[HINAWA_SND_UNIT_ERROR_DISCONNECTED] = "The associated hwdep device is not available",
+	[HINAWA_SND_UNIT_ERROR_USED] = "The hedep device is already in use",
 	[HINAWA_SND_UNIT_ERROR_OPENED] = "The instance is already associated to unit",
 	[HINAWA_SND_UNIT_ERROR_NOT_OPENED] = "The instance is not associated to unit yet",
 	[HINAWA_SND_UNIT_ERROR_LOCKED] = "The associated hwdep device is already locked or kernel packet streaming runs",
@@ -253,6 +254,8 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 	if (priv->fd < 0) {
 		if (errno == ENODEV) {
 			generate_local_error(exception, HINAWA_SND_UNIT_ERROR_DISCONNECTED);
+		} else if (errno == EBUSY) {
+			generate_local_error(exception, HINAWA_SND_UNIT_ERROR_USED);
 		} else {
 			GFileError code = g_file_error_from_errno(errno);
 
