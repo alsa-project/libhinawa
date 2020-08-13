@@ -33,15 +33,25 @@ void hinawa_snd_unit_write(HinawaSndUnit *self, const void *buf, size_t length,
 void hinawa_snd_unit_ioctl(HinawaSndUnit *self, unsigned long request,
 			   void *arg, GError **exception);
 
+#if HAVE_SND_DICE
 void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 					 const void *buf, ssize_t len);
+#endif
+#if HAVE_SND_EFW
 void hinawa_snd_efw_handle_response(HinawaSndEfw *self,
 				    const void *buf, ssize_t len);
+#endif
+#if HAVE_SND_DG00X
 void hinawa_snd_dg00x_handle_msg(HinawaSndDg00x *self, const void *buf,
 				 ssize_t len);
+#endif
+#if HAVE_SND_MOTU
 void hinawa_snd_motu_handle_notification(HinawaSndMotu *self,
 					 const void *buf, ssize_t len);
+#endif
+#if HAVE_SND_TSCM
 void hinawa_snd_tscm_handle_control(HinawaSndTscm *self, const void *buf,
 				    ssize_t len);
+#endif
 
 #endif
