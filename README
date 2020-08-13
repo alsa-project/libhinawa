@@ -78,6 +78,14 @@ $ ninja install
 ($ ninja test)
 ```
 
+When working with gobject-introspection, `Hinawa-3.0.typelib` should be
+installed in your system girepository so that `libgirepository` can find
+it. Of course, your system LD should find ELF shared object for libhinawa2.
+Before installing, it's good to check path of the above and configure
+'--prefix' meson option appropriately. The environment variables,
+`GI_TYPELIB_PATH` and `LD_LIBRARY_PATH` are available for ad-hoc settings
+of the above as well.
+
 When disabling object-introspection support, use `-Dgir=false` for meson command.
 
 ## How to refer document
