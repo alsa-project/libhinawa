@@ -48,6 +48,17 @@ struct _HinawaFwReq {
 
 struct _HinawaFwReqClass {
 	GObjectClass parent_class;
+
+	/**
+	 * HinawaFwReqClass::responded:
+	 * @self: A #HinawaFwReq.
+	 * @rcode: One of #HinawaFwRcode.
+	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for
+	 *	   byte data of response subaction for transaction.
+	 * @frame_size: The number of elements of the array.
+	 */
+	void (*responded)(HinawaFwReq *self, HinawaFwRcode rcode,
+			  const guint8 *frame, guint frame_size);
 };
 
 GType hinawa_fw_req_get_type(void) G_GNUC_CONST;
