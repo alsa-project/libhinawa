@@ -4,6 +4,7 @@
 #include <sys/ioctl.h>
 
 #include "internal.h"
+#include "hinawa_sigs_marshal.h"
 
 /**
  * SECTION:fw_req
@@ -104,6 +105,12 @@ static void fw_req_finalize(GObject *obj)
 	G_OBJECT_CLASS(hinawa_fw_req_parent_class)->finalize(obj);
 }
 
+enum fw_req_sig_type {
+	FW_REQ_SIG_TYPE_RESPONDED = 1,
+	FW_REQ_SIG_TYPE_COUNT,
+};
+static guint fw_req_sigs[FW_REQ_SIG_TYPE_COUNT] = { 0 };
+
 static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
@@ -122,6 +129,28 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 	g_object_class_install_properties(gobject_class,
 					  FW_REQ_PROP_TYPE_COUNT,
 					  fw_req_props);
+
+	/**
+	 * HinawaFwReq::responded:
+	 * @self: A #HinawaFwReq.
+	 * @rcode: One of #HinawaFwRcode.
+	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for
+	 *	   byte data of response subaction for transaction.
+	 * @frame_size: The number of elements of the array.
+	 *
+	 * When the unit transfers asynchronous packet as response subaction for the transaction,
+	 * and the process successfully reads the content of packet from Linux firewire subsystem,
+	 * the ::responded signal handler is called.
+	 */
+	fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED] =
+		g_signal_new("responded",
+			     G_OBJECT_CLASS_TYPE(klass),
+			     G_SIGNAL_RUN_LAST,
+			     0,
+			     NULL, NULL,
+			     hinawa_sigs_marshal_VOID__ENUM_POINTER_UINT,
+			     G_TYPE_NONE,
+			     3, HINAWA_TYPE_FW_RCODE, G_TYPE_POINTER, G_TYPE_UINT);
 }
 
 static void hinawa_fw_req_init(HinawaFwReq *self)
