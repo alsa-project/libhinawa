@@ -338,6 +338,9 @@ void hinawa_fw_req_handle_response(HinawaFwReq *self,
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 	priv = hinawa_fw_req_get_instance_private(self);
 
+	g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED], 0,
+		      event->rcode, event->data, event->length);
+
 	g_mutex_lock(&priv->mutex);
 
 	priv->rcode = event->rcode;
