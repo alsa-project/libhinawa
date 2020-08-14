@@ -110,4 +110,5 @@ HINAWA_2_1_0 {
     "hinawa_snd_efw_error_quark";
 
     "hinawa_fw_req_transaction_async";
+    "hinawa_fw_req_transaction_sync";
 } HINAWA_2_0_0;

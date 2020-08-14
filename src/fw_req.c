@@ -261,6 +261,134 @@ void hinawa_fw_req_transaction_async(HinawaFwReq *self, HinawaFwNode *node,
 	hinawa_fw_node_ioctl(node, FW_CDEV_IOC_SEND_REQUEST, &req, exception);
 }
 
+struct waiter {
+	guint rcode;
+	guint8 *frame;
+	gsize length;
+	GCond cond;
+	GMutex mutex;
+};
+
+static void handle_responded_signal(HinawaFwReq *self, HinawaFwRcode rcode, const guint8 *frame,
+				    guint frame_size, gpointer user_data)
+{
+	struct waiter *w = (struct waiter *)user_data;
+
+	g_mutex_lock(&w->mutex);
+
+	w->rcode = rcode;
+
+	w->length = MIN(w->length, frame_size);
+	memcpy(w->frame, frame, w->length);
+
+	// Waken a thread of an user application.
+	g_cond_signal(&w->cond);
+
+	g_mutex_unlock(&w->mutex);
+}
+
+/**
+ * hinawa_fw_req_transaction_sync:
+ * @self: A #HinawaFwReq.
+ * @node: A #HinawaFwNode.
+ * @tcode: A transaction code of HinawaFwTcode.
+ * @addr: A destination address of target device
+ * @length: The range of address in byte unit.
+ * @frame: (array length=frame_size)(inout): An array with elements for byte
+ *	   data. Callers should give it for buffer with enough space against the
+ *	   request since this library performs no reallocation. Due to the
+ *	   reason, the value of this argument should point to the pointer to the
+ *	   array and immutable. The content of array is mutable for read and
+ *	   lock transaction.
+ * @frame_size: The size of array in byte unit. The value of this argument
+ *		should point to the numerical number and mutable for read and
+ *		lock transaction.
+ * @timeout_ms: The timeout to wait for response subaction of the transaction since request
+ *		subaction is initiated, in milliseconds.
+ * @exception: A #GError. Error can be generated with two domains; #hinawa_fw_node_error_quark(),
+ *	       and #hinawa_fw_req_error_quark().
+ *
+ * Execute request subaction of transaction to the given node according to given code, then wait
+ * for response subaction within the given timeout. The ::timeout property of instance is ignored.
+ *
+ * Since: 2.1.
+ */
+void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
+			       HinawaFwTcode tcode, guint64 addr, gsize length,
+			       guint8 *const *frame, gsize *frame_size, guint timeout_ms,
+			       GError **exception)
+{
+	gulong handler_id;
+	struct waiter w;
+	guint64 expiration;
+
+	g_return_if_fail(HINAWA_IS_FW_REQ(self));
+
+	// This predicates against suprious wakeup.
+	w.rcode = G_MAXUINT;
+	w.frame = *frame;
+	w.length = *frame_size;
+	g_cond_init(&w.cond);
+	g_mutex_init(&w.mutex);
+
+        handler_id = g_signal_connect(self, "responded", (GCallback)handle_responded_signal, &w);
+
+	// Timeout is set in advance as a parameter of this object.
+	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
+
+	g_object_ref(node);
+	hinawa_fw_req_transaction_async(self, node, tcode, addr, length, frame, frame_size,
+					exception);
+	if (*exception != NULL) {
+		g_signal_handler_disconnect(self, handler_id);
+		g_object_unref(node);
+		return;
+	}
+
+	g_mutex_lock(&w.mutex);
+	while (w.rcode == G_MAXUINT) {
+		// Wait for a response with timeout, waken by the response handler.
+		if (!g_cond_wait_until(&w.cond, &w.mutex, expiration))
+			break;
+	}
+	g_signal_handler_disconnect(self, handler_id);
+	g_cond_clear(&w.cond);
+	g_mutex_unlock(&w.mutex);
+
+	// Always for safe.
+	hinawa_fw_node_invalidate_transaction(node, self);
+	g_object_unref(node);
+
+	if (w.rcode == G_MAXUINT) {
+		generate_local_error(exception, HINAWA_FW_RCODE_CANCELLED);
+		return;
+	}
+
+	if (w.rcode != RCODE_COMPLETE) {
+		switch (w.rcode) {
+		case RCODE_COMPLETE:
+		case RCODE_CONFLICT_ERROR:
+		case RCODE_DATA_ERROR:
+		case RCODE_TYPE_ERROR:
+		case RCODE_ADDRESS_ERROR:
+		case RCODE_SEND_ERROR:
+		case RCODE_CANCELLED:
+		case RCODE_BUSY:
+		case RCODE_GENERATION:
+		case RCODE_NO_ACK:
+			break;
+		default:
+			w.rcode = HINAWA_FW_RCODE_INVALID;
+			break;
+		}
+
+		generate_local_error(exception, w.rcode);
+		return;
+	}
+
+	*frame_size = w.length;
+}
+
 /**
  * hinawa_fw_req_transaction:
  * @self: A #HinawaFwReq.
