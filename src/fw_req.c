@@ -174,6 +174,94 @@ HinawaFwReq *hinawa_fw_req_new(void)
 }
 
 /**
+ * hinawa_fw_req_transaction_async:
+ * @self: A #HinawaFwReq.
+ * @node: A #HinawaFwNode.
+ * @tcode: A transaction code of HinawaFwTcode.
+ * @addr: A destination address of target device
+ * @length: The range of address in byte unit.
+ * @frame: (array length=frame_size)(inout): An array with elements for byte
+ *	   data. Callers should give it for buffer with enough space against the
+ *	   request since this library performs no reallocation. Due to the
+ *	   reason, the value of this argument should point to the pointer to the
+ *	   array and immutable. The content of array is mutable for read and
+ *	   lock transaction.
+ * @frame_size: The size of array in byte unit. The value of this argument
+ *		should point to the numerical number and mutable for read and
+ *		lock transaction.
+ * @exception: A #GError. Error can be generated with two domains; #hinawa_fw_node_error_quark(),
+ *	       and #hinawa_fw_req_error_quark().
+ *
+ * Execute request subaction of transactions to the given node according to given code. When the
+ * response subaction arrives and read the contents, ::responded signal handler is called as long
+ * as event dispatcher runs.
+ *
+ * Since: 2.1.
+ */
+void hinawa_fw_req_transaction_async(HinawaFwReq *self, HinawaFwNode *node,
+				     HinawaFwTcode tcode, guint64 addr, gsize length,
+				     guint8 *const *frame, gsize *frame_size,
+				     GError **exception)
+{
+	struct fw_cdev_send_request req = {0};
+	guint64 generation;
+
+	g_return_if_fail(HINAWA_IS_FW_REQ(self));
+	g_return_if_fail(length > 0);
+	g_return_if_fail(frame != NULL);
+	g_return_if_fail(frame_size != NULL && *frame_size > 0);
+	g_return_if_fail(exception == NULL || *exception == NULL);
+
+	// Should be aligned to quadlet.
+	if (tcode == HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST ||
+	    tcode == HINAWA_FW_TCODE_READ_QUADLET_REQUEST ||
+	    tcode == HINAWA_FW_TCODE_LOCK_MASK_SWAP ||
+	    tcode == HINAWA_FW_TCODE_LOCK_COMPARE_SWAP ||
+	    tcode == HINAWA_FW_TCODE_LOCK_FETCH_ADD ||
+	    tcode == HINAWA_FW_TCODE_LOCK_LITTLE_ADD ||
+	    tcode == HINAWA_FW_TCODE_LOCK_BOUNDED_ADD ||
+	    tcode == HINAWA_FW_TCODE_LOCK_WRAP_ADD ||
+	    tcode == HINAWA_FW_TCODE_LOCK_VENDOR_DEPENDENT)
+		g_return_if_fail(!(addr & 0x3) && !(length & 0x3));
+
+	// Should have enough space for read/written data.
+	if (tcode == HINAWA_FW_TCODE_READ_QUADLET_REQUEST ||
+	    tcode == HINAWA_FW_TCODE_READ_BLOCK_REQUEST ||
+	    tcode == HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST ||
+	    tcode == HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST) {
+		g_return_if_fail(*frame_size >= length);
+	} else if (tcode == HINAWA_FW_TCODE_LOCK_MASK_SWAP ||
+		   tcode == HINAWA_FW_TCODE_LOCK_COMPARE_SWAP ||
+		   tcode == HINAWA_FW_TCODE_LOCK_FETCH_ADD ||
+		   tcode == HINAWA_FW_TCODE_LOCK_LITTLE_ADD ||
+		   tcode == HINAWA_FW_TCODE_LOCK_BOUNDED_ADD ||
+		   tcode == HINAWA_FW_TCODE_LOCK_WRAP_ADD ||
+		   tcode == HINAWA_FW_TCODE_LOCK_VENDOR_DEPENDENT) {
+		g_return_if_fail(*frame_size >= length * 2);
+		length *= 2;
+	} else {
+		// Not supported due to no test.
+		g_return_if_reached();
+	}
+
+	// Get unit properties.
+	g_object_get(G_OBJECT(node), "generation", &generation, NULL);
+
+	// Setup a transaction structure.
+	req.tcode = tcode;
+	req.length = length;
+	req.offset = addr;
+	req.closure = (guint64)self;
+	req.generation = generation;
+
+	if (tcode != TCODE_READ_QUADLET_REQUEST && tcode != TCODE_READ_BLOCK_REQUEST)
+		req.data = (guint64)(*frame);
+
+	// Send this transaction.
+	hinawa_fw_node_ioctl(node, FW_CDEV_IOC_SEND_REQUEST, &req, exception);
+}
+
+/**
  * hinawa_fw_req_transaction:
  * @self: A #HinawaFwReq.
  * @node: A #HinawaFwNode.
