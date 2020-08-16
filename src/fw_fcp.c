@@ -251,6 +251,118 @@ void hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
 	g_object_unref(req);
 }
 
+struct waiter {
+	guint8 *frame;
+	guint frame_size;
+	GCond cond;
+	GMutex mutex;
+};
+
+static void handle_responded_signal(HinawaFwFcp *self, const guint8 *frame, guint frame_size,
+				    gpointer user_data)
+{
+	struct waiter *w = (struct waiter *)user_data;
+
+	g_mutex_lock(&w->mutex);
+
+	if (w->frame[1] == frame[1] && w->frame[2] == frame[2]) {
+		if (frame_size <= w->frame_size)
+			memcpy(w->frame, frame, frame_size);
+		w->frame_size = frame_size;
+
+		g_cond_signal(&w->cond);
+	}
+
+	g_mutex_unlock(&w->mutex);
+}
+
+/**
+ * hinawa_fw_fcp_avc_transaction:
+ * @self: A #HinawaFwFcp.
+ * @cmd: (array length=cmd_size)(in): An array with elements for request byte data. The value of
+ *	 this argument should point to the array and immutable.
+ * @cmd_size: The size of array for request in byte unit.
+ * @resp: (array length=resp_size)(inout): An array with elements for response byte data. Callers
+ *	  should give it for buffer with enough space against the request since this library
+ *	  performs no reallocation. Due to the reason, the value of this argument should point to
+ *	  the pointer to the array and immutable. The content of array is mutable.
+ * @resp_size: The size of array for response in byte unit. The value of this argument should point to
+ *	       the numerical number and mutable.
+ * @timeout_ms: The timeout to wait for response transaction since command transactions finishes.
+ * @exception: A #GError. Error can be generated with four domains; #hinawa_fw_node_error_quark(),
+ *	       #hinawa_fw_req_error_quark(), and #hinawa_fw_fcp_error_quark().
+ *
+ * Finish the pair of AV/C command and response transactions. The timeout_ms parameter is
+ * used to wait for response transaction since the command transaction is initiated, ignoring
+ * ::timeout property of instance. The timeout is not expanded in the case that AV/C INTERIM status
+ * is arrived, thus the caller should expand the timeout in advance for the case.
+ *
+ * Since: 2.1.
+ */
+void hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
+				   guint8 *const *resp, gsize *resp_size, guint timeout_ms,
+				   GError **exception)
+{
+	gulong handler_id;
+	struct waiter w = {0};
+	gint64 expiration;
+
+	g_return_if_fail(HINAWA_IS_FW_FCP(self));
+	g_return_if_fail(cmd != NULL);
+	g_return_if_fail(cmd_size > 2 && cmd_size < FCP_MAXIMUM_FRAME_BYTES);
+	g_return_if_fail(resp != NULL);
+	g_return_if_fail(resp_size != NULL && *resp_size > 0);
+	g_return_if_fail(exception == NULL || *exception == NULL);
+
+	w.frame = *resp;
+	w.frame_size = *resp_size;
+	g_cond_init(&w.cond);
+	g_mutex_init(&w.mutex);
+
+	// This predicates against suprious wakeup.
+	w.frame[0] = 0xff;
+	// The two bytes are used to match response and request.
+	w.frame[1] = cmd[1];
+	w.frame[2] = cmd[2];
+	handler_id = g_signal_connect(self, "responded", (GCallback)handle_responded_signal, &w);
+	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
+
+	g_mutex_lock(&w.mutex);
+
+	// Finish transaction for command frame.
+	hinawa_fw_fcp_command(self, cmd, cmd_size, timeout_ms, exception);
+	if (*exception)
+		goto end;
+deferred:
+	while (w.frame[0] == 0xff) {
+		// NOTE: Timeout at bus-reset, illegally.
+		if (!g_cond_wait_until(&w.cond, &w.mutex, expiration))
+			break;
+	}
+
+	if (w.frame[0] == 0xff) {
+		generate_local_error(exception, HINAWA_FW_FCP_ERROR_TIMEOUT);
+	} else if (w.frame[0] == AVC_STATUS_INTERIM) {
+		// It's a deffered transaction, wait again.
+		w.frame[0] = 0x00;
+		w.frame_size = *resp_size;
+		// Although the timeout is infinite in 1394 TA specification,
+		// use the finite value for safe.
+		goto deferred;
+	} else if (w.frame_size > *resp_size) {
+		generate_local_error(exception, HINAWA_FW_FCP_ERROR_LARGE_RESP);
+	} else {
+		*resp_size = w.frame_size;
+	}
+end:
+	g_signal_handler_disconnect(self, handler_id);
+
+	g_mutex_unlock(&w.mutex);
+
+	g_cond_clear(&w.cond);
+	g_mutex_clear(&w.mutex);
+}
+
 /**
  * hinawa_fw_fcp_transaction:
  * @self: A #HinawaFwFcp.
