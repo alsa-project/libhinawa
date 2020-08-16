@@ -3,6 +3,7 @@
 #include <errno.h>
 
 #include "internal.h"
+#include "hinawa_sigs_marshal.h"
 
 /**
  * SECTION:snd_efw
@@ -65,9 +66,39 @@ struct _HinawaSndEfwPrivate {
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndEfw, hinawa_snd_efw, HINAWA_TYPE_SND_UNIT)
 
+enum efw_sig_type {
+	EFW_SIG_TYPE_RESPONDED = 1,
+	EFW_SIG_TYPE_COUNT,
+};
+static guint efw_sigs[EFW_SIG_TYPE_COUNT] = { 0 };
+
 static void hinawa_snd_efw_class_init(HinawaSndEfwClass *klass)
 {
-	return;
+	/**
+	 * HinawaSndEfw::responded:
+	 * @self: A #HinawaSndEfw.
+	 * @status: One of #HinawaSndEfwStatus.
+	 * @seqnum: The sequence number of response.
+	 * @category: The value of category field in the response.
+	 * @command: The value of command field in the response.
+	 * @frame: (array length=frame_size)(element-type guint32): The array with elements for
+	 *	   quadlet data of response for Echo Fireworks protocol.
+	 * @frame_size: The number of elements of the array.
+	 *
+	 * When the unit transfers asynchronous packet as response for Echo Audio Fireworks
+	 * protocol, and the process successfully reads the content of response from ALSA
+	 * Fireworks driver, the ::responded signal handler is called with parameters of the
+	 * response.
+	 */
+	efw_sigs[EFW_SIG_TYPE_RESPONDED] =
+		g_signal_new("responded",
+			     G_OBJECT_CLASS_TYPE(klass),
+			     G_SIGNAL_RUN_LAST,
+			     0,
+			     NULL, NULL,
+			     hinawa_sigs_marshal_VOID__ENUM_UINT_UINT_UINT_POINTER_UINT,
+			     G_TYPE_NONE,
+			     6, HINAWA_TYPE_SND_EFW_STATUS, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_POINTER, G_TYPE_UINT);
 }
 
 static void hinawa_snd_efw_init(HinawaSndEfw *self)
