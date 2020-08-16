@@ -94,7 +94,7 @@ static void hinawa_snd_efw_class_init(HinawaSndEfwClass *klass)
 		g_signal_new("responded",
 			     G_OBJECT_CLASS_TYPE(klass),
 			     G_SIGNAL_RUN_LAST,
-			     0,
+			     G_STRUCT_OFFSET(HinawaSndEfwClass, responded),
 			     NULL, NULL,
 			     hinawa_sigs_marshal_VOID__ENUM_UINT_UINT_UINT_POINTER_UINT,
 			     G_TYPE_NONE,
