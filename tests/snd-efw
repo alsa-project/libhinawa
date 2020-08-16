@@ -16,7 +16,9 @@ methods = (
     'open',
     'transaction',
 )
-vmethods = ()
+vmethods = (
+    'do_responded',
+)
 signals = (
     'responded',
 )

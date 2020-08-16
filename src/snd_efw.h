@@ -47,6 +47,25 @@ struct _HinawaSndEfw {
 
 struct _HinawaSndEfwClass {
 	HinawaSndUnitClass parent_class;
+
+	/**
+	 * HinawaSndEfwClass::responded:
+	 * @self: A #HinawaSndEfw.
+	 * @status: One of #HinawaSndEfwStatus.
+	 * @seqnum: The sequence number of response.
+	 * @category: The value of category field in the response.
+	 * @command: The value of command field in the response.
+	 * @frame: (array length=frame_size)(element-type guint32): The array with elements for
+	 *	   quadlet data of response for Echo Fireworks protocol.
+	 * @frame_size: The number of elements of the array.
+	 *
+	 * When the unit transfers asynchronous packet as response for Echo Audio Fireworks
+	 * protocol, and the process successfully reads the content of response from ALSA
+	 * Fireworks driver, the ::responded signal handler is called with parameters of the
+	 * response.
+	 */
+	void (*responded)(HinawaSndEfw *self, HinawaSndEfwStatus status, guint seqnum,
+			  guint category, guint command, const guint32 *frame, guint frame_size);
 };
 
 GType hinawa_snd_efw_get_type(void) G_GNUC_CONST;
