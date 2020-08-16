@@ -50,18 +50,8 @@ static const char *const efw_status_names[] = {
 #define generate_local_error(exception, code)							\
 	g_set_error_literal(exception, HINAWA_SND_EFW_ERROR, code, efw_status_names[code])
 
-struct efw_transaction {
-	guint seqnum;
-
-	struct snd_efw_transaction *frame;
-
-	GCond cond;
-};
-
 struct _HinawaSndEfwPrivate {
 	guint seqnum;
-
-	GList *transactions;
 	GMutex lock;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndEfw, hinawa_snd_efw, HINAWA_TYPE_SND_UNIT)
@@ -144,7 +134,6 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
 
 	priv = hinawa_snd_efw_get_instance_private(self);
 	priv->seqnum = 0;
-	priv->transactions = NULL;
 	g_mutex_init(&priv->lock);
 }
 
@@ -348,7 +337,8 @@ end:
  * @exception: A #GError. Error can be generated with three domains; #hinawa_snd_unit_error_quark(),
  *	       and #hinawa_snd_efw_error_quark().
  *
- * Execute transaction according to Echo Fireworks Transaction protocol.
+ * Transfer request of transaction according to Echo Fireworks Transaction protocol, then wait for
+ * the response of transaction within 200 millisecond timeout.
  *
  * Since: 1.4.
  */
@@ -358,147 +348,31 @@ void hinawa_snd_efw_transaction(HinawaSndEfw *self,
 				guint32 *const *params, gsize *param_count,
 				GError **exception)
 {
-	HinawaSndEfwPrivate *priv;
-	struct efw_transaction trans;
-	unsigned int quads;
-	gint64 expiration;
-	unsigned int i;
-	guint32 status;
-
-	g_return_if_fail(HINAWA_IS_SND_EFW(self));
-	g_return_if_fail(params != NULL);
-	g_return_if_fail(param_count != NULL && *param_count > 0);
-	g_return_if_fail(exception == NULL || *exception == NULL);
-
-	priv = hinawa_snd_efw_get_instance_private(self);
-
-	trans.frame = g_malloc0(MAXIMUM_FRAME_BYTES);
-
-	quads = sizeof(*trans.frame) / 4;
-	if (args)
-		quads += arg_count;
-
-	// Fill transaction frame.
-	trans.frame->seqnum = GUINT32_TO_BE(priv->seqnum);
-	trans.frame->length = GUINT32_TO_BE(quads);
-	trans.frame->version = GUINT32_TO_BE(MINIMUM_SUPPORTED_VERSION);
-	trans.frame->category = GUINT32_TO_BE(category);
-	trans.frame->command = GUINT32_TO_BE(command);
-	for (i = 0; i < arg_count; ++i)
-		trans.frame->params[i] = GUINT32_TO_BE(args[i]);
-
-	// Increment the sequence number for next transaction.
-	priv->seqnum += 2;
-	if (priv->seqnum > SND_EFW_TRANSACTION_USER_SEQNUM_MAX)
-		priv->seqnum = 0;
-
-	// This predicates against suprious wakeup.
-	trans.frame->status = 0xffffffff;
-	g_mutex_lock(&priv->lock);
-	g_cond_init(&trans.cond);
-
-	// Insert this entry to list and enter critical section.
-	priv->transactions = g_list_append(priv->transactions, &trans);
-
-	// Send this request frame.
-	expiration = g_get_monotonic_time() + 200 * G_TIME_SPAN_MILLISECOND;
-	hinawa_snd_unit_write(&self->parent_instance, trans.frame,
-			      quads * sizeof(__be32), exception);
-	if (*exception != NULL)
-		goto end;
-
-	// Wait corresponding response till timeout and temporarily leave the
-	// critical section.
-	while (trans.frame->status == 0xffffffff) {
-		if (!g_cond_wait_until(&trans.cond, &priv->lock, expiration))
-			break;
-	}
-	if (trans.frame->status == 0xffffffff) {
-		generate_local_error(exception, HINAWA_SND_EFW_STATUS_TIMEOUT);
-		goto end;
-	}
-
-	// Check transaction status.
-	status = GUINT32_FROM_BE(trans.frame->status);
-	if (status != HINAWA_SND_EFW_STATUS_OK) {
-		if (status > HINAWA_SND_EFW_STATUS_BAD_PARAMETER)
-			status = HINAWA_SND_EFW_STATUS_BAD;
-		generate_local_error(exception, status);
-		goto end;
-	}
-
-	// Check transaction headers.
-	if (GUINT32_FROM_BE(trans.frame->version) < MINIMUM_SUPPORTED_VERSION ||
-	    GUINT32_FROM_BE(trans.frame->category) != category ||
-	    GUINT32_FROM_BE(trans.frame->command) != command) {
-		generate_local_error(exception, HINAWA_SND_EFW_STATUS_BAD);
-		goto end;
-	}
-
-	// Check size.
-	quads = GUINT32_FROM_BE(trans.frame->length) - sizeof(*trans.frame) / 4;
-	if (quads > *param_count) {
-		generate_local_error(exception, HINAWA_SND_EFW_STATUS_LARGE_RESP);
-		goto end;
-
-	}
-
-	// Copy parameters.
-	for (i = 0; i < quads; ++i)
-		(*params)[i] = GUINT32_FROM_BE(trans.frame->params[i]);
-	*param_count = quads;
-end:
-	// Remove thie entry from list and leave the critical section.
-	priv->transactions =
-			g_list_remove(priv->transactions, (gpointer *)&trans);
-	g_mutex_unlock(&priv->lock);
-	g_cond_clear(&trans.cond);
-
-	g_free(trans.frame);
+	hinawa_snd_efw_transaction_sync(self, category, command, args, arg_count,
+					params, param_count, 200, exception);
 }
 
 void hinawa_snd_efw_handle_response(HinawaSndEfw *self,
 				    const void *buf, ssize_t len)
 {
-	HinawaSndEfwPrivate *priv;
 	struct snd_firewire_event_efw_response *event =
 				(struct snd_firewire_event_efw_response *)buf;
 	guint32 *responses = event->response;
 
 	g_return_if_fail(HINAWA_IS_SND_EFW(self));
-	priv = hinawa_snd_efw_get_instance_private(self);
 
 	while (len > 0) {
 		struct snd_efw_transaction *frame =  (struct snd_efw_transaction *)responses;
-		struct efw_transaction *trans = NULL;
 		guint32 quadlets;
 		guint32 seqnum;
 		HinawaSndEfwStatus status;
 		guint category;
 		guint command;
 		guint param_count;
-		GList *entry;
 		int i;
 
 		quadlets = GUINT32_FROM_BE(frame->length);
 		seqnum = GUINT32_FROM_BE(frame->seqnum);
-
-		g_mutex_lock(&priv->lock);
-
-		for (entry = priv->transactions;
-		     entry != NULL; entry = entry->next) {
-			trans = (struct efw_transaction *)entry->data;
-
-			if (seqnum == trans->seqnum)
-				break;
-		}
-
-		if (trans != NULL) {
-			memcpy(trans->frame, frame, quadlets * 4);
-			g_cond_signal(&trans->cond);
-		}
-
-		g_mutex_unlock(&priv->lock);
 
 		status = GUINT32_FROM_BE(frame->status);
 		if (status > HINAWA_SND_EFW_STATUS_BAD_PARAMETER)
