@@ -16,6 +16,8 @@ props = (
 methods = (
     'new',
     'transaction',
+    'transaction_async',
+    'transaction_sync',
 )
 vmethods = (
     'do_responded',
