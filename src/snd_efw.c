@@ -281,39 +281,56 @@ void hinawa_snd_efw_handle_response(HinawaSndEfw *self,
 	HinawaSndEfwPrivate *priv;
 	struct snd_firewire_event_efw_response *event =
 				(struct snd_firewire_event_efw_response *)buf;
-	guint *responses = event->response;
-
-	struct snd_efw_transaction *resp_frame;
-	struct efw_transaction *trans;
-
-	unsigned int quadlets;
-	GList *entry;
+	guint32 *responses = event->response;
 
 	g_return_if_fail(HINAWA_IS_SND_EFW(self));
 	priv = hinawa_snd_efw_get_instance_private(self);
 
 	while (len > 0) {
-		resp_frame =  (struct snd_efw_transaction *)responses;
+		struct snd_efw_transaction *frame =  (struct snd_efw_transaction *)responses;
+		struct efw_transaction *trans = NULL;
+		guint32 quadlets;
+		guint32 seqnum;
+		HinawaSndEfwStatus status;
+		guint category;
+		guint command;
+		guint param_count;
+		GList *entry;
+		int i;
+
+		quadlets = GUINT32_FROM_BE(frame->length);
+		seqnum = GUINT32_FROM_BE(frame->seqnum);
 
 		g_mutex_lock(&priv->lock);
 
-		trans = NULL;
 		for (entry = priv->transactions;
 		     entry != NULL; entry = entry->next) {
 			trans = (struct efw_transaction *)entry->data;
 
-			if (GUINT32_FROM_BE(resp_frame->seqnum) ==
-								trans->seqnum)
+			if (seqnum == trans->seqnum)
 				break;
 		}
 
-		quadlets = GUINT32_FROM_BE(resp_frame->length);
 		if (trans != NULL) {
-			memcpy(trans->frame, resp_frame, quadlets * 4);
+			memcpy(trans->frame, frame, quadlets * 4);
 			g_cond_signal(&trans->cond);
 		}
 
 		g_mutex_unlock(&priv->lock);
+
+		status = GUINT32_FROM_BE(frame->status);
+		if (status > HINAWA_SND_EFW_STATUS_BAD_PARAMETER)
+			status = HINAWA_SND_EFW_STATUS_BAD;
+
+		category = GUINT32_FROM_BE(frame->category);
+		command = GUINT32_FROM_BE(frame->command);
+
+		param_count = quadlets - sizeof(*frame) / sizeof(guint32);
+		for (i = 0; i < param_count; ++i)
+			frame->params[i] = GUINT32_FROM_BE(frame->params[i]);
+
+		g_signal_emit(self, efw_sigs[EFW_SIG_TYPE_RESPONDED], 0,
+			      status, seqnum, category, command, frame->params, param_count);
 
 		responses += quadlets;
 		len -= quadlets * sizeof(guint);
