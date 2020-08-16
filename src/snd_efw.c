@@ -149,6 +149,68 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
 }
 
 /**
+ * hinawa_snd_efw_transaction_async:
+ * @self: A #HinawaSndEfw.
+ * @category: One of category for the transaction.
+ * @command: One of commands for the transaction.
+ * @args: (array length=arg_count)(in)(nullable): An array with elements for quadlet data as
+ *	  arguments for command.
+ * @arg_count: The number of quadlets in the args array.
+ * @resp_seqnum: (out): The sequence number for response transaction;
+ * @exception: A #GError. Error can be generated with domain of #hinawa_snd_unit_error_quark().
+ *
+ * Transfer asynchronous transaction for command frame of Echo Fireworks protocol. When receiving
+ * asynchronous transaction for response frame, :responded GObject signal is emitted.
+ *
+ * Since: 2.1.
+ */
+void hinawa_snd_efw_transaction_async(HinawaSndEfw *self, guint category, guint command,
+				      const guint32 *args, gsize arg_count, guint32 *resp_seqnum,
+				      GError **exception)
+{
+	HinawaSndEfwPrivate *priv;
+	struct snd_efw_transaction *frame;
+	unsigned int quads;
+	int i;
+
+	g_return_if_fail(HINAWA_IS_SND_EFW(self));
+	g_return_if_fail(args == NULL || arg_count > 0);
+	g_return_if_fail(sizeof(*args) * arg_count + sizeof(*frame) < MAXIMUM_FRAME_BYTES);
+	g_return_if_fail(resp_seqnum != NULL);
+	g_return_if_fail(exception == NULL || *exception == NULL);
+
+	priv = hinawa_snd_efw_get_instance_private(self);
+
+	quads = sizeof(*frame) / 4;
+	if (args)
+		quads += arg_count;
+
+	frame = g_malloc0(sizeof(guint32) * quads);
+
+	// Fill request frame for transaction.
+	frame->length = GUINT32_TO_BE(quads);
+	frame->version = GUINT32_TO_BE(MINIMUM_SUPPORTED_VERSION);
+	frame->category = GUINT32_TO_BE(category);
+	frame->command = GUINT32_TO_BE(command);
+	for (i = 0; i < arg_count; ++i)
+		frame->params[i] = GUINT32_TO_BE(args[i]);
+
+	// Increment the sequence number for next transaction.
+	g_mutex_lock(&priv->lock);
+	frame->seqnum = GUINT32_TO_BE(priv->seqnum);
+	*resp_seqnum = priv->seqnum + 1;
+	priv->seqnum += 2;
+	if (priv->seqnum > SND_EFW_TRANSACTION_USER_SEQNUM_MAX)
+		priv->seqnum = 0;
+	g_mutex_unlock(&priv->lock);
+
+	// Send this request frame.
+	hinawa_snd_unit_write(&self->parent_instance, frame, quads * sizeof(__be32), exception);
+
+	g_free(frame);
+}
+
+/**
  * hinawa_snd_efw_transaction:
  * @self: A #HinawaSndEfw.
  * @category: one of category for the transaction.
