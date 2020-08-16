@@ -344,6 +344,9 @@ static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode)
 	length = 0;
 	hinawa_fw_resp_get_req_frame(resp, &req_frame, &length);
 
+	g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0,
+		      req_frame, length);
+
 	/* Seek corresponding request. */
 	for (entry = priv->transactions; entry != NULL; entry = entry->next) {
 		trans = (struct fcp_transaction *)entry->data;
