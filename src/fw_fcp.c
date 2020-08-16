@@ -12,10 +12,11 @@
  * @Short_description: A FCP transaction executor to a FireWire unit
  * @include: fw_fcp.h
  *
- * A HinawaFwFcp supports Function Control Protocol (FCP) in IEC 61883-1.
- * Some types of transaction in 'AV/C Digital Interface Command Set General
- * Specification Version 4.2' (Sep 1 2004, 1394TA) requires low layer support,
- * thus this class has a code for them.
+ * A HinawaFwFcp supports Function Control Protocol (FCP) in IEC 61883-1, in which no way is defined
+ * to match response against command by the contents of frames. In 'AV/C Digital Interface Command
+ * Set General Specification Version 4.2' (Sep 1 2004, 1394TA), a pair of command and response is
+ * loosely matched by the contents of frames. For convenience, HinawaFwFcp supports synchronous API
+ * of command and response for AV/C specification.
  *
  * Any of transaction frames should be aligned to 8bit (byte).
  * This class is an application of #HinawaFwReq / #HinawaFwResp.
