@@ -210,6 +210,126 @@ void hinawa_snd_efw_transaction_async(HinawaSndEfw *self, guint category, guint 
 	g_free(frame);
 }
 
+struct waiter {
+	guint32 seqnum;
+
+	guint32 category;
+	guint32 command;
+	HinawaSndEfwStatus status;
+	guint32 *params;
+	gsize param_count;
+
+	GCond cond;
+	GMutex mutex;
+};
+
+static void handle_responded_signal(HinawaSndEfw *self, HinawaSndEfwStatus status, guint32 seqnum,
+				    guint category, guint command,
+				    const guint32 *params, guint32 param_count, gpointer user_data)
+{
+	struct waiter *w = (struct waiter *)user_data;
+
+	if (seqnum == w->seqnum) {
+		g_mutex_lock(&w->mutex);
+
+		if (category != w->category || command != w->command)
+			status = HINAWA_SND_EFW_STATUS_BAD;
+		w->status = status;
+
+		if (param_count > 0 && param_count <= w->param_count)
+			memcpy(w->params, params, param_count * sizeof(*params));
+		w->param_count = param_count;
+
+		g_cond_signal(&w->cond);
+
+		g_mutex_unlock(&w->mutex);
+	}
+}
+
+/**
+ * hinawa_snd_efw_transaction_sync:
+ * @self: A #HinawaSndEfw.
+ * @category: one of category for the transaction.
+ * @command: one of commands for the transaction.
+ * @args: (array length=arg_count)(in)(nullable): An array with elements for
+ *	  quadlet data as arguments for command.
+ * @arg_count: The number of quadlets in the args array.
+ * @params: (array length=param_count)(inout)(nullable): An array with elements for
+ *	    quadlet data to save parameters in response. Callers should give it
+ *	    for buffer with enough space against the request since this library
+ *	    performs no reallocation. Due to the reason, the value of this
+ *	    argument should point to the pointer to the array and immutable.
+ *	    The content of array is mutable for parameters in response.
+ * @param_count: The number of quadlets in the params array.
+ * @timeout_ms: The timeout to wait for response of the transaction since request is transferred in
+ *		milliseconds.
+ * @exception: A #GError. Error can be generated with three domains; #hinawa_snd_unit_error_quark(),
+ *	       and #hinawa_snd_efw_error_quark().
+ *
+ * Transfer asynchronous transaction for command frame of Echo Fireworks protocol, then wait
+ * asynchronous transaction for response frame within the given timeout.
+ *
+ * Since: 2.1.
+ */
+void hinawa_snd_efw_transaction_sync(HinawaSndEfw *self, guint category, guint command,
+				     const guint32 *args, gsize arg_count,
+				     guint32 *const *params, gsize *param_count,
+				     guint timeout_ms, GError **exception)
+{
+	gulong handler_id;
+	struct waiter w;
+	guint64 expiration;
+
+	g_return_if_fail(HINAWA_IS_SND_EFW(self));
+	g_return_if_fail(param_count != NULL);
+	g_return_if_fail(exception == NULL || *exception == NULL);
+
+	// This predicates against suprious wakeup.
+	w.status = 0xffffffff;
+	w.category = category;
+	w.command = command;
+	if (*param_count > 0)
+		w.params = *params;
+	else
+		w.params = NULL;
+	w.param_count = *param_count;
+	g_cond_init(&w.cond);
+	g_mutex_init(&w.mutex);
+
+	handler_id = g_signal_connect(self, "responded", (GCallback)handle_responded_signal, &w);
+
+	// Timeout is set in advance as a parameter of this object.
+	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
+
+	hinawa_snd_efw_transaction_async(self, category, command, args, arg_count, &w.seqnum,
+					 exception);
+	if (*exception != NULL) {
+		g_signal_handler_disconnect(self, handler_id);
+		goto end;
+	}
+
+	g_mutex_lock(&w.mutex);
+	while (w.status == 0xffffffff) {
+		// Wait for a response with timeout, waken by the response handler.
+		if (!g_cond_wait_until(&w.cond, &w.mutex, expiration))
+			break;
+	}
+	g_signal_handler_disconnect(self, handler_id);
+	g_mutex_unlock(&w.mutex);
+
+	if (w.status == 0xffffffff)
+		generate_local_error(exception, HINAWA_SND_EFW_STATUS_TIMEOUT);
+	else if (w.status != HINAWA_SND_EFW_STATUS_OK)
+		generate_local_error(exception, w.status);
+	else if (w.param_count > *param_count)
+		generate_local_error(exception, HINAWA_SND_EFW_STATUS_LARGE_RESP);
+	else
+		*param_count = w.param_count;
+end:
+	g_cond_clear(&w.cond);
+	g_mutex_clear(&w.mutex);
+}
+
 /**
  * hinawa_snd_efw_transaction:
  * @self: A #HinawaSndEfw.

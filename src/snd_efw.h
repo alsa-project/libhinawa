@@ -84,6 +84,11 @@ void hinawa_snd_efw_transaction(HinawaSndEfw *self,
 				guint32 *const *params, gsize *param_count,
 				GError **exception);
 
+void hinawa_snd_efw_transaction_sync(HinawaSndEfw *self, guint category, guint command,
+				     const guint32 *args, gsize arg_count,
+				     guint32 *const *params, gsize *param_count,
+				     guint timeout_ms, GError **exception);
+
 G_END_DECLS
 
 #endif
