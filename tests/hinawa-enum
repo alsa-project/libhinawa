@@ -80,7 +80,8 @@ snd_dice_error_enumerators = (
     'TIMEOUT',
 )
 
-snd_efw_error_enumerators = (
+snd_efw_status_enumerators = (
+    'OK',
     'BAD',
     'BAD_COMMAND',
     'COMM_ERR',
@@ -107,7 +108,7 @@ types = {
     Hinawa.FwFcpError: fw_fcp_error_enumerators,
     Hinawa.SndUnitError: snd_unit_error_enumerators,
     Hinawa.SndDiceError: snd_dice_error_enumerators,
-    Hinawa.SndEfwError: snd_efw_error_enumerators,
+    Hinawa.SndEfwStatus: snd_efw_status_enumerators,
 }
 
 for obj, types in types.items():
