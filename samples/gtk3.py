@@ -142,7 +142,7 @@ if unit.get_property('type') in fcp_types:
     request = bytes([0x01, 0xff, 0x19, 0x00, 0xff, 0xff, 0xff, 0xff])
     response = bytearray(8)
     try:
-        response = fcp.transaction(request, response)
+        response = fcp.avc_transaction(request, response, 100)
     except Exception as e:
         print(e)
         exit()
