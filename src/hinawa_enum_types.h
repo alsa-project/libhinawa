@@ -171,43 +171,45 @@ typedef enum {
 } HinawaSndDiceError;
 
 /**
- * HinawaSndEfwError:
- * @HINAWA_SND_EFW_ERROR_BAD:			The request or response includes invalid header.
- * @HINAWA_SND_EFW_ERROR_BAD_COMMAND:		The request includes invalid category or command.
- * @HINAWA_SND_EFW_ERROR_COMM_ERR:		The transaction fails due to communication error.
- * @HINAWA_SND_EFW_ERROR_BAD_QUAD_COUNT:	The number of quadlets in transaction is invalid.
- * @HINAWA_SND_EFW_ERROR_UNSUPPORTED:		The request is not supported.
- * @HINAWA_SND_EFW_ERROR_TIMEOUT:		The transaction is canceled due to response timeout.
- * @HINAWA_SND_EFW_ERROR_DSP_TIMEOUT:		The operation for DSP did not finish within timeout.
- * @HINAWA_SND_EFW_ERROR_BAD_RATE:		The request includes invalid value for sampling frequency.
- * @HINAWA_SND_EFW_ERROR_BAD_CLOCK:		The request includes invalid value for source of clock.
- * @HINAWA_SND_EFW_ERROR_BAD_CHANNEL:		The request includes invalid value for the number of channel.
- * @HINAWA_SND_EFW_ERROR_BAD_PAN:		The request includes invalid value for panning.
- * @HINAWA_SND_EFW_ERROR_FLASH_BUSY:		The on-board flash is busy and not operable.
- * @HINAWA_SND_EFW_ERROR_BAD_MIRROR:		The request includes invalid value for mirroring channel.
- * @HINAWA_SND_EFW_ERROR_BAD_LED:		The request includes invalid value for LED.
- * @HINAWA_SND_EFW_ERROR_BAD_PARAMETER:		The request includes invalid value of parameter.
- * @HINAWA_SND_EFW_ERROR_LARGE_RESP:		The size of response is larger than expected.
+ * HinawaSndEfwStatus:
+ * @HINAWA_SND_EFW_STATUS_OK:			The transaction finishes successfully.
+ * @HINAWA_SND_EFW_STATUS_BAD:			The request or response includes invalid header.
+ * @HINAWA_SND_EFW_STATUS_BAD_COMMAND:		The request includes invalid category or command.
+ * @HINAWA_SND_EFW_STATUS_COMM_ERR:		The transaction fails due to communication error.
+ * @HINAWA_SND_EFW_STATUS_BAD_QUAD_COUNT:	The number of quadlets in transaction is invalid.
+ * @HINAWA_SND_EFW_STATUS_UNSUPPORTED:		The request is not supported.
+ * @HINAWA_SND_EFW_STATUS_TIMEOUT:		The transaction is canceled due to response timeout.
+ * @HINAWA_SND_EFW_STATUS_DSP_TIMEOUT:		The operation for DSP did not finish within timeout.
+ * @HINAWA_SND_EFW_STATUS_BAD_RATE:		The request includes invalid value for sampling frequency.
+ * @HINAWA_SND_EFW_STATUS_BAD_CLOCK:		The request includes invalid value for source of clock.
+ * @HINAWA_SND_EFW_STATUS_BAD_CHANNEL:		The request includes invalid value for the number of channel.
+ * @HINAWA_SND_EFW_STATUS_BAD_PAN:		The request includes invalid value for panning.
+ * @HINAWA_SND_EFW_STATUS_FLASH_BUSY:		The on-board flash is busy and not operable.
+ * @HINAWA_SND_EFW_STATUS_BAD_MIRROR:		The request includes invalid value for mirroring channel.
+ * @HINAWA_SND_EFW_STATUS_BAD_LED:		The request includes invalid value for LED.
+ * @HINAWA_SND_EFW_STATUS_BAD_PARAMETER:	The request includes invalid value of parameter.
+ * @HINAWA_SND_EFW_STATUS_LARGE_RESP:		The size of response is larger than expected.
  *
- * A set of error code for GError with domain which equals to #hinawa_snd_efw_error_quark();
+ * A set of status code for Echo Audio Fireworks Transaction.
  */
 typedef enum {
-	HINAWA_SND_EFW_ERROR_BAD		= 1,
-	HINAWA_SND_EFW_ERROR_BAD_COMMAND	= 2,
-	HINAWA_SND_EFW_ERROR_COMM_ERR		= 3,
-	HINAWA_SND_EFW_ERROR_BAD_QUAD_COUNT	= 4,
-	HINAWA_SND_EFW_ERROR_UNSUPPORTED	= 5,
-	HINAWA_SND_EFW_ERROR_TIMEOUT		= 6,
-	HINAWA_SND_EFW_ERROR_DSP_TIMEOUT	= 7,
-	HINAWA_SND_EFW_ERROR_BAD_RATE		= 8,
-	HINAWA_SND_EFW_ERROR_BAD_CLOCK		= 9,
-	HINAWA_SND_EFW_ERROR_BAD_CHANNEL	= 10,
-	HINAWA_SND_EFW_ERROR_BAD_PAN		= 11,
-	HINAWA_SND_EFW_ERROR_FLASH_BUSY		= 12,
-	HINAWA_SND_EFW_ERROR_BAD_MIRROR		= 13,
-	HINAWA_SND_EFW_ERROR_BAD_LED		= 14,
-	HINAWA_SND_EFW_ERROR_BAD_PARAMETER	= 15,
-	HINAWA_SND_EFW_ERROR_LARGE_RESP,
-} HinawaSndEfwError;
+	HINAWA_SND_EFW_STATUS_OK		= 0,
+	HINAWA_SND_EFW_STATUS_BAD		= 1,
+	HINAWA_SND_EFW_STATUS_BAD_COMMAND	= 2,
+	HINAWA_SND_EFW_STATUS_COMM_ERR		= 3,
+	HINAWA_SND_EFW_STATUS_BAD_QUAD_COUNT	= 4,
+	HINAWA_SND_EFW_STATUS_UNSUPPORTED	= 5,
+	HINAWA_SND_EFW_STATUS_TIMEOUT		= 6,
+	HINAWA_SND_EFW_STATUS_DSP_TIMEOUT	= 7,
+	HINAWA_SND_EFW_STATUS_BAD_RATE		= 8,
+	HINAWA_SND_EFW_STATUS_BAD_CLOCK		= 9,
+	HINAWA_SND_EFW_STATUS_BAD_CHANNEL	= 10,
+	HINAWA_SND_EFW_STATUS_BAD_PAN		= 11,
+	HINAWA_SND_EFW_STATUS_FLASH_BUSY	= 12,
+	HINAWA_SND_EFW_STATUS_BAD_MIRROR	= 13,
+	HINAWA_SND_EFW_STATUS_BAD_LED		= 14,
+	HINAWA_SND_EFW_STATUS_BAD_PARAMETER	= 15,
+	HINAWA_SND_EFW_STATUS_LARGE_RESP,
+} HinawaSndEfwStatus;
 
 #endif
