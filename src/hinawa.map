@@ -114,4 +114,6 @@ HINAWA_2_1_0 {
 
     "hinawa_snd_efw_transaction_async";
     "hinawa_snd_efw_transaction_sync";
+
+    "hinawa_fw_fcp_command";
 } HINAWA_2_0_0;

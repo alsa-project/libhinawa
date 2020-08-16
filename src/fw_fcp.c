@@ -215,6 +215,43 @@ HinawaFwFcp *hinawa_fw_fcp_new(void)
 #define NOTIFY_ENOBUFS	1
 
 /**
+ * hinawa_fw_fcp_command:
+ * @self: A #HinawaFwFcp.
+ * @cmd: (array length=cmd_size): An array with elements for request byte data. The value of this
+ *	 argument should point to the array and immutable.
+ * @cmd_size: The size of array for request in byte unit.
+ * @timeout_ms: The timeout to wait for response subaction of transaction for command frame.
+ * @exception: A #GError. Error can be generated with four domains; #hinawa_fw_node_error_quark(),
+ *	       #hinawa_fw_req_error_quark().
+ *
+ * Transfer command frame for FCP. When receiving response frame for FCP, :responded signal is
+ * emitted.
+ *
+ * Since: 2.1.
+ */
+void hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
+			   guint timeout_ms, GError **exception)
+{
+	HinawaFwFcpPrivate *priv;
+	HinawaFwReq *req;
+
+	g_return_if_fail(HINAWA_IS_FW_FCP(self));
+	g_return_if_fail(cmd != NULL);
+	g_return_if_fail(cmd_size > 0 && cmd_size < FCP_MAXIMUM_FRAME_BYTES);
+	g_return_if_fail(exception == NULL || *exception == NULL);
+
+	priv = hinawa_fw_fcp_get_instance_private(self);
+
+	req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
+
+	// Finish transaction for command frame.
+	hinawa_fw_req_transaction_sync(req, priv->node, HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST,
+				       FCP_REQUEST_ADDR, cmd_size, (guint8 *const *)&cmd, &cmd_size,
+				       timeout_ms, exception);
+	g_object_unref(req);
+}
+
+/**
  * hinawa_fw_fcp_transaction:
  * @self: A #HinawaFwFcp.
  * @req_frame: (array length=req_frame_size)(in): An array with elements for

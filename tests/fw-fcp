@@ -19,6 +19,7 @@ methods = (
     'transaction',
     'bind',
     'unbind',
+    'command',
 )
 vmethods = (
     'do_responded',

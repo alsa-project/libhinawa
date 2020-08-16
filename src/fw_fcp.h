@@ -78,6 +78,9 @@ void hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node,
 			GError **exception);
 void hinawa_fw_fcp_unbind(HinawaFwFcp *self);
 
+void hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
+			   guint timeout_ms, GError **exception);
+
 G_END_DECLS
 
 #endif
