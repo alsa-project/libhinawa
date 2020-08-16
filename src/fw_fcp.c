@@ -186,7 +186,7 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
                 g_signal_new("responded",
                              G_OBJECT_CLASS_TYPE(klass),
                              G_SIGNAL_RUN_LAST,
-                             0,
+                             G_STRUCT_OFFSET(HinawaFwFcpClass, responded),
                              NULL, NULL,
                              hinawa_sigs_marshal_VOID__POINTER_UINT,
                              G_TYPE_NONE,
