@@ -21,7 +21,9 @@ methods = (
     'unbind',
 )
 vmethods = ()
-signals = ()
+signals = (
+    'responded',
+)
 
 if not test(target, props, methods, vmethods, signals):
     exit(ENXIO)

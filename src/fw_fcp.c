@@ -4,6 +4,7 @@
 
 #include "internal.h"
 #include "fw_fcp.h"
+#include "hinawa_sigs_marshal.h"
 
 /**
  * SECTION:fw_fcp
@@ -132,6 +133,12 @@ static void fw_fcp_finalize(GObject *obj)
 	G_OBJECT_CLASS(hinawa_fw_fcp_parent_class)->finalize(obj);
 }
 
+enum fw_fcp_sig_type {
+	FW_FCP_SIG_TYPE_RESPONDED = 1,
+	FW_FCP_SIG_TYPE_COUNT,
+};
+static guint fw_fcp_sigs[FW_FCP_SIG_TYPE_COUNT] = { 0 };
+
 // Define later.
 static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode);
 
@@ -162,6 +169,29 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 	g_object_class_install_properties(gobject_class,
 					  FW_FCP_PROP_TYPE_COUNT,
 					  fw_fcp_props);
+
+        /**
+         * HinawaFwFcp::responded:
+         * @self: A #HinawaFwFcp.
+         * @frame: (array length=frame_size)(element-type guint8): The array with elements for byte
+         *         data of response for Function Control Protocol.
+         * @frame_size: The number of elements of the array.
+         *
+         * When the unit transfers asynchronous packet as response for Echo Audio Fireworks
+         * protocol, and the process successfully reads the content of packet from ALSA
+         * Fireworks driver, the ::responded signal handler is called with parameters of the
+         * response.
+         */
+        fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED] =
+                g_signal_new("responded",
+                             G_OBJECT_CLASS_TYPE(klass),
+                             G_SIGNAL_RUN_LAST,
+                             0,
+                             NULL, NULL,
+                             hinawa_sigs_marshal_VOID__POINTER_UINT,
+                             G_TYPE_NONE,
+                             2, G_TYPE_POINTER, G_TYPE_UINT);
+
 }
 
 static void hinawa_fw_fcp_init(HinawaFwFcp *self)
