@@ -17,8 +17,12 @@ methods = (
     'new',
     'transaction',
 )
-vmethods = ()
-signals = ()
+vmethods = (
+    'do_responded',
+)
+signals = (
+    'responded',
+)
 
 if not test(target, props, methods, vmethods, signals):
     exit(ENXIO)
