@@ -63,20 +63,9 @@ enum avc_status {
 	AVC_STATUS_INTERIM		= 0x0f,
 };
 
-struct fcp_transaction {
-	const guint8 *req_frame;
-	gsize req_frame_size;
-	guint8 *resp_frame;
-	gsize resp_frame_size;
-	GCond cond;
-	GMutex mutex;
-};
-
 struct _HinawaFwFcpPrivate {
 	HinawaFwNode *node;
 
-	GList *transactions;
-	GMutex transactions_mutex;
 	guint timeout;
 };
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwFcp, hinawa_fw_fcp, HINAWA_TYPE_FW_RESP)
@@ -211,8 +200,6 @@ HinawaFwFcp *hinawa_fw_fcp_new(void)
 {
 	return g_object_new(HINAWA_TYPE_FW_FCP, NULL);
 }
-
-#define NOTIFY_ENOBUFS	1
 
 /**
  * hinawa_fw_fcp_command:
@@ -382,112 +369,30 @@ end:
  * @exception: A #GError. Error can be generated with four domains; #hinawa_fw_node_error_quark(),
  *	       #hinawa_fw_req_error_quark(), and #hinawa_fw_fcp_error_quark().
  *
- * Execute FCP transaction.
+ * Finish the pair of command and response transactions for FCP. The value of :timeout property is
+ * used to wait for response transaction since the command transaction is initiated.
+ *
  * Since: 1.4.
+ * Deprecated: 2.1: Use #hinawa_fw_fcp_avc_transaction(), instead.
  */
 void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
 			       const guint8 *req_frame, gsize req_frame_size,
 			       guint8 *const *resp_frame, gsize *resp_frame_size,
 			       GError **exception)
 {
-	HinawaFwFcpPrivate *priv;
-	HinawaFwReq *req;
-	struct fcp_transaction trans = {0};
 	guint timeout_ms;
-	gint64 expiration;
-
-	g_return_if_fail(HINAWA_IS_FW_FCP(self));
-	g_return_if_fail(req_frame != NULL);
-	g_return_if_fail(req_frame_size > 0 && req_frame_size < FCP_MAXIMUM_FRAME_BYTES);
-	g_return_if_fail(resp_frame != NULL);
-	g_return_if_fail(resp_frame_size != NULL && *resp_frame_size > 0);
-	g_return_if_fail(exception == NULL || *exception == NULL);
-
-	priv = hinawa_fw_fcp_get_instance_private(self);
 
 	g_object_get(G_OBJECT(self), "timeout", &timeout_ms, NULL);
 
-	// NOTE: This is too rough estimation that 66 % of the given timeout
-	// can be consumed by write/response subaction for request transaction
-	// of FCP command and the rest by write subaction for request
-	// transaction of FCP response. This is just a heuristic because
-	// actual transactions are internally handled by abstraction layer of
-	// Linux FireWire subsystem.
-	req = g_object_new(HINAWA_TYPE_FW_REQ, "timeout", timeout_ms * 2 / 3, NULL);
-
-	// Prepare for an entry of FCP transaction.
-	trans.req_frame = req_frame;
-	trans.req_frame_size = req_frame_size;
-	trans.resp_frame = *resp_frame;
-	trans.resp_frame_size = *resp_frame_size;
-
-	// This predicates against suprious wakeup.
-	trans.resp_frame[0] = 0x00;
-	g_cond_init(&trans.cond);
-	g_mutex_init(&trans.mutex);
-	g_mutex_lock(&trans.mutex);
-
-	/* Insert this entry. */
-	g_mutex_lock(&priv->transactions_mutex);
-	priv->transactions = g_list_prepend(priv->transactions, &trans);
-	g_mutex_unlock(&priv->transactions_mutex);
-
-	// Send this request frame.
-	hinawa_fw_req_transaction(req, priv->node,
-			HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST,
-			FCP_REQUEST_ADDR, trans.req_frame_size,
-			(guint8 *const *)&trans.req_frame, &trans.req_frame_size,
-			exception);
-	if (*exception)
-		goto end;
-deferred:
-	expiration = g_get_monotonic_time() +
-		     timeout_ms * G_TIME_SPAN_MILLISECOND;
-
-	while (trans.resp_frame[0] == 0x00) {
-		// NOTE: Timeout at bus-reset, illegally.
-		if (!g_cond_wait_until(&trans.cond, &trans.mutex, expiration))
-			break;
-	}
-	if (trans.resp_frame[0] == 0x00) {
-		generate_local_error(exception, HINAWA_FW_FCP_ERROR_TIMEOUT);
-	} else if (trans.resp_frame[0] == AVC_STATUS_INTERIM) {
-		// It's a deffered transaction, wait again.
-		trans.resp_frame[0] = 0x00;
-		// Although the timeout is infinite in 1394 TA specification,
-		// use the finite value for safe.
-		goto deferred;
-	}
-
-	if (trans.resp_frame_size > NOTIFY_ENOBUFS) {
-		*resp_frame_size = trans.resp_frame_size;
-	} else {
-		generate_local_error(exception, HINAWA_FW_FCP_ERROR_LARGE_RESP);
-	}
-end:
-	g_mutex_unlock(&trans.mutex);
-	g_cond_clear(&trans.cond);
-
-	/* Remove this entry. */
-	g_mutex_lock(&priv->transactions_mutex);
-	priv->transactions =
-			g_list_remove(priv->transactions, (gpointer *)&trans);
-	g_mutex_unlock(&priv->transactions_mutex);
-
-	g_mutex_clear(&trans.mutex);
-	g_clear_object(&req);
+	hinawa_fw_fcp_avc_transaction(self, req_frame, req_frame_size, resp_frame, resp_frame_size,
+				      timeout_ms, exception);
 }
 
 static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode)
 {
 	HinawaFwFcp *self = HINAWA_FW_FCP(resp);
-	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
-	struct fcp_transaction *trans;
-	const guint8 *req_frame;
-	gsize length;
-	GList *entry;
-
-	g_mutex_lock(&priv->transactions_mutex);
+	const guint8 *req_frame = NULL;
+	gsize length = 0;
 
 	req_frame = NULL;
 	length = 0;
@@ -495,29 +400,6 @@ static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode)
 
 	g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0,
 		      req_frame, length);
-
-	/* Seek corresponding request. */
-	for (entry = priv->transactions; entry != NULL; entry = entry->next) {
-		trans = (struct fcp_transaction *)entry->data;
-
-		if (trans->req_frame[1] == req_frame[1] &&
-		    trans->req_frame[2] == req_frame[2]) {
-			g_mutex_lock(&trans->mutex);
-
-			// To notify ENOBUFS.
-			if (trans->resp_frame_size < length)
-				length = NOTIFY_ENOBUFS;
-
-			memcpy((void *)trans->resp_frame, req_frame, length);
-			trans->resp_frame_size = length;
-			g_cond_signal(&trans->cond);
-
-			g_mutex_unlock(&trans->mutex);
-			break;
-		}
-	}
-
-	g_mutex_unlock(&priv->transactions_mutex);
 
 	/* MEMO: no need to send any data on response frame. */
 
@@ -550,9 +432,6 @@ void hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node,
 		if (*exception != NULL)
 			return;
 		priv->node = g_object_ref(node);
-
-		g_mutex_init(&priv->transactions_mutex);
-		priv->transactions = NULL;
 	}
 }
 
