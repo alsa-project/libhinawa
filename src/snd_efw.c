@@ -163,7 +163,6 @@ void hinawa_snd_efw_transaction_async(HinawaSndEfw *self, guint category, guint 
 	int i;
 
 	g_return_if_fail(HINAWA_IS_SND_EFW(self));
-	g_return_if_fail(args == NULL || arg_count > 0);
 	g_return_if_fail(sizeof(*args) * arg_count + sizeof(*frame) < MAXIMUM_FRAME_BYTES);
 	g_return_if_fail(resp_seqnum != NULL);
 	g_return_if_fail(exception == NULL || *exception == NULL);
@@ -171,7 +170,7 @@ void hinawa_snd_efw_transaction_async(HinawaSndEfw *self, guint category, guint 
 	priv = hinawa_snd_efw_get_instance_private(self);
 
 	quads = sizeof(*frame) / 4;
-	if (args)
+	if (args != NULL)
 		quads += arg_count;
 
 	frame = g_malloc0(sizeof(guint32) * quads);
@@ -181,8 +180,10 @@ void hinawa_snd_efw_transaction_async(HinawaSndEfw *self, guint category, guint 
 	frame->version = GUINT32_TO_BE(MINIMUM_SUPPORTED_VERSION);
 	frame->category = GUINT32_TO_BE(category);
 	frame->command = GUINT32_TO_BE(command);
-	for (i = 0; i < arg_count; ++i)
-		frame->params[i] = GUINT32_TO_BE(args[i]);
+	if (args != NULL) {
+		for (i = 0; i < arg_count; ++i)
+			frame->params[i] = GUINT32_TO_BE(args[i]);
+	}
 
 	// Increment the sequence number for next transaction.
 	g_mutex_lock(&priv->lock);
