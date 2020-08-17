@@ -1,5 +1,5 @@
 Name:			libhinawa
-Version:		2.0.0
+Version:		2.1.0
 Release:		1%{?dist}
 Summary:		GObject introspection library for devices connected to IEEE 1394 bus
 
@@ -12,6 +12,7 @@ BuildRequires:  gtk-doc >= 1.18-2
 BuildRequires:  gobject-introspection >= 1.32.1, gobject-introspection-devel >= 1.32.1
 BuildRequires:  python3-gobject
 
+Requires: glib2%{?_isa} >= %{glib2_version}
 
 %description
 Hinawa is an gobject introspection library for devices connected to
@@ -63,6 +64,9 @@ developing applications that use %{name}.
 
 
 %changelog
+* Thu Aug 18 2020 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 2.1.0
+- new upstream release.
+
 * Thu May 20 2020 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 2.0.0
 - new upstream release.
 
