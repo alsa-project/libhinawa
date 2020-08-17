@@ -210,7 +210,6 @@ static void hinawa_snd_unit_init(HinawaSndUnit *self)
 
 	priv->fd = -1;
 	priv->node = g_object_new(HINAWA_TYPE_FW_NODE, NULL);
-	priv->fd = -1;
 }
 
 /**
