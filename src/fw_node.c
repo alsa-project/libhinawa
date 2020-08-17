@@ -194,7 +194,7 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 	 * HinawaFwNode::bus-update:
 	 * @self: A #HinawaFwNode.
 	 *
-	 * When IEEE 1394 bus is updated, the ::bus-update signal is generated.
+	 * When IEEE 1394 bus is updated, the #HinawaFwNode::bus-update signal is generated.
 	 * Handlers can read current generation in the bus via 'generation'
 	 * property.
 	 *
@@ -214,7 +214,7 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 	 * @self: A #HinawaFwNode.
 	 *
 	 * When phicical FireWire devices are disconnected from IEEE 1394 bus,
-	 * the ::disconnected signal is generated.
+	 * the #HinawaFwNode::disconnected signal is generated.
 	 *
 	 * Since: 1.4.
 	 */

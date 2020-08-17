@@ -46,7 +46,7 @@ struct _HinawaSndDg00xClass {
 	 * @self: A #HinawaSndDg00x
 	 * @message: A message
 	 *
-	 * When Dg00x models transfer notification, the ::message handler is
+	 * When Dg00x models transfer notification, the #HinawaSndDg00xClass::message handler is
 	 * called.
 	 */
 	void (*message)(HinawaSndDg00x *self, guint32 message);

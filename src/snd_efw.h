@@ -61,8 +61,8 @@ struct _HinawaSndEfwClass {
 	 *
 	 * When the unit transfers asynchronous packet as response for Echo Audio Fireworks
 	 * protocol, and the process successfully reads the content of response from ALSA
-	 * Fireworks driver, the ::responded signal handler is called with parameters of the
-	 * response.
+	 * Fireworks driver, the #HinawaSndEfwClass::responded signal handler is called with parameters
+	 * of the response.
 	 */
 	void (*responded)(HinawaSndEfw *self, HinawaSndEfwStatus status, guint seqnum,
 			  guint category, guint command, const guint32 *frame, guint frame_size);

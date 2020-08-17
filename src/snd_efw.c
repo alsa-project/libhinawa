@@ -77,8 +77,8 @@ static void hinawa_snd_efw_class_init(HinawaSndEfwClass *klass)
 	 *
 	 * When the unit transfers asynchronous packet as response for Echo Audio Fireworks
 	 * protocol, and the process successfully reads the content of response from ALSA
-	 * Fireworks driver, the ::responded signal handler is called with parameters of the
-	 * response.
+	 * Fireworks driver, the #HinawaSndEfw::responded signal handler is called with parameters
+	 * of the response.
 	 */
 	efw_sigs[EFW_SIG_TYPE_RESPONDED] =
 		g_signal_new("responded",
@@ -149,7 +149,7 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
  * @exception: A #GError. Error can be generated with domain of #hinawa_snd_unit_error_quark().
  *
  * Transfer asynchronous transaction for command frame of Echo Fireworks protocol. When receiving
- * asynchronous transaction for response frame, :responded GObject signal is emitted.
+ * asynchronous transaction for response frame, #HinawaSndEfw::responded GObject signal is emitted.
  *
  * Since: 2.1.
  */

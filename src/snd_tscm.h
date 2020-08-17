@@ -51,8 +51,8 @@ struct _HinawaSndTscmClass {
 	 * @before: the value of info before changed.
 	 * @after: the value of info after changed.
 	 *
-	 * When TASCAM FireWire unit transfer control message, the ::control
-	 * signal is emitted.
+	 * When TASCAM FireWire unit transfer control message, the #HinawaSndTscmClass::control
+	 * handler is emitted.
 	 */
 	void (*control)(HinawaSndTscm *self, guint index, guint before,
 			guint after);

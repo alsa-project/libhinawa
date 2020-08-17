@@ -95,9 +95,9 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	 * @tcode: One of #HinawaTcode enumerators
 	 *
 	 * When any node transfers requests to the range of address to which
-	 * this object listening. The ::requested signal handler can get data
-	 * frame by a call of ::get_req_frame and set data frame by a call of
-	 * ::set_resp_frame, then returns rcode.
+	 * this object listening. The #HinawaFwResp::requested signal handler can get data
+	 * frame by a call of #hinawa_fw_resp_get_req_frame() and set data frame by a call of
+	 * hinawa_fw_resp_set_resp_frame(), then returns rcode.
 	 *
 	 * Returns: One of #HinawaRcode enumerators corresponding to rcodes
 	 * 	    defined in IEEE 1394 specification.

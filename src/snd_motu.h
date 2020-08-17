@@ -49,7 +49,7 @@ struct _HinawaSndMotuClass {
 	 * @self: A #HinawaSndMotu
 	 * @message: A notification message
 	 *
-	 * When Motu models transfer notification, the ::notified handler is
+	 * When Motu models transfer notification, the #HinawaSndMotuClass::notified handler is
 	 * called.
 	 */
 	void (*notified)(HinawaSndMotu *self, guint message);

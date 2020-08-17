@@ -56,6 +56,10 @@ struct _HinawaFwReqClass {
 	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for
 	 *	   byte data of response subaction for transaction.
 	 * @frame_size: The number of elements of the array.
+	 *
+	 * When the unit transfers asynchronous packet as response subaction for the transaction,
+	 * and the process successfully reads the content of packet from Linux firewire subsystem,
+	 * the #HinawaFwReqClass::responded handler is called.
 	 */
 	void (*responded)(HinawaFwReq *self, HinawaFwRcode rcode,
 			  const guint8 *frame, guint frame_size);

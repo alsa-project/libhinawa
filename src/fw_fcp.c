@@ -169,8 +169,8 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
          *
          * When the unit transfers asynchronous packet as response for Echo Audio Fireworks
          * protocol, and the process successfully reads the content of packet from ALSA
-         * Fireworks driver, the ::responded signal handler is called with parameters of the
-         * response.
+         * Fireworks driver, the #HinawaFwFcp::responded signal handler is called with parameters
+	 * of the response.
          */
         fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED] =
                 g_signal_new("responded",
@@ -212,8 +212,8 @@ HinawaFwFcp *hinawa_fw_fcp_new(void)
  * @exception: A #GError. Error can be generated with four domains; #hinawa_fw_node_error_quark(),
  *	       #hinawa_fw_req_error_quark().
  *
- * Transfer command frame for FCP. When receiving response frame for FCP, :responded signal is
- * emitted.
+ * Transfer command frame for FCP. When receiving response frame for FCP,
+ * #HinawaFwFcp::responded signal is emitted.
  *
  * Since: 2.1.
  */
@@ -282,8 +282,8 @@ static void handle_responded_signal(HinawaFwFcp *self, const guint8 *frame, guin
  *
  * Finish the pair of AV/C command and response transactions. The timeout_ms parameter is
  * used to wait for response transaction since the command transaction is initiated, ignoring
- * ::timeout property of instance. The timeout is not expanded in the case that AV/C INTERIM status
- * is arrived, thus the caller should expand the timeout in advance for the case.
+ * #HinawaFwFcp:timeout property of instance. The timeout is not expanded in the case that AV/C
+ * INTERIM status is arrived, thus the caller should expand the timeout in advance for the case.
  *
  * Since: 2.1.
  */
@@ -370,8 +370,8 @@ end:
  * @exception: A #GError. Error can be generated with four domains; #hinawa_fw_node_error_quark(),
  *	       #hinawa_fw_req_error_quark(), and #hinawa_fw_fcp_error_quark().
  *
- * Finish the pair of command and response transactions for FCP. The value of :timeout property is
- * used to wait for response transaction since the command transaction is initiated.
+ * Finish the pair of command and response transactions for FCP. The value of #HinawaFwFcp:timeout
+ * property is used to wait for response transaction since the command transaction is initiated.
  *
  * Since: 1.4.
  * Deprecated: 2.1: Use #hinawa_fw_fcp_avc_transaction(), instead.
