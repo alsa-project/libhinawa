@@ -173,7 +173,7 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 	 * @self: A #HinawaSndUnit
 	 * @state: %TRUE when locked, %FALSE when unlocked.
 	 *
-	 * When ALSA kernel-streaming status is changed, this ::lock-status
+	 * When ALSA kernel-streaming status is changed, this #HinawaSndUnit::lock-status
 	 * signal is generated.
 	 */
 	snd_unit_sigs[SND_UNIT_SIG_TYPE_LOCK_STATUS] =

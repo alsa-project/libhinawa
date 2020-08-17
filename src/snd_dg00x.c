@@ -30,7 +30,7 @@ static void hinawa_snd_dg00x_class_init(HinawaSndDg00xClass *klass)
 	 * @self: A #HinawaSndDg00x
 	 * @message: A message
 	 *
-	 * When Dg00x models transfer notification, the ::message signal is
+	 * When Dg00x models transfer notification, the #HinawaSndDg00x::message signal is
 	 * generated.
 	 */
 	dg00x_sigs[DG00X_SIG_TYPE_MESSAGE] =

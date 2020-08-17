@@ -123,7 +123,7 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 	 *
 	 * When the unit transfers asynchronous packet as response subaction for the transaction,
 	 * and the process successfully reads the content of packet from Linux firewire subsystem,
-	 * the ::responded signal handler is called.
+	 * the #HinawaFwReq::responded signal handler is called.
 	 */
 	fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED] =
 		g_signal_new("responded",
@@ -174,8 +174,8 @@ HinawaFwReq *hinawa_fw_req_new(void)
  *	       and #hinawa_fw_req_error_quark().
  *
  * Execute request subaction of transactions to the given node according to given code. When the
- * response subaction arrives and read the contents, ::responded signal handler is called as long
- * as event dispatcher runs.
+ * response subaction arrives and read the contents, #HinawaFwReq::responded signal handler is called
+ * as long as event dispatcher runs.
  *
  * Since: 2.1.
  */
@@ -290,7 +290,8 @@ static void handle_responded_signal(HinawaFwReq *self, HinawaFwRcode rcode, cons
  *	       and #hinawa_fw_req_error_quark().
  *
  * Execute request subaction of transaction to the given node according to given code, then wait
- * for response subaction within the given timeout. The ::timeout property of instance is ignored.
+ * for response subaction within the given timeout. The #HinawaFwReq:timeout property of instance
+ * is ignored.
  *
  * Since: 2.1.
  */
@@ -390,7 +391,7 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
  *	       and #hinawa_fw_req_error_quark().
  *
  * Execute request subaction of transaction to the given node according to given code, then wait
- * for response subaction within ::timeout.
+ * for response subaction within #HinawaFwReq:timeout.
  *
  * Since: 1.4.
  */

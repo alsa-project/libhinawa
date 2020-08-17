@@ -53,7 +53,7 @@ struct _HinawaSndDiceClass {
 	 * @self: A #HinawaSndDice
 	 * @message: A notification message
 	 *
-	 * When Dice models transfer notification, the ::notified handler is
+	 * When Dice models transfer notification, the #HinawaSndDiceClass::notified handler is
 	 * called.
 	 */
 	void (*notified)(HinawaSndDice *self, guint message);

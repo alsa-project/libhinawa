@@ -33,7 +33,7 @@ static void hinawa_snd_motu_class_init(HinawaSndMotuClass *klass)
 	 * @self: A #HinawaSndMotu
 	 * @message: A notification message
 	 *
-	 * When Motu models transfer notification, the ::notified signal is
+	 * When Motu models transfer notification, the #HinawaSndMotu::notified signal is
 	 * generated.
 	 */
 	motu_sigs[MOTU_SIG_TYPE_NOTIFIED] =

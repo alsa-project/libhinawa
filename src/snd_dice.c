@@ -72,7 +72,7 @@ static void hinawa_snd_dice_class_init(HinawaSndDiceClass *klass)
 	 * @self: A #HinawaSndDice
 	 * @message: A notification message
 	 *
-	 * When Dice models transfer notification, the ::notified signal is
+	 * When Dice models transfer notification, the #HinawaSndDice::notified signal is
 	 * generated.
 	 */
 	dice_sigs[DICE_SIG_TYPE_NOTIFIED] =

@@ -38,7 +38,7 @@ static void hinawa_snd_tscm_class_init(HinawaSndTscmClass *klass)
 	 * @before: the value of info before changed.
 	 * @after: the value of info after changed.
 	 *
-	 * When TASCAM FireWire unit transfer control message, the ::control
+	 * When TASCAM FireWire unit transfer control message, the #HinawaSndTscm::control
 	 * signal is emitted.
 	 */
 	tscm_sigs[TSCM_SIG_TYPE_CTL] =

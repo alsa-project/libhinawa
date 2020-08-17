@@ -53,7 +53,7 @@ struct _HinawaSndUnitClass {
 	 * @self: A #HinawaSndUnit
 	 * @state: %TRUE when locked, %FALSE when unlocked.
 	 *
-	 * When ALSA kernel-streaming status is changed, this ::lock_status
+	 * When ALSA kernel-streaming status is changed, this #HinawaSndUnitClass::lock_status
 	 * handler is called.
 	 */
 	void (*lock_status)(HinawaSndUnit *self, gboolean state);
