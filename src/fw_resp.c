@@ -28,6 +28,13 @@
  */
 G_DEFINE_QUARK(hinawa-fw-resp-error-quark, hinawa_fw_resp_error)
 
+static const char *const err_msgs[] = {
+	[HINAWA_FW_RESP_ERROR_RESERVED] = "Reservation of address space is already done",
+};
+
+#define generate_local_error(exception, code) \
+	g_set_error_literal(exception, HINAWA_FW_RESP_ERROR, code, err_msgs[code])
+
 struct _HinawaFwRespPrivate {
 	HinawaFwNode *node;
 
@@ -145,7 +152,8 @@ HinawaFwResp *hinawa_fw_resp_new(void)
  * @node: A #HinawaFwNode.
  * @addr: A start address to listen to in host controller.
  * @width: The byte width of address to listen to host controller.
- * @exception: A #GError. Error can be generated with domain of #hinawa_fw_node_error_quark().
+ * @exception: A #GError. Error can be generated with two domain of #hinawa_fw_node_error_quark()
+ *	       and #hinawa_fw_resp_error_quark().
  *
  * Start to listen to a range of address in host controller which connects to
  * the node.
@@ -163,7 +171,10 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 	g_return_if_fail(exception == NULL || *exception == NULL);
 
 	priv = hinawa_fw_resp_get_instance_private(self);
-	g_return_if_fail(priv->node == NULL);
+	if (priv->node != NULL) {
+		generate_local_error(exception, HINAWA_FW_RESP_ERROR_RESERVED);
+		return;
+	}
 
 	allocate.offset = addr;
 	allocate.closure = (guint64)self;
