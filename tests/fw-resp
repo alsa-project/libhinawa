@@ -25,6 +25,7 @@ vmethods = (
 )
 signals = (
     'requested',
+    'requested2',
 )
 
 if not test(target, props, methods, vmethods, signals):
