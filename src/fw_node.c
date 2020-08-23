@@ -505,17 +505,17 @@ void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
 }
 
 // Internal use only.
-void hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args, GError **exception)
+int hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args, GError **exception)
 {
 	HinawaFwNodePrivate *priv;
 
-	g_return_if_fail(HINAWA_IS_FW_NODE(self));
-	g_return_if_fail(exception != NULL);
+	g_return_val_if_fail(HINAWA_IS_FW_NODE(self), ENXIO);
+	g_return_val_if_fail(exception != NULL, EINVAL);
 
 	priv = hinawa_fw_node_get_instance_private(self);
 	if (priv->fd < 0) {
 		generate_local_error(exception, HINAWA_FW_NODE_ERROR_NOT_OPENED);
-		return;
+		return ENXIO;
 	}
 
 	// To invalidate the transaction in a case of timeout.
@@ -526,32 +526,12 @@ void hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args, GEr
 	}
 
 	if (ioctl(priv->fd, req, args) < 0) {
-		if (errno == ENODEV) {
+		if (errno == ENODEV)
 			generate_local_error(exception, HINAWA_FW_NODE_ERROR_DISCONNECTED);
-		} else {
-			const char *arg;
-
-			switch (req) {
-			case FW_CDEV_IOC_SEND_REQUEST:
-				arg = "FW_CDEV_IOC_SEND_REQUEST";
-				break;
-			case FW_CDEV_IOC_SEND_RESPONSE:
-				arg = "FW_CDEV_IOC_SEND_RESPONSE";
-				break;
-			case FW_CDEV_IOC_ALLOCATE:
-				arg = "FW_CDEV_IOC_ALLOCATE";
-				break;
-			case FW_CDEV_IOC_DEALLOCATE:
-				arg = "FW_CDEV_IOC_DEALLOCATE";
-				break;
-			default:
-				arg = "Uknown";
-				break;
-			}
-
-			generate_syscall_error(exception, errno, "ioctl(%s)", arg);
-		}
+		return errno;
 	}
+
+	return 0;
 }
 
 void hinawa_fw_node_invalidate_transaction(HinawaFwNode *self, HinawaFwReq *req)

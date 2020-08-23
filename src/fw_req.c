@@ -186,6 +186,7 @@ void hinawa_fw_req_transaction_async(HinawaFwReq *self, HinawaFwNode *node,
 {
 	struct fw_cdev_send_request req = {0};
 	guint64 generation;
+	int err;
 
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 	g_return_if_fail(length > 0);
@@ -239,7 +240,9 @@ void hinawa_fw_req_transaction_async(HinawaFwReq *self, HinawaFwNode *node,
 		req.data = (guint64)(*frame);
 
 	// Send this transaction.
-	hinawa_fw_node_ioctl(node, FW_CDEV_IOC_SEND_REQUEST, &req, exception);
+	err = hinawa_fw_node_ioctl(node, FW_CDEV_IOC_SEND_REQUEST, &req, exception);
+	if (*exception == NULL && err > 0)
+		generate_local_error(exception, HINAWA_FW_RCODE_SEND_ERROR);
 }
 
 struct waiter {

@@ -19,7 +19,7 @@
 #include "snd_motu.h"
 #include "snd_tscm.h"
 
-void hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args, GError **exception);
+int hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args, GError **exception);
 void hinawa_fw_node_invalidate_transaction(HinawaFwNode *self, HinawaFwReq *req);
 
 void hinawa_fw_resp_handle_request(HinawaFwResp *self,
