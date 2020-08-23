@@ -128,12 +128,14 @@ typedef enum {
  * HinawaFwRespError:
  * @HINAWA_FW_RESP_ERROR_FAILED:		The generic system call error.
  * @HINAWA_FW_RESP_ERROR_RESERVED:		The instance is already associated to reserved address range.
+ * @HINAWA_FW_RESP_ERROR_ADDR_SPACE_USED:	The address space is used exclusively.
  *
  * A set of error code for GError with domain which equals to #hinawa_fw_resp_error_quark().
  */
 typedef enum {
 	HINAWA_FW_RESP_ERROR_FAILED = 0,
 	HINAWA_FW_RESP_ERROR_RESERVED,
+	HINAWA_FW_RESP_ERROR_ADDR_SPACE_USED,
 } HinawaFwRespError;
 
 /**
