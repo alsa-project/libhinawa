@@ -116,13 +116,17 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	 * @self: A #HinawaFwResp
 	 * @tcode: One of #HinawaTcode enumerators
 	 *
-	 * When any node transfers requests to the range of address to which
-	 * this object listening. The #HinawaFwResp::requested signal handler can get data
-	 * frame by a call of #hinawa_fw_resp_get_req_frame() and set data frame by a call of
-	 * hinawa_fw_resp_set_resp_frame(), then returns rcode.
+	 * When any node transfers requests to the range of address to which this object listening,
+	 * the #HinawaFwResp::requested signal handler is called with #HinawaFwTcode, without the
+	 * case that #HinawaFwResp::requested2 signal handler is already assigned.
 	 *
-	 * Returns: One of #HinawaRcode enumerators corresponding to rcodes
-	 * 	    defined in IEEE 1394 specification.
+	 * The handler can get data frame by a call of #hinawa_fw_resp_get_req_frame() and set data
+	 * frame by a call of #hinawa_fw_resp_set_resp_frame(), then returns rcode.
+	 *
+	 * Returns: One of #HinawaRcode enumerators corresponding to rcodes defined in IEEE 1394
+	 * specification.
+	 *
+	 * Deprecated: 2.2: Use #HinawaFwResp::requested2, instead.
 	 */
 	fw_resp_sigs[FW_RESP_SIG_TYPE_REQ] =
 		g_signal_new("requested",
@@ -286,6 +290,9 @@ void hinawa_fw_resp_release(HinawaFwResp *self)
  * @length: (out): The length of bytes for the frame.
  *
  * Retrieve byte frame to be requested.
+ *
+ * Deprecated: 2.2: handler for #HinawaFwResp::requested2 signal can receive the frame in its
+ *		    argument.
  */
 void hinawa_fw_resp_get_req_frame(HinawaFwResp *self, const guint8 **frame,
 				  gsize *length)

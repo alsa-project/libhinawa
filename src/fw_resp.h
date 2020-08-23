@@ -54,13 +54,17 @@ struct _HinawaFwRespClass {
 	 * @self: A #HinawaFwResp
 	 * @tcode: One of #HinawaTcode enumerators
 	 *
-	 * When any units transfer requests to the range of address to which
-	 * this object listening. The #HinawaFwRespClass::requested signal handler can get data
-	 * frame by a call of #hinawa_fw_resp_get_req_frame() and set data frame by a call of
-	 * #hinawa_fw_resp_set_resp_frame(), then returns rcode.
+	 * When any node transfers requests to the range of address to which this object listening,
+	 * the #HinawaFwRespClass::requested signal handler is called with #HinawaFwTcode, without the
+	 * case that #HinawaFwRespClass::requested2 signal handler is already assigned.
 	 *
-	 * Returns: One of #HinawaRcode enumerators corresponding to rcodes
-	 * 	    defined in IEEE 1394 specification.
+	 * The handler can get data frame by a call of #hinawa_fw_resp_get_req_frame() and set data
+	 * frame by a call of #hinawa_fw_resp_set_resp_frame(), then returns rcode.
+	 *
+	 * Returns: One of #HinawaRcode enumerators corresponding to rcodes defined in IEEE 1394
+	 * specification.
+	 *
+	 * Deprecated: 2.2: Use #HinawaFwRespClass::requested2, instead.
 	 */
 	HinawaFwRcode (*requested)(HinawaFwResp *self, HinawaFwTcode tcode);
 
