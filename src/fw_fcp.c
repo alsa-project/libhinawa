@@ -411,7 +411,7 @@ static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode)
  * hinawa_fw_fcp_bind:
  * @self: A #HinawaFwFcp.
  * @node: A #HinawaFwNode.
- * @exception: A #GError.
+ * @exception: A #GError. Error can be generated with domain of #hinawa_fw_resp_error_quark().
  *
  * Start to listen to FCP responses.
  */
