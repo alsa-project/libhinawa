@@ -30,6 +30,7 @@ G_DEFINE_QUARK(hinawa-fw-resp-error-quark, hinawa_fw_resp_error)
 
 static const char *const err_msgs[] = {
 	[HINAWA_FW_RESP_ERROR_RESERVED] = "Reservation of address space is already done",
+	[HINAWA_FW_RESP_ERROR_ADDR_SPACE_USED] = "The requested range of address is already used exclusively",
 };
 
 #define generate_local_error(exception, code) \
@@ -182,8 +183,11 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 	allocate.region_end = addr + width;
 
 	hinawa_fw_node_ioctl(node, FW_CDEV_IOC_ALLOCATE, &allocate, exception);
-	if (*exception != NULL)
-		return;
+	if (*exception != NULL) {
+		// TODO: this can handle the other error cases.
+		g_clear_error(exception);
+		generate_local_error(exception, HINAWA_FW_RESP_ERROR_ADDR_SPACE_USED);
+	}
 
 	priv->node = g_object_ref(node);
 

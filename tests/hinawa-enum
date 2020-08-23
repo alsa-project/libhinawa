@@ -64,6 +64,7 @@ fw_node_error_enumerators = (
 fw_resp_error_enumerations = (
     'FAILED',
     'RESERVED',
+    'ADDR_SPACE_USED',
 )
 
 fw_fcp_error_enumerators = (
