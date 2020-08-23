@@ -19,6 +19,15 @@
  * utilize ioctl(2) with subsystem specific request commands.
  */
 
+/**
+ * hinawa_fw_resp_error_quark:
+ *
+ * Return the GQuark for error domain of GError which has code in #HinawaFwRespError.
+ *
+ * Returns: A #GQuark.
+ */
+G_DEFINE_QUARK(hinawa-fw-resp-error-quark, hinawa_fw_resp_error)
+
 struct _HinawaFwRespPrivate {
 	HinawaFwNode *node;
 

@@ -32,6 +32,10 @@ G_BEGIN_DECLS
 				   HINAWA_TYPE_FW_RESP,		\
 				   HinawaFwRespClass))
 
+#define HINAWA_FW_RESP_ERROR	hinawa_fw_resp_error_quark()
+
+GQuark hinawa_fw_resp_error_quark();
+
 typedef struct _HinawaFwResp		HinawaFwResp;
 typedef struct _HinawaFwRespClass	HinawaFwRespClass;
 typedef struct _HinawaFwRespPrivate	HinawaFwRespPrivate;
