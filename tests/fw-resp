@@ -22,6 +22,7 @@ methods = (
 )
 vmethods = (
     'do_requested',
+    'do_requested2',
 )
 signals = (
     'requested',

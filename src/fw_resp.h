@@ -63,6 +63,31 @@ struct _HinawaFwRespClass {
 	 * 	    defined in IEEE 1394 specification.
 	 */
 	HinawaFwRcode (*requested)(HinawaFwResp *self, HinawaFwTcode tcode);
+
+	/**
+	 * HinawaFwRespClass::requested2:
+	 * @self: A #HinawaFwResp
+	 * @tcode: One of #HinawaTcode enumerations
+	 * @offset: The address offset at which the transaction arrives.
+	 * @src: The node ID of source for the transaction.
+	 * @dst: The node ID of destination for the transaction.
+	 * @card: The index of card corresponding to 1394 OHCI controller.
+	 * @generation: The generation of bus when the transaction is transferred.
+	 * @frame: (element-type guint8)(array length=length): The array with elements for byte
+	 *	   data.
+	 * @length: The length of bytes for the frame.
+	 *
+	 * When any node transfers request subaction to the range of address to which this object
+	 * listening, the #HinawaFwResp::requested signal handler is called with arrived frame for
+	 * the subaction. The handler is expected to call #hinawa_fw_resp_set_resp_frame() with
+	 * frame and return rcode for response subaction.
+	 *
+	 * Returns: One of #HinawaRcode enumerators corresponding to rcodes defined in IEEE 1394
+	 *	    specification.
+	 */
+	HinawaFwRcode (*requested2)(HinawaFwResp *self, HinawaFwTcode tcode, guint64 offset,
+				    guint32 src, guint32 dst, guint32 card, guint32 generation,
+				    const guint8 *frame, guint length);
 };
 
 GType hinawa_fw_resp_get_type(void) G_GNUC_CONST;
