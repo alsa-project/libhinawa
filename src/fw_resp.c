@@ -36,6 +36,10 @@ static const char *const err_msgs[] = {
 #define generate_local_error(exception, code) \
 	g_set_error_literal(exception, HINAWA_FW_RESP_ERROR, code, err_msgs[code])
 
+#define generate_syscall_error(exception, errno, format, arg)				\
+	g_set_error(exception, HINAWA_FW_RESP_ERROR, HINAWA_FW_RESP_ERROR_FAILED,	\
+		    format " %d(%s)", arg, errno, strerror(errno))
+
 struct _HinawaFwRespPrivate {
 	HinawaFwNode *node;
 
@@ -166,6 +170,7 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 {
 	HinawaFwRespPrivate *priv;
 	struct fw_cdev_allocate allocate = {0};
+	int err;
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
 	g_return_if_fail(width > 0);
@@ -182,11 +187,15 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 	allocate.length = width;
 	allocate.region_end = addr + width;
 
-	hinawa_fw_node_ioctl(node, FW_CDEV_IOC_ALLOCATE, &allocate, exception);
-	if (*exception != NULL) {
-		// TODO: this can handle the other error cases.
-		g_clear_error(exception);
-		generate_local_error(exception, HINAWA_FW_RESP_ERROR_ADDR_SPACE_USED);
+	err = hinawa_fw_node_ioctl(node, FW_CDEV_IOC_ALLOCATE, &allocate, exception);
+	if (*exception != NULL)
+		return;
+	if (err > 0) {
+		if (err == EBUSY)
+			generate_local_error(exception, HINAWA_FW_RESP_ERROR_ADDR_SPACE_USED);
+		else
+			generate_syscall_error(exception, err, "ioctl(%s)", "FW_CDEV_IOC_ALLOCATE");
+		return;
 	}
 
 	priv->node = g_object_ref(node);
@@ -219,6 +228,7 @@ void hinawa_fw_resp_release(HinawaFwResp *self)
 	if (priv->node == NULL)
 		return;
 
+	// Ignore ioctl error.
 	deallocate.handle = priv->addr_handle;
 	hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_DEALLOCATE, &deallocate, &exception);
 	g_clear_error(&exception);
@@ -303,6 +313,7 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 		resp.rcode = RCODE_CONFLICT_ERROR;
 		resp.handle = event->handle;
 
+		// Ignore ioctl error.
 		hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_SEND_RESPONSE, &resp, &exception);
 		g_clear_error(&exception);
 		return;
@@ -321,6 +332,7 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 		resp.data = (guint64)priv->resp_frame;
 	}
 
+	// Ignore ioctl error.
 	resp.handle = event->handle;
 	hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_SEND_RESPONSE, &resp, &exception);
 	g_clear_error(&exception);
