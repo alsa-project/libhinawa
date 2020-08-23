@@ -63,6 +63,7 @@ static GParamSpec *fw_resp_props[FW_RESP_PROP_TYPE_COUNT] = { NULL, };
 // This object has one signal.
 enum fw_resp_sig_type {
 	FW_RESP_SIG_TYPE_REQ = 0,
+	FW_RESP_SIG_TYPE_REQ2,
 	FW_RESP_SIG_TYPE_COUNT,
 };
 static guint fw_resp_sigs[FW_RESP_SIG_TYPE_COUNT] = { 0 };
@@ -131,6 +132,38 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 			     NULL, NULL,
 			     hinawa_sigs_marshal_ENUM__ENUM,
 			     HINAWA_TYPE_FW_RCODE, 1, HINAWA_TYPE_FW_TCODE);
+
+	/**
+	 * HinawaFwResp::requested2:
+	 * @self: A #HinawaFwResp
+	 * @tcode: One of #HinawaTcode enumerations
+	 * @offset: The address offset at which the transaction arrives.
+	 * @src: The node ID of source for the transaction.
+	 * @dst: The node ID of destination for the transaction.
+	 * @card: The index of card corresponding to 1394 OHCI controller.
+	 * @generation: The generation of bus when the transaction is transferred.
+	 * @frame: (element-type guint8)(array length=length): The array with elements for byte
+	 *	   data.
+	 * @length: The length of bytes for the frame.
+	 *
+	 * When any node transfers request subaction to the range of address to which this object
+	 * listening, the #HinawaFwResp::requested signal handler is called with arrived frame for
+	 * the subaction. The handler is expected to call #hinawa_fw_resp_set_resp_frame() with
+	 * frame and return rcode for response subaction.
+	 *
+	 * Returns: One of #HinawaRcode enumerators corresponding to rcodes defined in IEEE 1394
+	 *	    specification.
+	 */
+	fw_resp_sigs[FW_RESP_SIG_TYPE_REQ2] =
+		g_signal_new("requested2",
+			     G_OBJECT_CLASS_TYPE(klass),
+			     G_SIGNAL_RUN_LAST,
+			     0,
+			     NULL, NULL,
+			     hinawa_sigs_marshal_ENUM__ENUM_UINT64_UINT_UINT_UINT_UINT_POINTER_UINT,
+			     HINAWA_TYPE_FW_RCODE, 8, HINAWA_TYPE_FW_TCODE, G_TYPE_UINT64,
+			     G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT,
+			     G_TYPE_POINTER, G_TYPE_UINT);
 }
 
 static void hinawa_fw_resp_init(HinawaFwResp *self)
