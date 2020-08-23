@@ -118,3 +118,8 @@ HINAWA_2_1_0 {
     "hinawa_fw_fcp_command";
     "hinawa_fw_fcp_avc_transaction";
 } HINAWA_2_0_0;
+
+HINAWA_2_2_0 {
+  global:
+    "hinawa_fw_resp_error_get_type";
+} HINAWA_2_1_0;
