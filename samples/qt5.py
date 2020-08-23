@@ -111,15 +111,14 @@ for i, q in enumerate(quads):
 
 # create firewire responder
 resp = Hinawa.FwResp()
-def handle_request(resp, tcode):
+def handle_request(resp, tcode, offset, src, dst, card, generation, frame, length):
     print('Requested with tcode: {0}'.format(tcode.value_nick))
-    req_frame = resp.get_req_frame()
-    for i in range(len(req_frame)):
-        print(' [{0:02d}]: 0x{1:02x}'.format(i, req_frame[i]))
+    for i in range(len(frame)):
+        print(' [{0:02d}]: 0x{1:02x}'.format(i, frame[i]))
     return Hinawa.FwRcode.COMPLETE
 try:
     resp.reserve(node, 0xfffff0000d00, 0x100)
-    resp.connect('requested', handle_request)
+    resp.connect('requested2', handle_request)
 except Exception as e:
     print(e)
     exit()
