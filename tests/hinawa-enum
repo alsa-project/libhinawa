@@ -61,6 +61,10 @@ fw_node_error_enumerators = (
     'FAILED',
 )
 
+fw_resp_error_enumerations = (
+    'FAILED',
+)
+
 fw_fcp_error_enumerators = (
     'TIMEOUT',
     'LARGE_RESP',
@@ -105,6 +109,7 @@ types = {
     Hinawa.FwRcode: fw_rcode_enumerators,
     Hinawa.SndUnitType: snd_unit_type_enumerators,
     Hinawa.FwNodeError: fw_node_error_enumerators,
+    Hinawa.FwRespError: fw_resp_error_enumerations,
     Hinawa.FwFcpError: fw_fcp_error_enumerators,
     Hinawa.SndUnitError: snd_unit_error_enumerators,
     Hinawa.SndDiceError: snd_dice_error_enumerators,
