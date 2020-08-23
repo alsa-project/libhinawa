@@ -128,6 +128,8 @@ typedef enum {
  * HinawaFwFcpError:
  * @HINAWA_FW_FCP_ERROR_TIMEOUT:	The transaction is canceled due to response timeout.
  * @HINAWA_FW_FCP_ERROR_LARGE_RESP:	The size of response is larger than expected.
+ *
+ * A set of error code for GError with domain which equals to #hinawa_fw_fcp_error_quark().
  */
 typedef enum {
 	HINAWA_FW_FCP_ERROR_TIMEOUT,
@@ -147,7 +149,7 @@ typedef enum {
  * @HINAWA_SND_UNIT_ERROR_WRONG_CLASS:	The hwdep device is not for the unit expected by the class.
  * @HINAWA_SND_UNIT_ERROR_FAILED:	The system call fails.
  *
- * A set of error code for GError with domain of #HinawaSndUnitError.
+ * A set of error code for GError with domain which equals to #hinawa_snd_unit_error_quark().
  */
 typedef enum {
 	HINAWA_SND_UNIT_ERROR_DISCONNECTED,
