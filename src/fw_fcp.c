@@ -130,13 +130,15 @@ enum fw_fcp_sig_type {
 static guint fw_fcp_sigs[FW_FCP_SIG_TYPE_COUNT] = { 0 };
 
 // Define later.
-static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode);
+static HinawaFwRcode handle_requested2_signal(HinawaFwResp *resp, HinawaFwTcode tcode, guint64 offset,
+					      guint32 src, guint32 dst, guint32 card, guint32 generation,
+					      const guint8 *frame, guint length);
 
 static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
-	HINAWA_FW_RESP_CLASS(klass)->requested = handle_response;
+	HINAWA_FW_RESP_CLASS(klass)->requested2 = handle_requested2_signal;
 
 	gobject_class->get_property = fw_fcp_get_property;
 	gobject_class->set_property = fw_fcp_set_property;
@@ -389,20 +391,20 @@ void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
 				      timeout_ms, exception);
 }
 
-static HinawaFwRcode handle_response(HinawaFwResp *resp, HinawaFwTcode tcode)
+static HinawaFwRcode handle_requested2_signal(HinawaFwResp *resp, HinawaFwTcode tcode, guint64 offset,
+					      guint32 src, guint32 dst, guint32 card, guint32 generation,
+					      const guint8 *frame, guint length)
 {
 	HinawaFwFcp *self = HINAWA_FW_FCP(resp);
-	const guint8 *req_frame = NULL;
-	gsize length = 0;
+	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
+	guint32 node_id;
 
-	req_frame = NULL;
-	length = 0;
-	hinawa_fw_resp_get_req_frame(resp, &req_frame, &length);
+	g_object_get(priv->node, "node-id", &node_id, NULL);
+	if (offset == FCP_RESPOND_ADDR && tcode == HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST && src == node_id)
+		g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0, frame, length);
 
-	g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0,
-		      req_frame, length);
-
-	/* MEMO: no need to send any data on response frame. */
+	// MEMO: Linux firewire subsystem already began respond transaction, thus the rcode is just
+	// ignored.
 
 	return HINAWA_FW_RCODE_COMPLETE;
 }
