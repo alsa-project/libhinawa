@@ -2,7 +2,7 @@
 libhinawa
 =========
 
-2020/08/24
+2021/05/28
 Takashi Sakamoto
 
 Instruction
@@ -129,9 +129,34 @@ How to make DEB package
 How to make RPM package
 =======================
 
-1. archive all source code into libhinawa-2.2.0.tar.gz
-  $ git archive --format tar.gz --prefix='libhinawa-2.2.0/' 2.2.0 -o ~/rpmbuild/SOURCES/libhinawa-2.2.0.tar.gz
-2. rpmbuild -bb libhinawa.spec
+1. Satisfy build dependencies
+
+::
+
+    $ dns install meson glib2-devel gobject-introspection-devel gtk-doc
+
+2. make archive
+
+::
+
+    $ meson . build
+    $ cd build
+    $ meson dist
+    ...
+    meson-dist/libhinawa-2.2.1.tar.xz 433b4fbf1a3f7a4af3a0cc0103c6127b749c59717f72ab2c22c5db763d878a83
+    $ cd ..
+
+3. copy the archive
+
+::
+
+    $ cp build/meson-dist/libhinawa-2.2.1.tar.xz ~/rpmbuild/SOURCES/
+
+4. build package
+
+::
+
+    $ rpmbuild -bb libhinawa.spec
 
 Lose of backward compatibility from v1 release.
 ===============================================
