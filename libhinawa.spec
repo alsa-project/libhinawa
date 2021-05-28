@@ -1,30 +1,38 @@
-Name:			libhinawa
-Version:		2.2.0
-Release:		1%{?dist}
-Summary:		GObject introspection library for devices connected to IEEE 1394 bus
+%global with_tests 0
+%global glib2_version 2.34.0
 
-License:		LGPLv2
-URL:			https://github.com/takaswie/libhinawa
-Source:			%{name}-%{version}.tar.xz
+Name: libhinawa
+Version: 2.2.0
+Release: 1%{?dist}
+Summary: GObject introspection library for devices connected to IEEE 1394 bus
 
-BuildRequires:  meson >= 0.46.0
-BuildRequires:  gtk-doc >= 1.18-2
-BuildRequires:  gobject-introspection >= 1.32.1, gobject-introspection-devel >= 1.32.1
-BuildRequires:  python3-gobject
+License: LGPLv2
+URL: https://github.com/alsa-project/libhinawa
+Source0: https://github.com/alsa-project/libhinawa/releases/download/%{version}/libhinawa-%{version}.tar.xz
+
+BuildRequires: meson >= 0.46.0
+BuildRequires: pkgconfig(glib-2.0) >= %{glib2_version}
+BuildRequires: pkgconfig(gobject-introspection-1.0) >= 1.32.1
+BuildRequires: pkgconfig(gtk-doc) >= 1.18-2
+
+%if 0%{?with_tests}
+BuildRequires: python3-gobject
+%endif
 
 Requires: glib2%{?_isa} >= %{glib2_version}
 
 %description
 Hinawa is an gobject introspection library for devices connected to
 IEEE 1394 bus. This library supports any types of transactions over
-IEEE 1394 bus.  This library also supports some functionality which
+IEEE 1394 bus. This library also supports some functionality which
 ALSA firewire stack produces.
 
-%package		devel
-Summary:		Development files for %{name}
-Requires:		%{name}%{?_isa} = %{version}-%{release}
 
-%description	devel
+%package devel
+Summary: Development files for %{name}
+Requires: %{name}%{?_isa} = %{version}-%{release}
+
+%description devel
 The %{name}-devel package contains libraries and header files for
 developing applications that use %{name}.
 
@@ -41,10 +49,10 @@ developing applications that use %{name}.
 %install
 %meson_install
 
-
+%if 0%{?with_tests}
 %check
 %meson_test
-
+%endif
 
 %post -p /sbin/ldconfig
 
@@ -53,15 +61,14 @@ developing applications that use %{name}.
 
 %files
 %{_libdir}/libhinawa.so.*
-%{_libdir}/girepository-1.0/*
+%{_libdir}/girepository-1.0/*.typelib
 
 %files devel
 %{_includedir}/libhinawa/*
 %{_libdir}/pkgconfig/*
 %{_libdir}/libhinawa.so
-%{_datadir}/gir-1.0/*
+%{_datadir}/gir-1.0/*.gir
 %{_datadir}/gtk-doc/html/hinawa/*
-
 
 %changelog
  * Thu Aug 24 2020 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 2.2.0
