@@ -267,12 +267,11 @@ static int update_info(HinawaFwNode *self)
 	if (ioctl(priv->fd, FW_CDEV_IOC_GET_INFO, &info) < 0)
 		return errno;
 
-	// Align buffer for configuration ROM according to host endianness,
-	// because Linux firewire subsystem copies raw data to it.
+	// Linux FireWire subsystem caches the content of configuration ROM by host-endian.
 	rom = (guint32 *)priv->config_rom;
 	quads = (info.rom_length + 3) / 4;
 	for (i = 0; i < quads; ++i)
-		rom[i] = GUINT32_FROM_BE(rom[i]);
+		rom[i] = GUINT32_TO_BE(rom[i]);
 	priv->config_rom_length = info.rom_length;
 
 	return 0;
@@ -341,7 +340,7 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
  * @length: (out): The number of bytes consists of the configuration rom.
  * @exception: A #GError.
  *
- * Get cached content of configuration ROM.
+ * Get cached content of configuration ROM aligned to big-endian.
  *
  * Since: 1.4.
  */
