@@ -34,7 +34,7 @@ developing applications that use %{name}.
 
 
 %build
-%meson
+%meson -Dgtk_doc=true
 %meson_build
 
 
