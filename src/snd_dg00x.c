@@ -32,6 +32,8 @@ static void hinawa_snd_dg00x_class_init(HinawaSndDg00xClass *klass)
 	 *
 	 * When Dg00x models transfer notification, the #HinawaSndDg00x::message signal is
 	 * generated.
+	 *
+	 * Since: 0.7
 	 */
 	dg00x_sigs[DG00X_SIG_TYPE_MESSAGE] =
 		g_signal_new("message",
@@ -69,6 +71,8 @@ HinawaSndDg00x *hinawa_snd_dg00x_new(void)
  *	       #hinawa_fw_node_error_quark(), and #hinawa_snd_unit_error_quark().
  *
  * Open ALSA hwdep character device and check it for Dg00x  devices.
+ *
+ * Since: 0.7
  */
 void hinawa_snd_dg00x_open(HinawaSndDg00x *self, gchar *path, GError **exception)
 {
