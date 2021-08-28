@@ -53,6 +53,8 @@ struct _HinawaSndTscmClass {
 	 *
 	 * When TASCAM FireWire unit transfer control message, the #HinawaSndTscmClass::control
 	 * handler is emitted.
+	 *
+	 * Since: 1.2
 	 */
 	void (*control)(HinawaSndTscm *self, guint index, guint before,
 			guint after);
