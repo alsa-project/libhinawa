@@ -24,6 +24,8 @@
  *
  * Return the GQuark for error domain of GError which has code in #HinawaFwRcode.
  *
+ * Since: 2.1
+ *
  * Returns: A #GQuark.
  */
 G_DEFINE_QUARK(hinawa-fw-req-error-quark, hinawa_fw_req_error)
@@ -35,7 +37,6 @@ enum fw_req_prop_type {
 };
 static GParamSpec *fw_req_props[FW_REQ_PROP_TYPE_COUNT] = { NULL, };
 
-/* NOTE: This object has no properties and no signals. */
 struct _HinawaFwReqPrivate {
 	guint timeout;
 };
@@ -102,6 +103,12 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 	gobject_class->get_property = fw_req_get_property;
 	gobject_class->set_property = fw_req_set_property;
 
+	/**
+	 * HinawaFwReq:timeout:
+	 *
+	 * Since: 1.4
+	 * Deprecated: 2.1: Use timeout_ms parameter of #hinawa_fw_req_transaction_sync().
+	 */
 	fw_req_props[FW_REQ_PROP_TYPE_TIMEOUT] =
 		g_param_spec_uint("timeout", "timeout",
 				  "An elapse to expire waiting for response by ms unit.",
@@ -124,6 +131,8 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 	 * When the unit transfers asynchronous packet as response subaction for the transaction,
 	 * and the process successfully reads the content of packet from Linux firewire subsystem,
 	 * the #HinawaFwReq::responded signal handler is called.
+	 *
+	 * Since: 2.1
 	 */
 	fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED] =
 		g_signal_new("responded",
@@ -396,7 +405,8 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
  * Execute request subaction of transaction to the given node according to given code, then wait
  * for response subaction within #HinawaFwReq:timeout.
  *
- * Since: 1.4.
+ * Since: 1.4
+ * Deprecated: 2.1: Use #hinawa_fw_req_transaction_sync(), instead.
  */
 void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 			       HinawaFwTcode tcode, guint64 addr, gsize length,

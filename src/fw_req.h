@@ -60,6 +60,8 @@ struct _HinawaFwReqClass {
 	 * When the unit transfers asynchronous packet as response subaction for the transaction,
 	 * and the process successfully reads the content of packet from Linux firewire subsystem,
 	 * the #HinawaFwReqClass::responded handler is called.
+	 *
+	 * Since: 2.1
 	 */
 	void (*responded)(HinawaFwReq *self, HinawaFwRcode rcode,
 			  const guint8 *frame, guint frame_size);
