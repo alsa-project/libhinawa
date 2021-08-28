@@ -40,6 +40,8 @@ static void hinawa_snd_tscm_class_init(HinawaSndTscmClass *klass)
 	 *
 	 * When TASCAM FireWire unit transfer control message, the #HinawaSndTscm::control
 	 * signal is emitted.
+	 *
+	 * Since: 1.1
 	 */
 	tscm_sigs[TSCM_SIG_TYPE_CTL] =
 		g_signal_new("control",
@@ -78,6 +80,8 @@ HinawaSndTscm *hinawa_snd_tscm_new(void)
  *	       #hinawa_fw_node_error_quark(), and #hinawa_snd_unit_error_quark().
  *
  * Open ALSA hwdep character device and check it for Dg00x  devices.
+ *
+ * Since: 1.1
  */
 void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **exception)
 {
@@ -95,9 +99,9 @@ void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **exception)
  *
  * Get the latest states of target device.
  *
- * Returns: (element-type guint32) (array fixed-size=64) (transfer none): state
- * 	    image.
+ * Returns: (element-type guint32) (array fixed-size=64) (transfer none): state image.
  *
+ * Since: 1.1
  */
 const guint32 *hinawa_snd_tscm_get_state(HinawaSndTscm *self,
 					 GError **exception)
