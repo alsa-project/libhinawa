@@ -55,6 +55,8 @@ struct _HinawaSndUnitClass {
 	 *
 	 * When ALSA kernel-streaming status is changed, this #HinawaSndUnitClass::lock_status
 	 * handler is called.
+	 *
+	 * Since: 1.2
 	 */
 	void (*lock_status)(HinawaSndUnit *self, gboolean state);
 
@@ -66,6 +68,8 @@ struct _HinawaSndUnitClass {
 	 * or hot unplugging, this signal is emit. The owner of this object
 	 * should call g_object_free() as quickly as possible to release ALSA
 	 * hwdep character device.
+	 *
+	 * Since: 2.0
 	 */
 	void (*disconnected)(HinawaSndUnit *self);
 };
