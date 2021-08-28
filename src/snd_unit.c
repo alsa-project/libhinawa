@@ -28,6 +28,8 @@
  *
  * Return the GQuark for error domain of GError which has code in #HinawaSndUnitError.
  *
+ * Since: 2.1
+ *
  * Returns: A #GQuark.
  */
 G_DEFINE_QUARK(hinawa-snd-unit-error-quark, hinawa_snd_unit_error)
@@ -136,28 +138,58 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 	gobject_class->get_property = snd_unit_get_property;
 	gobject_class->finalize = snd_unit_finalize;
 
+	/**
+	 * HinawaSndUnit:type:
+	 *
+	 * Since: 1.0
+	 */
 	snd_unit_props[SND_UNIT_PROP_TYPE_FW_TYPE] =
 		g_param_spec_enum("type", "type",
 				  "The value of HinawaSndUnitType enumerators",
 				  HINAWA_TYPE_SND_UNIT_TYPE,
 				  HINAWA_SND_UNIT_TYPE_DICE,
 				  G_PARAM_READABLE);
+
+	/**
+	 * HinawaSndUnit:card:
+	 *
+	 * Since: 2.0
+	 */
 	snd_unit_props[SND_UNIT_PROP_TYPE_CARD_ID] =
 		g_param_spec_uint("card", "card",
-				  "The numerical ID for ALSA sound card",
+				  "The numeric ID for ALSA sound card",
 				  0, G_MAXUINT,
 				  0,
 				  G_PARAM_READABLE);
+
+	/**
+	 * HinawaSndUnit:device:
+	 *
+	 *
+	 * Since: 0.3
+	 */
 	snd_unit_props[SND_UNIT_PROP_TYPE_DEVICE] =
 		g_param_spec_string("device", "device",
 				    "A name of special file as FireWire unit.",
 				    NULL,
 				    G_PARAM_READABLE);
+
+	/**
+	 * HinawaSndUnit:streaming:
+	 *
+	 * Since: 0.4
+	 */
 	snd_unit_props[SND_UNIT_PROP_TYPE_STREAMING] =
 		g_param_spec_boolean("streaming", "streaming",
 				     "Whether this device is streaming or not",
 				     FALSE,
 				     G_PARAM_READABLE);
+
+	/**
+	 * HinawaSndUnit:guid:
+	 *
+	 * Since: 0.4
+	 */
 	snd_unit_props[SND_UNIT_PROP_TYPE_GUID] =
 		g_param_spec_uint64("guid", "guid",
 				    "Global unique ID for this firewire unit.",
@@ -175,6 +207,8 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 	 *
 	 * When ALSA kernel-streaming status is changed, this #HinawaSndUnit::lock-status
 	 * signal is generated.
+	 *
+	 * Since: 0.3
 	 */
 	snd_unit_sigs[SND_UNIT_SIG_TYPE_LOCK_STATUS] =
 		g_signal_new("lock-status",
@@ -193,6 +227,8 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 	 * or hot unplugging, this signal is emit. The owner of this object
 	 * should call g_object_free() as quickly as possible to release ALSA
 	 * hwdep character device.
+	 *
+	 * Since: 2.0
 	 */
 	snd_unit_sigs[SND_UNIT_SIG_TYPE_DISCONNECTED] =
 		g_signal_new("disconnected",
@@ -233,6 +269,8 @@ HinawaSndUnit *hinawa_snd_unit_new(void)
  *	       #hinawa_fw_node_error_quark(), and #hinawa_snd_unit_error_quark().
  *
  * Open ALSA hwdep character device and check it for FireWire sound devices.
+ *
+ * Since: 0.4
  */
 void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **exception)
 {
@@ -341,6 +379,8 @@ void hinawa_snd_unit_get_node(HinawaSndUnit *self, HinawaFwNode **node)
  * @exception: A #GError. Error can be generated with domain of #hinawa_snd_unit_error_quark().
  *
  * Disallow ALSA to start kernel-streaming.
+ *
+ * Since: 0.3
  */
 void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception)
 {
@@ -371,6 +411,8 @@ void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **exception)
  * @exception: A #GError. Error can be generated with domain of #hinawa_snd_unit_error_quark().
  *
  * Allow ALSA to start kernel-streaming.
+ *
+ * Since: 0.3
  */
 void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **exception)
 {
