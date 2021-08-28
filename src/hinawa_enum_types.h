@@ -29,6 +29,7 @@
  *
  * A representation for tcode of asynchronous transaction on IEEE 1394 bus.
  *
+ * Since: 1.0
  */
 typedef enum {
 	HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST	= TCODE_WRITE_QUADLET_REQUEST,
@@ -67,6 +68,7 @@ typedef enum {
  *
  * A representation for rcode of asynchronous transaction on IEEE 1394 bus.
  *
+ * Since: 1.0
  */
 typedef enum {
 	HINAWA_FW_RCODE_COMPLETE	= RCODE_COMPLETE,
@@ -94,6 +96,8 @@ typedef enum {
  * @HINAWA_SND_UNIT_TYPE_FIREFACE:	The type of RME Fireface series.
  *
  * A representation of type for sound unit defined by Linux sound subsystem.
+ *
+ * Since: 1.0
  */
 typedef enum {
 	HINAWA_SND_UNIT_TYPE_DICE = 1,
@@ -116,6 +120,8 @@ typedef enum {
  * @HINAWA_FW_NODE_ERROR_FAILED:	The system call fails.
  *
  * A set of error code for GError with domain which equals to #hinawa_fw_node_error_quark().
+ *
+ * Since: 2.1
  */
 typedef enum {
 	HINAWA_FW_NODE_ERROR_DISCONNECTED,
@@ -131,6 +137,8 @@ typedef enum {
  * @HINAWA_FW_RESP_ERROR_ADDR_SPACE_USED:	The address space is used exclusively.
  *
  * A set of error code for GError with domain which equals to #hinawa_fw_resp_error_quark().
+ *
+ * Since: 2.2
  */
 typedef enum {
 	HINAWA_FW_RESP_ERROR_FAILED = 0,
@@ -144,6 +152,8 @@ typedef enum {
  * @HINAWA_FW_FCP_ERROR_LARGE_RESP:	The size of response is larger than expected.
  *
  * A set of error code for GError with domain which equals to #hinawa_fw_fcp_error_quark().
+ *
+ * Since: 2.1
  */
 typedef enum {
 	HINAWA_FW_FCP_ERROR_TIMEOUT,
@@ -164,6 +174,8 @@ typedef enum {
  * @HINAWA_SND_UNIT_ERROR_FAILED:	The system call fails.
  *
  * A set of error code for GError with domain which equals to #hinawa_snd_unit_error_quark().
+ *
+ * Since: 2.1
  */
 typedef enum {
 	HINAWA_SND_UNIT_ERROR_DISCONNECTED,
@@ -181,6 +193,8 @@ typedef enum {
  * @HINAWA_SND_DICE_ERROR_TIMEOUT:	The transaction is canceled due to response timeout.
  *
  * A set of error code for GError with domain which equals to #hinawa_snd_dice_error_quark().
+ *
+ * Since: 2.1
  */
 typedef enum {
 	HINAWA_SND_DICE_ERROR_TIMEOUT,
@@ -207,6 +221,8 @@ typedef enum {
  * @HINAWA_SND_EFW_STATUS_LARGE_RESP:		The size of response is larger than expected.
  *
  * A set of status code for Echo Audio Fireworks Transaction.
+ *
+ * Since: 2.1
  */
 typedef enum {
 	HINAWA_SND_EFW_STATUS_OK		= 0,
