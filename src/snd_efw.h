@@ -63,6 +63,8 @@ struct _HinawaSndEfwClass {
 	 * protocol, and the process successfully reads the content of response from ALSA
 	 * Fireworks driver, the #HinawaSndEfwClass::responded signal handler is called with parameters
 	 * of the response.
+	 *
+	 * Since: 2.1
 	 */
 	void (*responded)(HinawaSndEfw *self, HinawaSndEfwStatus status, guint seqnum,
 			  guint category, guint command, const guint32 *frame, guint frame_size);
