@@ -61,6 +61,8 @@ struct _HinawaFwFcpClass {
          * protocol, and the process successfully reads the content of packet from ALSA
          * Fireworks driver, the #HinawaFwFcpClass::responded signal handler is called with
 	 * parameters of the response.
+	 *
+	 * Since: 2.1
          */
 	void (*responded)(HinawaFwFcp *self, const guint8 *frame, guint frame_size);
 };
