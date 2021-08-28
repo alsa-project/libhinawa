@@ -35,6 +35,8 @@ static void hinawa_snd_motu_class_init(HinawaSndMotuClass *klass)
 	 *
 	 * When Motu models transfer notification, the #HinawaSndMotu::notified signal is
 	 * generated.
+	 *
+	 * Since: 0.8
 	 */
 	motu_sigs[MOTU_SIG_TYPE_NOTIFIED] =
 		g_signal_new("notified",
@@ -72,6 +74,8 @@ HinawaSndMotu *hinawa_snd_motu_new(void)
  *	       #hinawa_fw_node_error_quark(), and #hinawa_snd_unit_error_quark().
  *
  * Open ALSA hwdep character device and check it for Motu devices.
+ *
+ * Since: 0.8
  */
 void hinawa_snd_motu_open(HinawaSndMotu *self, gchar *path, GError **exception)
 {

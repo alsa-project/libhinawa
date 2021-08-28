@@ -51,6 +51,8 @@ struct _HinawaSndMotuClass {
 	 *
 	 * When Motu models transfer notification, the #HinawaSndMotuClass::notified handler is
 	 * called.
+	 *
+	 * Since: 1.2
 	 */
 	void (*notified)(HinawaSndMotu *self, guint message);
 };
