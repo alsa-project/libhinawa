@@ -24,6 +24,8 @@
  *
  * Return the GQuark for error domain of GError which has code in #HinawaFwRespError.
  *
+ * Since: 2.2
+ *
  * Returns: A #GQuark.
  */
 G_DEFINE_QUARK(hinawa-fw-resp-error-quark, hinawa_fw_resp_error)
@@ -100,6 +102,11 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	gobject_class->get_property = fw_resp_get_property;
 	gobject_class->finalize = fw_resp_finalize;
 
+	/**
+	 * HinawaFwResp:is-reserved:
+	 *
+	 * Since: 2.0
+	 */
 	fw_resp_props[FW_RESP_PROP_TYPE_IS_RESERVED] =
 		g_param_spec_boolean("is-reserved", "is-reserved",
 				     "Whether a range of address is reserved "
@@ -126,6 +133,7 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	 * Returns: One of #HinawaRcode enumerators corresponding to rcodes defined in IEEE 1394
 	 * specification.
 	 *
+	 * Since: 0.3
 	 * Deprecated: 2.2: Use #HinawaFwResp::requested2, instead.
 	 */
 	fw_resp_sigs[FW_RESP_SIG_TYPE_REQ] =
@@ -157,6 +165,7 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	 *
 	 * Returns: One of #HinawaRcode enumerators corresponding to rcodes defined in IEEE 1394
 	 *	    specification.
+	 * Since: 2.2
 	 */
 	fw_resp_sigs[FW_RESP_SIG_TYPE_REQ2] =
 		g_signal_new("requested2",
@@ -291,6 +300,7 @@ void hinawa_fw_resp_release(HinawaFwResp *self)
  *
  * Retrieve byte frame to be requested.
  *
+ * Since: 2.0
  * Deprecated: 2.2: handler for #HinawaFwResp::requested2 signal can receive the frame in its
  *		    argument.
  */
@@ -319,6 +329,8 @@ void hinawa_fw_resp_get_req_frame(HinawaFwResp *self, const guint8 **frame,
  * @length: The length of bytes for the frame.
  *
  * Register byte frame as response.
+ *
+ * Since: 2.0
  */
 void hinawa_fw_resp_set_resp_frame(HinawaFwResp *self, guint8 *frame,
 				   gsize length)

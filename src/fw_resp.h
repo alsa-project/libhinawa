@@ -88,6 +88,8 @@ struct _HinawaFwRespClass {
 	 *
 	 * Returns: One of #HinawaRcode enumerators corresponding to rcodes defined in IEEE 1394
 	 *	    specification.
+	 *
+	 * Since: 2.2
 	 */
 	HinawaFwRcode (*requested2)(HinawaFwResp *self, HinawaFwTcode tcode, guint64 offset,
 				    guint32 src, guint32 dst, guint32 card, guint32 generation,
