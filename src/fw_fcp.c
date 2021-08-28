@@ -27,6 +27,8 @@
  *
  * Return the GQuark for error domain of GError which has code in #HinawaFwFcpError.
  *
+ * Since: 2.1
+ *
  * Returns: A #GQuark.
  */
 G_DEFINE_QUARK(hinawa-fw-fcp-error-quark, hinawa_fw_fcp_error)
@@ -144,6 +146,12 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 	gobject_class->set_property = fw_fcp_set_property;
 	gobject_class->finalize = fw_fcp_finalize;
 
+	/**
+	 * HinawaFwFcp:timeout:
+	 *
+	 * Since 1.4
+	 * Deprecated: 2.1: Use timeout_ms parameter of #hinawa_fw_fcp_avc_transaction().
+	 */
 	fw_fcp_props[FW_FCP_PROP_TYPE_TIMEOUT] =
 		g_param_spec_uint("timeout", "timeout",
 				  "An elapse to expire waiting for response "
@@ -151,6 +159,12 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 				  10, G_MAXUINT,
 				  200,
 				  G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
+
+	/**
+	 * HinawaFwFcp:is-bound:
+	 *
+	 * Since: 2.0
+	 */
 	fw_fcp_props[FW_FCP_PROP_TYPE_IS_BOUND] =
 		g_param_spec_boolean("is-bound", "is-bound",
 				     "Whether this protocol is bound to any "
@@ -173,6 +187,8 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
          * protocol, and the process successfully reads the content of packet from ALSA
          * Fireworks driver, the #HinawaFwFcp::responded signal handler is called with parameters
 	 * of the response.
+	 *
+	 * Since: 2.1
          */
         fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED] =
                 g_signal_new("responded",
@@ -416,6 +432,8 @@ static HinawaFwRcode handle_requested2_signal(HinawaFwResp *resp, HinawaFwTcode 
  * @exception: A #GError. Error can be generated with domain of #hinawa_fw_resp_error_quark().
  *
  * Start to listen to FCP responses.
+ *
+ * Since: 1.4
  */
 void hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node,
 			GError **exception)
