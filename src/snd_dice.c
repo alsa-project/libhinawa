@@ -19,6 +19,8 @@
  *
  * Return the GQuark for error domain of GError which has code in #HinawaSndDiceError.
  *
+ * Since: 2.1
+ *
  * Returns: A #GQuark.
  */
 G_DEFINE_QUARK(hinawa-snd-dice-error-quark, hinawa_snd_dice_error)
@@ -74,6 +76,8 @@ static void hinawa_snd_dice_class_init(HinawaSndDiceClass *klass)
 	 *
 	 * When Dice models transfer notification, the #HinawaSndDice::notified signal is
 	 * generated.
+	 *
+	 * Since: 0.3
 	 */
 	dice_sigs[DICE_SIG_TYPE_NOTIFIED] =
 		g_signal_new("notified",
@@ -111,6 +115,8 @@ HinawaSndDice *hinawa_snd_dice_new(void)
  *	       #hinawa_fw_node_error_quark(), and #hinawa_snd_unit_error_quark().
  *
  * Open ALSA hwdep character device and check it for Dice  devices.
+ *
+ * Since: 0.4
  */
 void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
 {

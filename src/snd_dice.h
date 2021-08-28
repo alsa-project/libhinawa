@@ -55,6 +55,8 @@ struct _HinawaSndDiceClass {
 	 *
 	 * When Dice models transfer notification, the #HinawaSndDiceClass::notified handler is
 	 * called.
+	 *
+	 * Since: 1.2
 	 */
 	void (*notified)(HinawaSndDice *self, guint message);
 };
