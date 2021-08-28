@@ -20,6 +20,8 @@
  *
  * Return the GQuark for error domain of GError which has code in #HinawaSndEfwStatus.
  *
+ * Since: 2.1
+ *
  * Returns: A #GQuark.
  */
 G_DEFINE_QUARK(hinawa-snd-efw-error-quark, hinawa_snd_efw_error)
@@ -79,6 +81,8 @@ static void hinawa_snd_efw_class_init(HinawaSndEfwClass *klass)
 	 * protocol, and the process successfully reads the content of response from ALSA
 	 * Fireworks driver, the #HinawaSndEfw::responded signal handler is called with parameters
 	 * of the response.
+	 *
+	 * Since: 2.1
 	 */
 	efw_sigs[EFW_SIG_TYPE_RESPONDED] =
 		g_signal_new("responded",
@@ -117,6 +121,8 @@ HinawaSndEfw *hinawa_snd_efw_new(void)
  *	       #hinawa_fw_node_error_quark(), and #hinawa_snd_unit_error_quark().
  *
  * Open ALSA hwdep character device and check it for Fireworks devices.
+ *
+ * Since: 0.3
  */
 void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
 {
