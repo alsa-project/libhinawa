@@ -100,6 +100,9 @@ GType hinawa_fw_resp_get_type(void) G_GNUC_CONST;
 
 HinawaFwResp *hinawa_fw_resp_new(void);
 
+void hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *node,
+					  guint64 region_start, guint64 region_end, guint width,
+					  GError **exception);
 void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 			    guint64 addr, guint width, GError **exception);
 void hinawa_fw_resp_release(HinawaFwResp *self);

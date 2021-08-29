@@ -20,6 +20,7 @@ methods = (
     'get_req_frame',
     'set_resp_frame',
     'reserve',
+    'reserve_within_region',
     'release',
 )
 vmethods = (

@@ -297,7 +297,8 @@ static int update_info(HinawaFwNode *self)
 	unsigned int quads;
 	int i;
 
-	// Duplicate generation parameters in userspace.
+	// Duplicate generation parameters in userspace. The interface version 4 is used for
+	// 'struct fw_cdev_event_request2' and 'struct fw_cdev_allocate.region_end'.
 	info.version = 4;
 	info.rom = (__u64)priv->config_rom;
 	info.rom_length = MAX_CONFIG_ROM_LENGTH;
