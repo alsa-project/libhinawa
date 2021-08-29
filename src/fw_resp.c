@@ -45,6 +45,7 @@ static const char *const err_msgs[] = {
 struct _HinawaFwRespPrivate {
 	HinawaFwNode *node;
 
+	guint64 offset;
 	guint width;
 	guint64 addr_handle;
 
@@ -58,6 +59,8 @@ G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwResp, hinawa_fw_resp, G_TYPE_OBJECT)
 // This object has one property.
 enum fw_resp_prop_type {
 	FW_RESP_PROP_TYPE_IS_RESERVED = 1,
+	FW_RESP_PROP_TYPE_OFFSET,
+	FW_RESP_PROP_TYPE_WIDTH,
 	FW_RESP_PROP_TYPE_COUNT,
 };
 static GParamSpec *fw_resp_props[FW_RESP_PROP_TYPE_COUNT] = { NULL, };
@@ -79,6 +82,12 @@ static void fw_resp_get_property(GObject *obj, guint id, GValue *val,
 	switch (id) {
 	case FW_RESP_PROP_TYPE_IS_RESERVED:
 		g_value_set_boolean(val, priv->node != NULL);
+		break;
+	case FW_RESP_PROP_TYPE_OFFSET:
+		g_value_set_uint64(val, priv->offset);
+		break;
+	case FW_RESP_PROP_TYPE_WIDTH:
+		g_value_set_uint(val, priv->width);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
@@ -113,6 +122,30 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 				     "or not in host controller. ",
 				     FALSE,
 				     G_PARAM_READABLE);
+
+	/**
+	 * HinawaFwResp:offset:
+	 *
+	 * Since: 2.3
+	 */
+	fw_resp_props[FW_RESP_PROP_TYPE_OFFSET] =
+		g_param_spec_uint64("offset", "offset",
+				    "The start offset of reserved address range.",
+				    0, G_MAXUINT64,
+				    0,
+				    G_PARAM_READABLE);
+
+	/**
+	 * HinawaFwResp:width:
+	 *
+	 * Since: 2.3
+	 */
+	fw_resp_props[FW_RESP_PROP_TYPE_WIDTH] =
+		g_param_spec_uint("width", "width",
+				  "The width of reserved address range.",
+				  0, G_MAXUINT,
+				  0,
+				  G_PARAM_READABLE);
 
 	g_object_class_install_properties(gobject_class,
 					  FW_RESP_PROP_TYPE_COUNT,
@@ -250,6 +283,7 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 
 	priv->resp_frame = g_malloc0(allocate.length);
 
+	priv->offset = allocate.offset;
 	priv->width = allocate.length;
 	priv->addr_handle = allocate.handle;
 }
@@ -289,6 +323,9 @@ void hinawa_fw_resp_release(HinawaFwResp *self)
 		g_free(priv->resp_frame);
 	priv->resp_frame = NULL;
 	priv->resp_length = 0;
+
+	priv->offset = 0;
+	priv->width = 0;
 }
 
 /**
