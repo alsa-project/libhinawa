@@ -2,7 +2,7 @@
 libhinawa
 =========
 
-2021/05/28
+2021/08/29
 Takashi Sakamoto
 
 Instruction
@@ -50,12 +50,13 @@ Example of Python3 with PyGobject
     addr = 0xfffff0000904
     req = Hinawa.FwReq()
     frame = bytearray(4)
-    frame = req.transaction(node, Hinawa.FwTcode.READ_QUADLET_REQUEST, addr, 4,
-    			frame)
+    frame = req.transaction_sync(node, Hinawa.FwTcode.READ_QUADLET_REQUEST, addr, 4,
+                                 frame, 50)
     for i, frame in enumerate(frame):
         print('0x{:016x}: 0x{:02x}'.format(addr + i, frame))
 
     dispatcher.quit()
+    dispatcher_th.join()
 
 License
 =======
@@ -143,14 +144,14 @@ How to make RPM package
     $ cd build
     $ meson dist
     ...
-    meson-dist/libhinawa-2.2.1.tar.xz 433b4fbf1a3f7a4af3a0cc0103c6127b749c59717f72ab2c22c5db763d878a83
+    meson-dist/libhinawa-2.3.0.tar.xz 3bc5833e102f38d3b08de89e6355deb83dffb81fb6cc34fc7f2fc473be5b4c47
     $ cd ..
 
 3. copy the archive
 
 ::
 
-    $ cp build/meson-dist/libhinawa-2.2.1.tar.xz ~/rpmbuild/SOURCES/
+    $ cp build/meson-dist/libhinawa-2.3.0.tar.xz ~/rpmbuild/SOURCES/
 
 4. build package
 
