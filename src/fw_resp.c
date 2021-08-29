@@ -231,21 +231,24 @@ HinawaFwResp *hinawa_fw_resp_new(void)
 }
 
 /**
- * hinawa_fw_resp_reserve:
+ * hinawa_fw_resp_reserve_within_region:
  * @self: A #HinawaFwResp.
  * @node: A #HinawaFwNode.
- * @addr: A start address to listen to in host controller.
- * @width: The byte width of address to listen to host controller.
+ * @region_start:  Start offset of address region in which range of address is looked up.
+ * @region_end:  End offset of address region in which range of address is looked up.
+ * @width: The width for range of address to be looked up.
  * @exception: A #GError. Error can be generated with two domain of #hinawa_fw_node_error_quark()
  *	       and #hinawa_fw_resp_error_quark().
  *
- * Start to listen to a range of address in host controller which connects to
- * the node.
+ * Start to listen to range of address equals to #width in local node (e.g. 1394 OHCI host
+ * controller), which is used to communicate to the node given as parameter. The range of address
+ * is looked up in region between #region_start and #region_end.
  *
- * Since: 1.4.
+ * Since: 2.3.
  */
-void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
-			    guint64 addr, guint width, GError **exception)
+void hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *node,
+					  guint64 region_start, guint64 region_end, guint width,
+					  GError **exception)
 {
 	HinawaFwRespPrivate *priv;
 	struct fw_cdev_allocate allocate = {0};
@@ -261,10 +264,10 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 		return;
 	}
 
-	allocate.offset = addr;
+	allocate.offset = region_start;
 	allocate.closure = (guint64)self;
 	allocate.length = width;
-	allocate.region_end = addr + width;
+	allocate.region_end = region_end;
 
 	err = hinawa_fw_node_ioctl(node, FW_CDEV_IOC_ALLOCATE, &allocate, exception);
 	if (*exception != NULL)
@@ -286,6 +289,27 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
 	priv->offset = allocate.offset;
 	priv->width = allocate.length;
 	priv->addr_handle = allocate.handle;
+}
+
+/**
+ * hinawa_fw_resp_reserve:
+ * @self: A #HinawaFwResp.
+ * @node: A #HinawaFwNode.
+ * @addr: A start address to listen to in host controller.
+ * @width: The byte width of address to listen to host controller.
+ * @exception: A #GError. Error can be generated with two domain of #hinawa_fw_node_error_quark()
+ *	       and #hinawa_fw_resp_error_quark().
+ *
+ * Start to listen to a range of address in host controller which connects to the node. The function
+ * is a variant of #hinawa_fw_resp_reserve_within_region() so that the exact range of address should
+ * be reserved as given.
+ *
+ * Since: 1.4.
+ */
+void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode *node,
+			    guint64 addr, guint width, GError **exception)
+{
+	hinawa_fw_resp_reserve_within_region(self, node, addr, addr + width, width, exception);
 }
 
 /**
