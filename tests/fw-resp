@@ -12,6 +12,8 @@ from gi.repository import Hinawa
 target = Hinawa.FwResp()
 props = (
     'is-reserved',
+    'offset',
+    'width',
 )
 methods = (
     'new',
