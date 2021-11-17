@@ -39,6 +39,7 @@ void hinawa_snd_dg00x_handle_msg(HinawaSndDg00x *self, const void *buf,
 				 ssize_t len);
 void hinawa_snd_motu_handle_notification(HinawaSndMotu *self,
 					 const void *buf, ssize_t len);
+void hinawa_snd_motu_handle_register_dsp_change(HinawaSndMotu *self, const void *buf, ssize_t len);
 void hinawa_snd_tscm_handle_control(HinawaSndTscm *self, const void *buf,
 				    ssize_t len);
 

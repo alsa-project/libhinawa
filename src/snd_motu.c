@@ -3,6 +3,7 @@
 #include <errno.h>
 
 #include "internal.h"
+#include "hinawa_sigs_marshal.h"
 
 /**
  * SECTION:snd_motu
@@ -22,6 +23,7 @@ G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndMotu, hinawa_snd_motu, HINAWA_TYPE_SND_UNIT)
 /* This object has one signal. */
 enum motu_sig_type {
 	MOTU_SIG_TYPE_NOTIFIED,
+	MOTU_SIG_TYPE_REGISTER_DSP_CHANGED,
 	MOTU_SIG_TYPE_COUNT,
 };
 static guint motu_sigs[MOTU_SIG_TYPE_COUNT] = { 0 };
@@ -46,6 +48,32 @@ static void hinawa_snd_motu_class_init(HinawaSndMotuClass *klass)
 			     NULL, NULL,
 			     g_cclosure_marshal_VOID__UINT,
 			     G_TYPE_NONE, 1, G_TYPE_UINT);
+
+	/**
+	 * HinawaSndMotu::register-dsp-changed:
+	 * @self: A #HinawaSndMotu
+	 * @events: (element-type guint32)(array length=length): The array with element for
+	 *	    unsigned 32 bit encoded data.
+	 * @length: The length of events.
+	 *
+	 * When MOTU register DSP models transfer events by messages in the sequence of isochronous
+	 * packet, the #HinawaSndMotu::register-dsp-changed signal is emit.
+	 * The event consists of encoded data. The most significant byte is the type of message. The
+	 * next two bytes are identifier 0 and 1. The least significant byte is value. The meaning
+	 * of identifier 0, 1 and value is decided depending on the type. For detail, see
+	 * `sound/firewire/motu/motu-register-dsp-message-parser.c` in Linux kernel.
+	 *
+	 * Since: 2.4
+	 */
+	motu_sigs[MOTU_SIG_TYPE_REGISTER_DSP_CHANGED] =
+		g_signal_new("register-dsp-changed",
+			     G_OBJECT_CLASS_TYPE(klass),
+			     G_SIGNAL_RUN_LAST,
+			     0,
+			     NULL, NULL,
+			     hinawa_sigs_marshal_VOID__POINTER_UINT,
+			     G_TYPE_NONE,
+			     2, G_TYPE_POINTER, G_TYPE_UINT);
 }
 
 static void hinawa_snd_motu_init(HinawaSndMotu *self)
@@ -95,4 +123,12 @@ void hinawa_snd_motu_handle_notification(HinawaSndMotu *self,
 
 	g_signal_emit(self, motu_sigs[MOTU_SIG_TYPE_NOTIFIED], 0,
 		      event->message);
+}
+
+void hinawa_snd_motu_handle_register_dsp_change(HinawaSndMotu *self, const void *buf, ssize_t len)
+{
+	const struct snd_firewire_event_motu_register_dsp_change *ev = buf;
+
+	g_signal_emit(self, motu_sigs[MOTU_SIG_TYPE_REGISTER_DSP_CHANGED], 0,  &ev->changes,
+		      ev->count);
 }
