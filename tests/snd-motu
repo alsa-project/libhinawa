@@ -14,6 +14,7 @@ props = ()
 methods = (
     'new',
     'open',
+    'read_register_dsp_meter',
 )
 vmethods = (
     'do_notified',
