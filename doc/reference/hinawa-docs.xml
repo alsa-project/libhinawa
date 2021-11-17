@@ -56,7 +56,7 @@
 
     <chapter id="hinawa-snd">
         <title>Hinawa objects for Linux sound subsystem.</title>
-        <para>This library gives 6 objects for abstractions of some
+        <para>This library gives 7 objects for abstractions of some
             features in Linux sound subsystem. Most of the features are
             given by corresponding kernel driver.</para>
         <xi:include href="xml/snd_unit.xml"/>
@@ -64,6 +64,7 @@
         <xi:include href="xml/snd_efw.xml"/>
         <xi:include href="xml/snd_dg00x.xml"/>
         <xi:include href="xml/snd_motu.xml"/>
+	<xi:include href="xml/snd_motu_register_dsp_parameter.xml"/>
         <xi:include href="xml/snd_tscm.xml"/>
     </chapter>
 
