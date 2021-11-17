@@ -6,6 +6,7 @@
 #include <glib-object.h>
 
 #include <snd_unit.h>
+#include <snd_motu_register_dsp_parameter.h>
 
 G_BEGIN_DECLS
 
@@ -80,6 +81,10 @@ GType hinawa_snd_motu_get_type(void) G_GNUC_CONST;
 HinawaSndMotu *hinawa_snd_motu_new(void);
 
 void hinawa_snd_motu_open(HinawaSndMotu *self, gchar *path, GError **exception);
+
+void hinawa_snd_motu_read_register_dsp_parameter(HinawaSndMotu *self,
+						 HinawaSndMotuRegisterDspParameter *const *param,
+						 GError **exception);
 
 void hinawa_snd_motu_read_register_dsp_meter(HinawaSndMotu *self, guint8 *const meter[48],
 					     GError **exception);

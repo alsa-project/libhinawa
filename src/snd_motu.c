@@ -115,6 +115,34 @@ void hinawa_snd_motu_open(HinawaSndMotu *self, gchar *path, GError **exception)
 }
 
 /**
+ * hinawa_snd_motu_read_register_dsp_parameter:
+ * @self: A #HinawaSndMotu.
+ * @param: (inout): A #HinawaSndMotuRegisterDspParameter.
+ * @exception: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
+ *	       #hinawa_snd_unit_error_quark().
+ *
+ * Read parameter for register DSP models.
+ *
+ * Since: 2.4
+ */
+void hinawa_snd_motu_read_register_dsp_parameter(HinawaSndMotu *self,
+						 HinawaSndMotuRegisterDspParameter *const *param,
+						 GError **exception)
+{
+	struct snd_firewire_motu_register_dsp_parameter *arg;
+
+	g_return_if_fail(HINAWA_IS_SND_MOTU(self));
+	g_return_if_fail(*param != NULL);
+	g_return_if_fail(exception == NULL || *exception == NULL);
+
+	arg = (struct snd_firewire_motu_register_dsp_parameter *)(*param);
+
+	hinawa_snd_unit_ioctl(HINAWA_SND_UNIT(self),
+			      SNDRV_FIREWIRE_IOCTL_MOTU_REGISTER_DSP_PARAMETER, arg, exception);
+
+}
+
+/**
  * hinawa_snd_motu_read_register_dsp_meter:
  * @self: A #HinawaSndMotu
  * @meter: (array fixed-size=48)(inout): The data of meter. Index 0 to 23 for inputs and index 24
