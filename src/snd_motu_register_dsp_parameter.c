@@ -200,3 +200,63 @@ void hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_flag(
 	param = (struct snd_firewire_motu_register_dsp_parameter *)self;
 	*flag= param->mixer.output.paired_flag;
 }
+
+/**
+ * hinawa_snd_motu_register_dsp_parameter_get_main_output_paired_volume:
+ * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @volume: (out): The value of paired main output.
+ *
+ * Get the array with elements for the data of paired main output volume. The data has volume value
+ * between 0x00 and 0x80.
+ */
+void hinawa_snd_motu_register_dsp_parameter_get_main_output_paired_volume(
+	const HinawaSndMotuRegisterDspParameter *self, guint8 *volume)
+{
+	struct snd_firewire_motu_register_dsp_parameter *param;
+
+	g_return_if_fail(self != NULL);
+	g_return_if_fail(volume != NULL);
+
+	param = (struct snd_firewire_motu_register_dsp_parameter *)self;
+	*volume = param->output.main_paired_volume;
+}
+
+/**
+ * hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_volume:
+ * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @volume: (out): The value of paired headphone output.
+ *
+ * Get the array with elements for the data of paired headphone output volume. The data has volume
+ * value between 0x00 and 0x80.
+ */
+void hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_volume(
+	const HinawaSndMotuRegisterDspParameter *self, guint8 *volume)
+{
+	struct snd_firewire_motu_register_dsp_parameter *param;
+
+	g_return_if_fail(self != NULL);
+	g_return_if_fail(volume != NULL);
+
+	param = (struct snd_firewire_motu_register_dsp_parameter *)self;
+	*volume = param->output.hp_paired_volume;
+}
+
+/**
+ * hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_assignment:
+ * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @assignment: (out): The value of paired headphone assignment.
+ *
+ * Get the array with elements for the data of paired headphone output source. The data has index
+ * value of source.
+ */
+void hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_assignment(
+	const HinawaSndMotuRegisterDspParameter *self, guint8 *assignment)
+{
+	struct snd_firewire_motu_register_dsp_parameter *param;
+
+	g_return_if_fail(self != NULL);
+	g_return_if_fail(assignment != NULL);
+
+	param = (struct snd_firewire_motu_register_dsp_parameter *)self;
+	*assignment = param->output.hp_paired_assignment;
+}

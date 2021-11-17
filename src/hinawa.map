@@ -145,4 +145,7 @@ HINAWA_2_4_0 {
     "hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_width";
     "hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_volume";
     "hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_flag";
+    "hinawa_snd_motu_register_dsp_parameter_get_main_output_paired_volume";
+    "hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_volume";
+    "hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_assignment";
 } HINAWA_2_3_0;
