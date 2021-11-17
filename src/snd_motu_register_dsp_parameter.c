@@ -37,3 +37,121 @@ HinawaSndMotuRegisterDspParameter *hinawa_snd_motu_register_dsp_parameter_new(vo
 {
     return g_malloc0(sizeof(HinawaSndMotuRegisterDspParameter));
 }
+
+/**
+ * hinawa_snd_motu_register_dsp_parameter_get_mixer_source_gain:
+ * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @mixer: the numeric index of mixer, up to 4.
+ * @gain: (array fixed-size=20)(out)(transfer none): The array with elements for the data of source
+ *	  gains.
+ *
+ * Get the array with elements for the data of source gains in indicated mixer. The data has gain
+ * value between 0x00 and 0x80.
+ */
+void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_gain(
+	const HinawaSndMotuRegisterDspParameter *self, gsize mixer, const guint8 *gain[20])
+{
+	struct snd_firewire_motu_register_dsp_parameter *param;
+
+	g_return_if_fail(self != NULL);
+	g_return_if_fail(mixer < SNDRV_FIREWIRE_MOTU_REGISTER_DSP_MIXER_COUNT);
+	g_return_if_fail(gain != NULL);
+
+	param = (struct snd_firewire_motu_register_dsp_parameter *)self;
+	*gain = param->mixer.source[mixer].gain;
+}
+
+/**
+ * hinawa_snd_motu_register_dsp_parameter_get_mixer_source_pan:
+ * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @mixer: the numeric index of mixer, up to 4.
+ * @pan: (array fixed-size=20)(out)(transfer none): The array with elements for the data of source
+ *	 pan.
+ *
+ * Get the array with elements for the data of source pans in indicated mixer. The data has pan
+ * value between 0x00 and 0x80.
+ */
+void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_pan(
+	const HinawaSndMotuRegisterDspParameter *self, gsize mixer, const guint8 *pan[20])
+{
+	struct snd_firewire_motu_register_dsp_parameter *param;
+
+	g_return_if_fail(self != NULL);
+	g_return_if_fail(mixer < SNDRV_FIREWIRE_MOTU_REGISTER_DSP_MIXER_COUNT);
+	g_return_if_fail(pan != NULL);
+
+	param = (struct snd_firewire_motu_register_dsp_parameter *)self;
+	*pan = param->mixer.source[mixer].pan;
+}
+
+/**
+ * hinawa_snd_motu_register_dsp_parameter_get_mixer_source_flag:
+ * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @mixer: the numeric index of mixer, up to 4.
+ * @flag: (array fixed-size=20)(out)(transfer none): The array with elements for the data of source
+ *	  flag.
+ *
+ * Get the array with elements for the data of source flags in indicated mixer. The data consists of
+ * bit flags below:
+ *
+ *  - 0x01: whether to enable mute function for the source.
+ *  - 0x02: whether to enable solo function for the source.
+ */
+void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_flag(
+	const HinawaSndMotuRegisterDspParameter *self, gsize mixer, const guint8 *flag[20])
+{
+	struct snd_firewire_motu_register_dsp_parameter *param;
+
+	g_return_if_fail(self != NULL);
+	g_return_if_fail(mixer < SNDRV_FIREWIRE_MOTU_REGISTER_DSP_MIXER_COUNT);
+	g_return_if_fail(flag != NULL);
+
+	param = (struct snd_firewire_motu_register_dsp_parameter *)self;
+	*flag = param->mixer.source[mixer].flag;
+}
+
+/**
+ * hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_balance:
+ * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @mixer: the numeric index of mixer, up to 4.
+ * @balance: (array fixed-size=20)(out)(transfer none): The array with elements for the data of
+ *	     paired source L/R balance.
+ *
+ * Get the array with elements for the data of paired source L/R balance in indicated mixer. The
+ * data has L/R balance value between 0x00 and 0x80.
+ */
+void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_balance(
+	const HinawaSndMotuRegisterDspParameter *self, gsize mixer, const guint8 *balance[20])
+{
+	struct snd_firewire_motu_register_dsp_parameter *param;
+
+	g_return_if_fail(self != NULL);
+	g_return_if_fail(mixer < SNDRV_FIREWIRE_MOTU_REGISTER_DSP_MIXER_COUNT);
+	g_return_if_fail(balance != NULL);
+
+	param = (struct snd_firewire_motu_register_dsp_parameter *)self;
+	*balance = param->mixer.source[mixer].paired_balance;
+}
+
+/**
+ * hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_width:
+ * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @mixer: the numeric index of mixer, up to 4.
+ * @width: (array fixed-size=20)(out)(transfer none): The array with elements for the data of
+ *	   paired source width.
+ *
+ * Get the array with elements for the data of paired source width in indicated mixer. The data
+ * has width value between 0x00 and 0x80.
+ */
+void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_width(
+	const HinawaSndMotuRegisterDspParameter *self, gsize mixer, const guint8 *width[20])
+{
+	struct snd_firewire_motu_register_dsp_parameter *param;
+
+	g_return_if_fail(self != NULL);
+	g_return_if_fail(mixer < SNDRV_FIREWIRE_MOTU_REGISTER_DSP_MIXER_COUNT);
+	g_return_if_fail(width != NULL);
+
+	param = (struct snd_firewire_motu_register_dsp_parameter *)self;
+	*width = param->mixer.source[mixer].paired_width;
+}

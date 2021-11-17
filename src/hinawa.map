@@ -138,4 +138,9 @@ HINAWA_2_4_0 {
 
     "hinawa_snd_motu_register_dsp_parameter_get_type";
     "hinawa_snd_motu_register_dsp_parameter_new";
+    "hinawa_snd_motu_register_dsp_parameter_get_mixer_source_gain";
+    "hinawa_snd_motu_register_dsp_parameter_get_mixer_source_pan";
+    "hinawa_snd_motu_register_dsp_parameter_get_mixer_source_flag";
+    "hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_balance";
+    "hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_width";
 } HINAWA_2_3_0;

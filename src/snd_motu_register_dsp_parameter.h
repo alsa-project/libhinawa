@@ -22,6 +22,21 @@ GType hinawa_snd_motu_register_dsp_parameter_get_type() G_GNUC_CONST;
 
 HinawaSndMotuRegisterDspParameter *hinawa_snd_motu_register_dsp_parameter_new(void);
 
+void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_gain(
+	const HinawaSndMotuRegisterDspParameter *self, gsize mixer, const guint8 *gain[20]);
+
+void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_pan(
+	const HinawaSndMotuRegisterDspParameter *self, gsize mixer, const guint8 *pan[20]);
+
+void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_flag(
+	const HinawaSndMotuRegisterDspParameter *self, gsize mixer, const guint8 *flag[20]);
+
+void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_balance(
+	const HinawaSndMotuRegisterDspParameter *self, gsize mixer, const guint8 *balance[20]);
+
+void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_width(
+	const HinawaSndMotuRegisterDspParameter *self, gsize mixer, const guint8 *width[20]);
+
 G_END_DECLS
 
 #endif
