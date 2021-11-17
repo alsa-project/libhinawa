@@ -14,6 +14,7 @@ props = ()
 methods = (
     'new',
     'open',
+    'read_register_dsp_parameter',
     'read_register_dsp_meter',
     'read_command_dsp_meter',
 )
