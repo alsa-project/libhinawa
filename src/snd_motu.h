@@ -84,6 +84,9 @@ void hinawa_snd_motu_open(HinawaSndMotu *self, gchar *path, GError **exception);
 void hinawa_snd_motu_read_register_dsp_meter(HinawaSndMotu *self, guint8 *const meter[48],
 					     GError **exception);
 
+void hinawa_snd_motu_read_command_dsp_meter(HinawaSndMotu *self, gfloat *const meter[400],
+					    GError **exception);
+
 G_END_DECLS
 
 #endif

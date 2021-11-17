@@ -141,6 +141,32 @@ void hinawa_snd_motu_read_register_dsp_meter(HinawaSndMotu *self, guint8 *const 
 			      arg, exception);
 }
 
+/**
+ * hinawa_snd_motu_read_command_dsp_meter:
+ * @self: A #HinawaSndMotu
+ * @meter: (array fixed-size=400)(inout): The data for meter.
+ * @exception: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
+ *	       #hinawa_snd_unit_error_quark().
+ *
+ * Read data of meter information for command DSP models.
+ *
+ * Since: 2.4
+ */
+void hinawa_snd_motu_read_command_dsp_meter(HinawaSndMotu *self, gfloat *const meter[400],
+					    GError **exception)
+{
+	struct snd_firewire_motu_command_dsp_meter *arg;
+
+	g_return_if_fail(HINAWA_IS_SND_MOTU(self));
+	g_return_if_fail(*meter != NULL);
+	g_return_if_fail(exception == NULL || *exception == NULL);
+
+	arg = (struct snd_firewire_motu_command_dsp_meter *)(*meter);
+
+	hinawa_snd_unit_ioctl(HINAWA_SND_UNIT(self), SNDRV_FIREWIRE_IOCTL_MOTU_COMMAND_DSP_METER,
+			      arg, exception);
+}
+
 void hinawa_snd_motu_handle_notification(HinawaSndMotu *self,
 					 const void *buf, ssize_t len)
 {
