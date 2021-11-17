@@ -17,6 +17,7 @@ methods = (
 )
 vmethods = (
     'do_notified',
+    'do_register_dsp_changed',
 )
 signals = (
     'notified',
