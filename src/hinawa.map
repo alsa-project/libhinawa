@@ -133,4 +133,5 @@ HINAWA_2_3_0 {
 HINAWA_2_4_0 {
   global:
     "hinawa_snd_motu_read_register_dsp_meter";
+    "hinawa_snd_motu_read_command_dsp_meter";
 } HINAWA_2_3_0;

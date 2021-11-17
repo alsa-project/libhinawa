@@ -15,6 +15,7 @@ methods = (
     'new',
     'open',
     'read_register_dsp_meter',
+    'read_command_dsp_meter',
 )
 vmethods = (
     'do_notified',
