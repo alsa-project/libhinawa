@@ -52,6 +52,12 @@ void hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_volume(
 void hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_assignment(
 	const HinawaSndMotuRegisterDspParameter *self, guint8 *assignment);
 
+void hinawa_snd_motu_register_dsp_parameter_get_line_input_boost_flag(
+	const HinawaSndMotuRegisterDspParameter *self, guint8 *boost_flag);
+
+void hinawa_snd_motu_register_dsp_parameter_get_line_input_nominal_level_flag(
+	const HinawaSndMotuRegisterDspParameter *self, guint8 *nominal_level_flag);
+
 G_END_DECLS
 
 #endif

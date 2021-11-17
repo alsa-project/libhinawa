@@ -260,3 +260,44 @@ void hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_assignme
 	param = (struct snd_firewire_motu_register_dsp_parameter *)self;
 	*assignment = param->output.hp_paired_assignment;
 }
+
+/**
+ * hinawa_snd_motu_register_dsp_parameter_get_line_input_boost_flag:
+ * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @boost_flag: (out): The flag of boost for line input.
+ *
+ * Get the data for flags of line input boost. The data consists of bit flags for corresponding line
+ * input channel. When the flag stands, the input is boosted.
+ */
+void hinawa_snd_motu_register_dsp_parameter_get_line_input_boost_flag(
+	const HinawaSndMotuRegisterDspParameter *self, guint8 *boost_flag)
+{
+	struct snd_firewire_motu_register_dsp_parameter *param;
+
+	g_return_if_fail(self != NULL);
+	g_return_if_fail(boost_flag != NULL);
+
+	param = (struct snd_firewire_motu_register_dsp_parameter *)self;
+	*boost_flag = param->line_input.boost_flag;
+}
+
+/**
+ * hinawa_snd_motu_register_dsp_parameter_get_line_input_nominal_level_flag:
+ * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @nominal_level_flag: (out): The flag of boost for line input.
+ *
+ * Get the data for flags of line input nominal level. The data consists of bit flags for
+ * corresponding line input channel. When the flag stands, the nominal level of input is +4 dBu,
+ * else -10 dBV.
+ */
+void hinawa_snd_motu_register_dsp_parameter_get_line_input_nominal_level_flag(
+	const HinawaSndMotuRegisterDspParameter *self, guint8 *nominal_level_flag)
+{
+	struct snd_firewire_motu_register_dsp_parameter *param;
+
+	g_return_if_fail(self != NULL);
+	g_return_if_fail(nominal_level_flag != NULL);
+
+	param = (struct snd_firewire_motu_register_dsp_parameter *)self;
+	*nominal_level_flag = param->line_input.nominal_level_flag;
+}
