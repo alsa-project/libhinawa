@@ -58,6 +58,12 @@ void hinawa_snd_motu_register_dsp_parameter_get_line_input_boost_flag(
 void hinawa_snd_motu_register_dsp_parameter_get_line_input_nominal_level_flag(
 	const HinawaSndMotuRegisterDspParameter *self, guint8 *nominal_level_flag);
 
+void hinawa_snd_motu_register_dsp_parameter_get_input_gain_and_invert(
+	const HinawaSndMotuRegisterDspParameter *self, const guint8 *gain_and_invert[10]);
+
+void hinawa_snd_motu_register_dsp_parameter_get_input_flag(
+	const HinawaSndMotuRegisterDspParameter *self, const guint8 *flag[10]);
+
 G_END_DECLS
 
 #endif
