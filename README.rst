@@ -2,23 +2,25 @@
 libhinawa
 =========
 
-2021/08/29
+2021/11/17
 Takashi Sakamoto
 
 Instruction
 ===========
 
-I design this library to send asynchronous transaction from Linux userspace
-applications to units on IEEE 1394 bus by any language binding for GObject
-Introspection. According to this design, this library is an application of Linux
-FireWire subsystem and GLib/GObject.
+I design this library to send asynchronous transaction to units in
+IEEE 1394 bus from Linux userspace applications, written by any language
+binding supporting GObject Introspection. According to this design, the
+library is an application of Linux FireWire subsystem and GLib/GObject.
 
-Furthermore, my recent work since 2013 for Linux sound subsystem, a.k.a
-ALSA, adds any loadable wodules for Linux kernel to handle some Audio and
-Music units on IEEE 1394 bus by ALSA PCM/RawMidi/HwDep/Sequencer interfaces.
-This library includes some helper objects to handle model-specific asynchronous
-transactions with helps of the drivers. According to this design, a part of
-this library is an application of Linux sound subsystem.
+Additionally, my recent work since 2013 for Linux sound subsystem, a.k.a
+ALSA, adds some loadable modules into Linux kernel as drivers for some
+Audio and Music units in IEEE 1394 bus. They allow userspace applications
+to transfer PCM frames and MIDI messages via ALSA PCM, RawMidi, and
+Sequencer interfaces. The modules also supports ALSA HwDep interface for
+model-specific functions such as notification. The library includes some
+helper objects for the model-specific functions. According to this design,
+a part of this library is an application of Linux sound subsystem.
 
 Example of Python3 with PyGobject
 =================================
@@ -144,14 +146,14 @@ How to make RPM package
     $ cd build
     $ meson dist
     ...
-    meson-dist/libhinawa-2.3.0.tar.xz 3bc5833e102f38d3b08de89e6355deb83dffb81fb6cc34fc7f2fc473be5b4c47
+    meson-dist/libhinawa-2.4.0.tar.xz 3bc5833e102f38d3b08de89e6355deb83dffb81fb6cc34fc7f2fc473be5b4c47
     $ cd ..
 
 3. copy the archive
 
 ::
 
-    $ cp build/meson-dist/libhinawa-2.3.0.tar.xz ~/rpmbuild/SOURCES/
+    $ cp build/meson-dist/libhinawa-2.4.0.tar.xz ~/rpmbuild/SOURCES/
 
 4. build package
 
