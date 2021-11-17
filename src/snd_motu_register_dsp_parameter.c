@@ -155,3 +155,48 @@ void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_width(
 	param = (struct snd_firewire_motu_register_dsp_parameter *)self;
 	*width = param->mixer.source[mixer].paired_width;
 }
+
+/**
+ * hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_volume:
+ * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @volume: (array fixed-size=4)(out)(transfer none): The array with elements for the data of
+*	    paired output volume.
+ *
+ * Get the array with elements for the data of paired output volume in indicated mixer. The data
+ * has gain value between 0x00 and 0x80.
+ */
+void hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_volume(
+	const HinawaSndMotuRegisterDspParameter *self, const guint8 *volume[4])
+{
+	struct snd_firewire_motu_register_dsp_parameter *param ;
+
+	g_return_if_fail(self != NULL);
+	g_return_if_fail(volume != NULL);
+
+	param = (struct snd_firewire_motu_register_dsp_parameter *)self;
+	*volume = param->mixer.output.paired_volume;
+}
+
+/**
+ * hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_flag:
+ * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @flag: (array fixed-size=4)(out)(transfer none): The array with elements for the data of paired
+ *	  output flag.
+ *
+ * Get the array with elements for the data of paired output flags in indicated mixer. The data
+ * consists of bit flags and masks below:
+ *
+ *  - 0x0f: the mask for destination of paired output
+ *  - 0x10: whether to enable mute for paired output
+ */
+void hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_flag(
+	const HinawaSndMotuRegisterDspParameter *self, const guint8 *flag[4])
+{
+	struct snd_firewire_motu_register_dsp_parameter *param;
+
+	g_return_if_fail(self != NULL);
+	g_return_if_fail(flag != NULL);
+
+	param = (struct snd_firewire_motu_register_dsp_parameter *)self;
+	*flag= param->mixer.output.paired_flag;
+}

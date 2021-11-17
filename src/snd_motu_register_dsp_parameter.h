@@ -37,6 +37,12 @@ void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_balance(
 void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_width(
 	const HinawaSndMotuRegisterDspParameter *self, gsize mixer, const guint8 *width[20]);
 
+void hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_volume(
+	const HinawaSndMotuRegisterDspParameter *self, const guint8 *volume[4]);
+
+void hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_flag(
+	const HinawaSndMotuRegisterDspParameter *self, const guint8 *flag[4]);
+
 G_END_DECLS
 
 #endif
