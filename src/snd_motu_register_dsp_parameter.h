@@ -43,6 +43,15 @@ void hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_volume(
 void hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_flag(
 	const HinawaSndMotuRegisterDspParameter *self, const guint8 *flag[4]);
 
+void hinawa_snd_motu_register_dsp_parameter_get_main_output_paired_volume(
+	const HinawaSndMotuRegisterDspParameter *self, guint8 *volume);
+
+void hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_volume(
+	const HinawaSndMotuRegisterDspParameter *self, guint8 *volume);
+
+void hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_assignment(
+	const HinawaSndMotuRegisterDspParameter *self, guint8 *assignment);
+
 G_END_DECLS
 
 #endif
