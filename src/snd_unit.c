@@ -478,6 +478,9 @@ void hinawa_snd_unit_ioctl(HinawaSndUnit *self, unsigned long request,
 			case SNDRV_FIREWIRE_IOCTL_TASCAM_STATE:
 				arg = "SNDRV_FIREWIRE_IOCTL_TASCAM_STATE";
 				break;
+			case SNDRV_FIREWIRE_IOCTL_MOTU_REGISTER_DSP_METER:
+				arg = "SNDRV_FIREWIRE_IOCTL_MOTU_REGISTER_DSP_METER";
+				break;
 			default:
 				arg = "Unknown";
 				break;

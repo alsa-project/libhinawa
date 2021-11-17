@@ -129,3 +129,8 @@ HINAWA_2_3_0 {
   global:
     "hinawa_fw_resp_reserve_within_region";
 } HINAWA_2_2_0;
+
+HINAWA_2_4_0 {
+  global:
+    "hinawa_snd_motu_read_register_dsp_meter";
+} HINAWA_2_3_0;
