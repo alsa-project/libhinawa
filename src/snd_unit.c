@@ -553,10 +553,15 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		 common->type == SNDRV_FIREWIRE_EVENT_DIGI00X_MESSAGE)
 		hinawa_snd_dg00x_handle_msg(HINAWA_SND_DG00X(unit),
 					    src->buf, len);
-	else if (HINAWA_IS_SND_MOTU(unit) &&
-		 common->type == SNDRV_FIREWIRE_EVENT_MOTU_NOTIFICATION)
-		hinawa_snd_motu_handle_notification(HINAWA_SND_MOTU(unit),
-						    src->buf, len);
+	else if (HINAWA_IS_SND_MOTU(unit)) {
+		HinawaSndMotu *motu = HINAWA_SND_MOTU(unit);
+
+		if (common->type == SNDRV_FIREWIRE_EVENT_MOTU_NOTIFICATION) {
+			hinawa_snd_motu_handle_notification(motu, src->buf, len);
+		} else if (common->type == SNDRV_FIREWIRE_EVENT_MOTU_REGISTER_DSP_CHANGE) {
+			hinawa_snd_motu_handle_register_dsp_change(motu, src->buf, len);
+		}
+	}
 	else if (HINAWA_IS_SND_TSCM(unit) &&
 		 common->type == SNDRV_FIREWIRE_EVENT_TASCAM_CONTROL)
 		hinawa_snd_tscm_handle_control(HINAWA_SND_TSCM(unit),

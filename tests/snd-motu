@@ -20,6 +20,7 @@ vmethods = (
 )
 signals = (
     'notified',
+    'register-dsp-changed',
 )
 
 if not test(target, props, methods, vmethods, signals):
