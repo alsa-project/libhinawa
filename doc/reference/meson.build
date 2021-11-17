@@ -1,3 +1,6 @@
+conf = configuration_data()
+conf.set('VERSION', meson.project_version())
+
 configure_file(
   input : 'version.xml.in',
   output : 'version.xml',
