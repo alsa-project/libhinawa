@@ -11,3 +11,4 @@ hinawa_snd_motu_get_type
 hinawa_snd_tscm_get_type
 hinawa_snd_unit_get_type
 hinawa_snd_unit_type_get_type
+hinawa_snd_motu_register_dsp_parameter_get_type
