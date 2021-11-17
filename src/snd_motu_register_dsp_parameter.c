@@ -301,3 +301,56 @@ void hinawa_snd_motu_register_dsp_parameter_get_line_input_nominal_level_flag(
 	param = (struct snd_firewire_motu_register_dsp_parameter *)self;
 	*nominal_level_flag = param->line_input.nominal_level_flag;
 }
+
+/**
+ * hinawa_snd_motu_register_dsp_parameter_get_input_gain_and_invert:
+ * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @gain_and_invert: (array fixed-size=10)(out)(transfer none): The array with elements for the data
+ *		     of input gain and invert flags.
+ *
+ * Get the array with elements for input gain and invert flags. The interpretation of data is
+ * different in below two groups:
+ *
+ * - Ultralite
+ *     - 0x1f: the gain.
+ *     - 0x20: whether to invert phase of the input
+ * - Audio Express and 4 pre
+ *     - 0x3f: the gain
+ *     - 0x40: whether to invert phase of the input
+ */
+void hinawa_snd_motu_register_dsp_parameter_get_input_gain_and_invert(
+	const HinawaSndMotuRegisterDspParameter *self, const guint8 *gain_and_invert[10])
+{
+	struct snd_firewire_motu_register_dsp_parameter *param;
+
+	g_return_if_fail(self != NULL);
+	g_return_if_fail(gain_and_invert != NULL);
+
+	param = (struct snd_firewire_motu_register_dsp_parameter *)self;
+	*gain_and_invert = param->input.gain_and_invert;
+}
+
+/**
+ * hinawa_snd_motu_register_dsp_parameter_get_input_flag:
+ * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @flag: (array fixed-size=10)(out)(transfer none): The array with elements for the data of input
+ *	  flags.
+ *
+ * Get the array with elements for the data of input flags. The data consists of bit flags below:
+ *
+ * - 0x01: whether to make paired input
+ * - 0x02: whether to enable phantom powering
+ * - 0x04: whether to enable attenuation pad
+ * - 0x08: whether to detect plug insert to jack
+ */
+void hinawa_snd_motu_register_dsp_parameter_get_input_flag(
+	const HinawaSndMotuRegisterDspParameter *self, const guint8 *flag[10])
+{
+	struct snd_firewire_motu_register_dsp_parameter *param;
+
+	g_return_if_fail(self != NULL);
+	g_return_if_fail(flag != NULL);
+
+	param = (struct snd_firewire_motu_register_dsp_parameter *)self;
+	*flag = param->input.flag;
+}

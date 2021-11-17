@@ -150,4 +150,6 @@ HINAWA_2_4_0 {
     "hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_assignment";
     "hinawa_snd_motu_register_dsp_parameter_get_line_input_boost_flag";
     "hinawa_snd_motu_register_dsp_parameter_get_line_input_nominal_level_flag";
+    "hinawa_snd_motu_register_dsp_parameter_get_input_gain_and_invert";
+    "hinawa_snd_motu_register_dsp_parameter_get_input_flag";
 } HINAWA_2_3_0;
