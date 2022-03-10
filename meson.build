@@ -19,5 +19,8 @@ gnome = import('gnome')
 inc = include_directories('src')
 
 subdir('src')
-subdir('doc')
 subdir('tests')
+
+if get_option('doc')
+  subdir('doc')
+endif

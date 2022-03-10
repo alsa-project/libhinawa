@@ -74,11 +74,6 @@ myself = library('hinawa',
   link_depends : mapfile,
 )
 
-myself_dep = declare_dependency(
-  link_with: myself,
-  dependencies: dependencies,
-)
-
 install_headers(headers,
   subdir: inc_dir,
 )
@@ -89,7 +84,7 @@ pkg.generate(myself,
   subdirs: inc_dir,
 )
 
-gnome.generate_gir(myself,
+hinawa_gir = gnome.generate_gir(myself,
   sources: enums + headers + sources,
   nsversion: '3.0',
   namespace: 'Hinawa',

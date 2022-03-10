@@ -2,7 +2,7 @@
 libhinawa
 =========
 
-2021/11/17
+2022/03/11
 Takashi Sakamoto
 
 Instruction
@@ -83,7 +83,7 @@ Requirements to build
 - Meson 0.46.0 or later
 - Ninja
 - PyGObject (optional to run unit tests)
-- GTK-Doc 1.18-2 (optional to generate API documentation)
+- gi-docgen (optional to generate API documentation)
 
 How to build
 ============
@@ -136,7 +136,7 @@ How to make RPM package
 
 ::
 
-    $ dns install meson glib2-devel gobject-introspection-devel gtk-doc
+    $ dns install meson glib2-devel gobject-introspection-devel gi-docgen
 
 2. make archive
 
