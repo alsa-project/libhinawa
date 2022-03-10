@@ -42,7 +42,7 @@ developing applications that use %{name}.
 
 
 %build
-%meson -Dgtk_doc=true
+%meson -Ddoc=true
 %meson_build
 
 

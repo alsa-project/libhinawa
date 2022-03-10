@@ -109,7 +109,7 @@ How to generate document
 
 ::
 
-    $ meson -Dgtk_doc=true . build
+    $ meson -Ddoc=true . build
     $ cd build
     $ ninja
     $ ninja install
