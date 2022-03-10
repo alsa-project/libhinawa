@@ -89,23 +89,21 @@ pkg.generate(myself,
   subdirs: inc_dir,
 )
 
-if get_option('gir')
-  gnome.generate_gir(myself,
-    sources: enums + headers + sources,
-    nsversion: '3.0',
-    namespace: 'Hinawa',
-    symbol_prefix: 'hinawa_',
-    identifier_prefix: 'Hinawa',
-    export_packages: 'hinawa',
-    dependencies: dependencies,
-    includes: [
-      'GLib-2.0',
-      'GObject-2.0',
-    ],
-    header: 'hinawa.h',
-    install: true,
-  )
-endif
+gnome.generate_gir(myself,
+  sources: enums + headers + sources,
+  nsversion: '3.0',
+  namespace: 'Hinawa',
+  symbol_prefix: 'hinawa_',
+  identifier_prefix: 'Hinawa',
+  export_packages: 'hinawa',
+  dependencies: dependencies,
+  includes: [
+    'GLib-2.0',
+    'GObject-2.0',
+  ],
+  header: 'hinawa.h',
+  install: true,
+)
 
 # For test.
 builddir = meson.current_build_dir()
