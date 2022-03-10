@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: LGPL-2.1-or-later */
+// SPDX-License-Identifier: LGPL-2.1-or-later
 #ifndef __ALSA_HINAWA_SND_DG00X_H__
 #define __ALSA_HINAWA_SND_DG00X_H__
 
