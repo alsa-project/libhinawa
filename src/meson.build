@@ -33,36 +33,38 @@ headers = [
   'snd_motu.h',
   'snd_motu_register_dsp_parameter.h',
   'snd_tscm.h',
+  'hinawa_enum_types.h',
 ]
 
 privates = [
   'internal.h',
 ]
 
+inc_dir = meson.project_name()
+
 # Generate marshallers for GObject signals.
 marshallers = gnome.genmarshal('hinawa_sigs_marshal',
   prefix: 'hinawa_sigs_marshal',
   sources: 'hinawa_sigs_marshal.list',
+  install_header: true,
+  install_dir: join_paths(get_option('includedir'), inc_dir),
   stdinc: true,
 )
-sources += marshallers
 
 enums = gnome.mkenums_simple('hinawa_enums',
   sources: ['hinawa_enum_types.h'],
   identifier_prefix: 'Hinawa',
   symbol_prefix: 'hinawa',
   install_header: true,
-  install_dir: join_paths(get_option('includedir'), meson.project_name()),
+  install_dir: join_paths(get_option('includedir'), inc_dir),
   header_prefix: '#include <hinawa.h>',
 )
-headers += 'hinawa_enum_types.h'
-sources += enums
 
 mapfile = 'hinawa.map'
 vflag = '-Wl,--version-script,' + join_paths(meson.current_source_dir(), mapfile)
 
 myself = library('hinawa',
-  sources: sources + headers + privates,
+  sources: sources + headers + privates + marshallers + enums,
   version: meson.project_version(),
   soversion: meson.project_version().split('.')[0],
   install: true,
@@ -78,19 +80,18 @@ myself_dep = declare_dependency(
 )
 
 install_headers(headers,
-  subdir: meson.project_name()
+  subdir: inc_dir,
 )
 
 pkg = import('pkgconfig')
 pkg.generate(myself,
-  name: 'hinawa',
   description: 'Input/Output library to audio and music units on IEEE 1394 bus',
-  subdirs: meson.project_name(),
+  subdirs: inc_dir,
 )
 
 if get_option('gir')
   gnome.generate_gir(myself,
-    sources: sources + headers,
+    sources: enums + headers + sources,
     nsversion: '3.0',
     namespace: 'Hinawa',
     symbol_prefix: 'hinawa_',
