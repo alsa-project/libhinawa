@@ -103,3 +103,6 @@ if get_option('gir')
     install: true,
   )
 endif
+
+# For test.
+builddir = meson.current_build_dir()

@@ -12,11 +12,9 @@ tests = [
   'hinawa-enum',
 ]
 
-objdir = join_paths(meson.build_root(), 'src')
-
 envs = environment()
-envs.append('LD_LIBRARY_PATH', objdir, separator : ':')
-envs.append('GI_TYPELIB_PATH', objdir, separator : ':')
+envs.append('LD_LIBRARY_PATH', builddir, separator : ':')
+envs.append('GI_TYPELIB_PATH', builddir, separator : ':')
 
 foreach test : tests
     name = test
