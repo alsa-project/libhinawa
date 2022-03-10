@@ -13,7 +13,7 @@ Source0: https://github.com/alsa-project/libhinawa/releases/download/%{version}/
 BuildRequires: meson >= 0.46.0
 BuildRequires: pkgconfig(glib-2.0) >= %{glib2_version}
 BuildRequires: pkgconfig(gobject-introspection-1.0) >= 1.32.1
-BuildRequires: pkgconfig(gtk-doc) >= 1.18-2
+BuildRequires: pkgconfig(gi-docgen) >= 2021.7-3
 
 %if 0%{?with_tests}
 BuildRequires: python3-gobject
@@ -68,7 +68,7 @@ developing applications that use %{name}.
 %{_libdir}/pkgconfig/*
 %{_libdir}/libhinawa.so
 %{_datadir}/gir-1.0/*.gir
-%{_datadir}/gtk-doc/html/hinawa/*
+%{_datadir}/doc/libhinawa/*
 
 %changelog
  * Sun Oct 27 2021 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 2.4.0
