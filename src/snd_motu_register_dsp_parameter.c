@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: LGPL-3.0-or-later */
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "snd_motu_register_dsp_parameter.h"
 
 /**
