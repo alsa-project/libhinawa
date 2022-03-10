@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
+#include "internal.h"
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <unistd.h>
@@ -9,9 +11,6 @@
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-
-#include "internal.h"
-#include "hinawa_enums.h"
 
 /**
  * SECTION:snd_unit

@@ -2,10 +2,7 @@
 #ifndef __ALSA_HINAWA_SND_DICE_H__
 #define __ALSA_HINAWA_SND_DICE_H__
 
-#include <glib.h>
-#include <glib-object.h>
-
-#include <snd_unit.h>
+#include <hinawa.h>
 
 G_BEGIN_DECLS
 

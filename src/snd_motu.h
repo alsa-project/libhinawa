@@ -2,11 +2,7 @@
 #ifndef __ALSA_HINAWA_SND_MOTU_H__
 #define __ALSA_HINAWA_SND_MOTU_H__
 
-#include <glib.h>
-#include <glib-object.h>
-
-#include <snd_unit.h>
-#include <snd_motu_register_dsp_parameter.h>
+#include <hinawa.h>
 
 G_BEGIN_DECLS
 

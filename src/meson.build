@@ -21,6 +21,7 @@ sources = [
 ]
 
 headers = [
+  'hinawa.h',
   'fw_node.h',
   'fw_resp.h',
   'fw_req.h',
@@ -52,7 +53,7 @@ enums = gnome.mkenums_simple('hinawa_enums',
   symbol_prefix: 'hinawa',
   install_header: true,
   install_dir: join_paths(get_option('includedir'), meson.project_name()),
-  header_prefix: '#include <hinawa_enum_types.h>',
+  header_prefix: '#include <hinawa.h>',
 )
 headers += 'hinawa_enum_types.h'
 sources += enums
@@ -100,6 +101,7 @@ if get_option('gir')
       'GLib-2.0',
       'GObject-2.0',
     ],
+    header: 'hinawa.h',
     install: true,
   )
 endif

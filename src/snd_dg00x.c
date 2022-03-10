@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
+#include "internal.h"
+
 #include <string.h>
 #include <errno.h>
-
-#include "internal.h"
 
 /**
  * SECTION:snd_dg00x
