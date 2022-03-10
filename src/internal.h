@@ -2,20 +2,7 @@
 #ifndef __ALSA_HINAWA_INTERNAL_H__
 #define __ALSA_HINAWA_INTERNAL_H__
 
-#include <linux/firewire-cdev.h>
-#include <linux/firewire-constants.h>
-
-#include <sound/firewire.h>
-
-#include "fw_node.h"
-#include "fw_resp.h"
-#include "fw_req.h"
-#include "snd_unit.h"
-#include "snd_dice.h"
-#include "snd_efw.h"
-#include "snd_dg00x.h"
-#include "snd_motu.h"
-#include "snd_tscm.h"
+#include "hinawa.h"
 
 int hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args, GError **exception);
 void hinawa_fw_node_invalidate_transaction(HinawaFwNode *self, HinawaFwReq *req);

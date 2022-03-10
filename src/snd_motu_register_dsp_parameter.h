@@ -2,10 +2,7 @@
 #ifndef __ALSA_HINAWA_SND_MOTU_REGISTER_DSP_PARAMETER_H__
 #define __ALSA_HINAWA_SND_MOTU_REGISTER_DSP_PARAMETER_H__
 
-#include <glib.h>
-#include <glib-object.h>
-
-#include <sound/firewire.h>
+#include <hinawa.h>
 
 G_BEGIN_DECLS
 

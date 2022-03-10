@@ -8,8 +8,6 @@
 #include <sys/ioctl.h>
 #include <errno.h>
 
-#include <linux/firewire-cdev.h>
-
 /**
  * SECTION:fw_node
  * @Title: HinawaFwNode

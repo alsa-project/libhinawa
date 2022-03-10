@@ -2,12 +2,7 @@
 #ifndef __ALSA_HINAWA_FW_FCP_H__
 #define __ALSA_HINAWA_FW_FCP_H__
 
-#include <glib.h>
-#include <glib-object.h>
-
-#include <fw_node.h>
-#include <fw_resp.h>
-#include <hinawa_enums.h>
+#include <hinawa.h>
 
 G_BEGIN_DECLS
 

@@ -2,10 +2,6 @@
 #ifndef __ALSA_HINAWA_ENUM_TYPES_H__
 #define __ALSA_HINAWA_ENUM_TYPES_H__
 
-#include <glib-object.h>
-#include <linux/firewire-constants.h>
-#include <sound/firewire.h>
-
 /**
  * HinawaFwTcode:
  * @HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST:	For request to write quadlet.

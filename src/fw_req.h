@@ -2,11 +2,7 @@
 #ifndef __ALSA_HINAWA_FW_REQ_H__
 #define __ALSA_HINAWA_FW_REQ_H__
 
-#include <glib.h>
-#include <glib-object.h>
-
-#include <fw_node.h>
-#include <hinawa_enums.h>
+#include <hinawa.h>
 
 G_BEGIN_DECLS
 
