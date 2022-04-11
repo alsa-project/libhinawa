@@ -53,13 +53,13 @@ static const char *const err_msgs[] = {
 	g_set_error(exception, HINAWA_SND_UNIT_ERROR, HINAWA_SND_UNIT_ERROR_FAILED,	\
 		    format " %d(%s)", arg, errno, strerror(errno))
 
-struct _HinawaSndUnitPrivate {
+typedef struct {
 	int fd;
 	struct snd_firewire_get_info info;
 	HinawaFwNode *node;
 
 	gboolean streaming;
-};
+} HinawaSndUnitPrivate;
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndUnit, hinawa_snd_unit, G_TYPE_OBJECT)
 
 typedef struct {
