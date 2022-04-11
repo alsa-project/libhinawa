@@ -8,39 +8,11 @@ G_BEGIN_DECLS
 
 #define HINAWA_TYPE_FW_RESP	(hinawa_fw_resp_get_type())
 
-#define HINAWA_FW_RESP(obj)					\
-	(G_TYPE_CHECK_INSTANCE_CAST((obj),			\
-				    HINAWA_TYPE_FW_RESP,	\
-				    HinawaFwResp))
-#define HINAWA_IS_FW_RESP(obj)					\
-	(G_TYPE_CHECK_INSTANCE_TYPE((obj),			\
-				    HINAWA_TYPE_FW_RESP))
-
-#define HINAWA_FW_RESP_CLASS(klass)				\
-	(G_TYPE_CHECK_CLASS_CAST((klass),			\
-				 HINAWA_TYPE_FW_RESP,		\
-				 HinawaFwRespClass))
-#define HINAWA_IS_FW_RESP_CLASS(klass)				\
-	(G_TYPE_CHECK_CLASS_TYPE((klass),			\
-				 HINAWA_TYPE_FW_RESP))
-#define HINAWA_FW_RESP_GET_CLASS(obj)				\
-	(G_TYPE_INSTANCE_GET_CLASS((obj),			\
-				   HINAWA_TYPE_FW_RESP,		\
-				   HinawaFwRespClass))
+G_DECLARE_DERIVABLE_TYPE(HinawaFwResp, hinawa_fw_resp, HINAWA, FW_RESP, GObject);
 
 #define HINAWA_FW_RESP_ERROR	hinawa_fw_resp_error_quark()
 
 GQuark hinawa_fw_resp_error_quark();
-
-typedef struct _HinawaFwResp		HinawaFwResp;
-typedef struct _HinawaFwRespClass	HinawaFwRespClass;
-typedef struct _HinawaFwRespPrivate	HinawaFwRespPrivate;
-
-struct _HinawaFwResp {
-	GObject parent_instance;
-
-	HinawaFwRespPrivate *priv;
-};
 
 struct _HinawaFwRespClass {
 	GObjectClass parent_class;
@@ -91,8 +63,6 @@ struct _HinawaFwRespClass {
 				    guint32 src, guint32 dst, guint32 card, guint32 generation,
 				    const guint8 *frame, guint length);
 };
-
-GType hinawa_fw_resp_get_type(void) G_GNUC_CONST;
 
 HinawaFwResp *hinawa_fw_resp_new(void);
 
