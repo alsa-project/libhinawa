@@ -38,11 +38,11 @@ struct notification_waiter {
 	gboolean awakened;
 };
 
-struct _HinawaSndDicePrivate {
+typedef struct {
 	HinawaFwReq *req;
 	GList *waiters;
 	GMutex mutex;
-};
+} HinawaSndDicePrivate;
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndDice, hinawa_snd_dice, HINAWA_TYPE_SND_UNIT)
 
 /* This object has one signal. */
