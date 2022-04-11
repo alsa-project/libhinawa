@@ -51,10 +51,10 @@ static const char *const efw_status_names[] = {
 #define generate_local_error(exception, code)							\
 	g_set_error_literal(exception, HINAWA_SND_EFW_ERROR, code, efw_status_names[code])
 
-struct _HinawaSndEfwPrivate {
+typedef struct {
 	guint seqnum;
 	GMutex lock;
-};
+} HinawaSndEfwPrivate;
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndEfw, hinawa_snd_efw, HINAWA_TYPE_SND_UNIT)
 
 enum efw_sig_type {
