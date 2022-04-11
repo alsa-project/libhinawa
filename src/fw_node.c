@@ -465,9 +465,9 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	} else if (HINAWA_IS_FW_RESP(common->closure) && common->type == FW_CDEV_EVENT_REQUEST2) {
 		hinawa_fw_resp_handle_request(HINAWA_FW_RESP(common->closure),
 				(struct fw_cdev_event_request2 *)common);
-	} else if (HINAWA_IS_FW_REQ(common->closure) && common->type == FW_CDEV_EVENT_RESPONSE) {
+	} else if (HINAWA_IS_FW_REQ((gpointer)common->closure) && common->type == FW_CDEV_EVENT_RESPONSE) {
 		struct fw_cdev_event_response *ev = (struct fw_cdev_event_response *)common;
-		HinawaFwReq *req = HINAWA_FW_REQ(ev->closure);
+		HinawaFwReq *req = HINAWA_FW_REQ((gpointer)ev->closure);
 		GList *entry;
 
 		// Don't process request invalidated in advance.

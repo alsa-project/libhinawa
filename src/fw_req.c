@@ -36,9 +36,9 @@ enum fw_req_prop_type {
 };
 static GParamSpec *fw_req_props[FW_REQ_PROP_TYPE_COUNT] = { NULL, };
 
-struct _HinawaFwReqPrivate {
+typedef struct {
 	guint timeout;
-};
+} HinawaFwReqPrivate;
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwReq, hinawa_fw_req, G_TYPE_OBJECT)
 
 static const char *const rcode_labels[] = {
