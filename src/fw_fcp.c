@@ -64,11 +64,11 @@ enum avc_status {
 	AVC_STATUS_INTERIM		= 0x0f,
 };
 
-struct _HinawaFwFcpPrivate {
+typedef struct {
 	HinawaFwNode *node;
 
 	guint timeout;
-};
+} HinawaFwFcpPrivate;
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwFcp, hinawa_fw_fcp, HINAWA_TYPE_FW_RESP)
 
 /* This object has one property. */
