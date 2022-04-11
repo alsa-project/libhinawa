@@ -27,7 +27,7 @@
 #define MAX_CONFIG_ROM_SIZE	256
 #define MAX_CONFIG_ROM_LENGTH	(MAX_CONFIG_ROM_SIZE * 4)
 
-struct _HinawaFwNodePrivate {
+typedef struct {
 	int fd;
 
 	GMutex mutex;
@@ -37,8 +37,7 @@ struct _HinawaFwNodePrivate {
 
 	GList *transactions;
 	GMutex transactions_mutex;
-};
-
+} HinawaFwNodePrivate;
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwNode, hinawa_fw_node, G_TYPE_OBJECT)
 
 /**
@@ -461,7 +460,7 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 
 	common = (struct fw_cdev_event_common *)src->buf;
 
-	if (HINAWA_IS_FW_NODE(common->closure) && common->type == FW_CDEV_EVENT_BUS_RESET) {
+	if (HINAWA_IS_FW_NODE((gpointer)common->closure) && common->type == FW_CDEV_EVENT_BUS_RESET) {
 		handle_update(src->self);
 	} else if (HINAWA_IS_FW_RESP(common->closure) && common->type == FW_CDEV_EVENT_REQUEST2) {
 		hinawa_fw_resp_handle_request(HINAWA_FW_RESP(common->closure),
