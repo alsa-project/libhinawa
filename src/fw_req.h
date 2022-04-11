@@ -8,39 +8,11 @@ G_BEGIN_DECLS
 
 #define HINAWA_TYPE_FW_REQ	(hinawa_fw_req_get_type())
 
-#define HINAWA_FW_REQ(obj)					\
-	(G_TYPE_CHECK_INSTANCE_CAST((obj),			\
-				    HINAWA_TYPE_FW_REQ,		\
-				    HinawaFwReq))
-#define HINAWA_IS_FW_REQ(obj)					\
-	(G_TYPE_CHECK_INSTANCE_TYPE((obj),			\
-				    HINAWA_TYPE_FW_REQ))
-
-#define HINAWA_FW_REQ_CLASS(klass)				\
-	(G_TYPE_CHECK_CLASS_CAST((klass),			\
-				 HINAWA_TYPE_FW_REQ,		\
-				 HinawaFwReqClass))
-#define HINAWA_IS_FW_REQ_CLASS(klass)				\
-	(G_TYPE_CHECK_CLASS_TYPE((klass),			\
-				 HINAWA_TYPE_FW_REQ))
-#define HINAWA_FW_REQ_GET_CLASS(obj)				\
-	(G_TYPE_INSTANCE_GET_CLASS((obj),			\
-				   HINAWA_TYPE_FW_REQ,		\
-				   HinawaFwReqClass))
+G_DECLARE_DERIVABLE_TYPE(HinawaFwReq, hinawa_fw_req, HINAWA, FW_REQ, GObject);
 
 #define HINAWA_FW_REQ_ERROR	hinawa_fw_req_error_quark()
 
 GQuark hinawa_fw_req_error_quark();
-
-typedef struct _HinawaFwReq		HinawaFwReq;
-typedef struct _HinawaFwReqClass	HinawaFwReqClass;
-typedef struct _HinawaFwReqPrivate	HinawaFwReqPrivate;
-
-struct _HinawaFwReq {
-	GObject parent_instance;
-
-	HinawaFwReqPrivate *priv;
-};
 
 struct _HinawaFwReqClass {
 	GObjectClass parent_class;
@@ -62,8 +34,6 @@ struct _HinawaFwReqClass {
 	void (*responded)(HinawaFwReq *self, HinawaFwRcode rcode,
 			  const guint8 *frame, guint frame_size);
 };
-
-GType hinawa_fw_req_get_type(void) G_GNUC_CONST;
 
 HinawaFwReq *hinawa_fw_req_new(void);
 
