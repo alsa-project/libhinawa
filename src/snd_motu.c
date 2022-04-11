@@ -14,9 +14,9 @@
  * Mark of the Unicorn (MOTU). This inherits #HinawaSndUnit.
  */
 
-struct _HinawaSndMotuPrivate {
+typedef struct {
 	struct snd_firewire_motu_status *status;
-};
+} HinawaSndMotuPrivate;
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndMotu, hinawa_snd_motu, HINAWA_TYPE_SND_UNIT)
 
 /* This object has one signal. */
