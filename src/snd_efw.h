@@ -8,39 +8,11 @@ G_BEGIN_DECLS
 
 #define HINAWA_TYPE_SND_EFW	(hinawa_snd_efw_get_type())
 
-#define HINAWA_SND_EFW(obj)					\
-	(G_TYPE_CHECK_INSTANCE_CAST((obj),			\
-				    HINAWA_TYPE_SND_EFW,	\
-				    HinawaSndEfw))
-#define HINAWA_IS_SND_EFW(obj)					\
-	(G_TYPE_CHECK_INSTANCE_TYPE((obj),			\
-				    HINAWA_TYPE_SND_EFW))
-
-#define HINAWA_SND_EFW_CLASS(klass)				\
-	(G_TYPE_CHECK_CLASS_CAST((klass),			\
-				 HINAWA_TYPE_SND_EFW,		\
-				 HinawaSndEfwClass))
-#define HINAWA_IS_SND_EFW_CLASS(klass)				\
-	(G_TYPE_CHECK_CLASS_TYPE((klass),			\
-				 HINAWA_TYPE_SND_EFW))
-#define HINAWA_SND_EFW_GET_CLASS(obj)				\
-	(G_TYPE_INSTANCE_GET_CLASS((obj),			\
-				   HINAWA_TYPE_SND_EFW,		\
-				   HinawaSndEfwClass))
+G_DECLARE_DERIVABLE_TYPE(HinawaSndEfw, hinawa_snd_efw, HINAWA, SND_EFW, HinawaSndUnit);
 
 #define HINAWA_SND_EFW_ERROR	hinawa_snd_efw_error_quark()
 
 GQuark hinawa_snd_efw_error_quark();
-
-typedef struct _HinawaSndEfw		HinawaSndEfw;
-typedef struct _HinawaSndEfwClass	HinawaSndEfwClass;
-typedef struct _HinawaSndEfwPrivate	HinawaSndEfwPrivate;
-
-struct _HinawaSndEfw {
-	HinawaSndUnit parent_instance;
-
-	HinawaSndEfwPrivate *priv;
-};
 
 struct _HinawaSndEfwClass {
 	HinawaSndUnitClass parent_class;
@@ -66,8 +38,6 @@ struct _HinawaSndEfwClass {
 	void (*responded)(HinawaSndEfw *self, HinawaSndEfwStatus status, guint seqnum,
 			  guint category, guint command, const guint32 *frame, guint frame_size);
 };
-
-GType hinawa_snd_efw_get_type(void) G_GNUC_CONST;
 
 HinawaSndEfw *hinawa_snd_efw_new(void);
 
