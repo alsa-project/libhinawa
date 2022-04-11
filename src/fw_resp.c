@@ -40,7 +40,7 @@ static const char *const err_msgs[] = {
 	g_set_error(exception, HINAWA_FW_RESP_ERROR, HINAWA_FW_RESP_ERROR_FAILED,	\
 		    format " %d(%s)", arg, errno, strerror(errno))
 
-struct _HinawaFwRespPrivate {
+typedef struct {
 	HinawaFwNode *node;
 
 	guint64 offset;
@@ -51,7 +51,7 @@ struct _HinawaFwRespPrivate {
 	gsize req_length;
 	guint8 *resp_frame;
 	gsize resp_length;
-};
+} HinawaFwRespPrivate;
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwResp, hinawa_fw_resp, G_TYPE_OBJECT)
 
 // This object has one property.
