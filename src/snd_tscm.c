@@ -14,10 +14,10 @@
  * inherits #HinawaSndUnit.
  */
 
-struct _HinawaSndTscmPrivate {
+typedef struct {
 	struct snd_firewire_tascam_state image;
 	guint32 state[SNDRV_FIREWIRE_TASCAM_STATE_COUNT];
-};
+} HinawaSndTscmPrivate;
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaSndTscm, hinawa_snd_tscm, HINAWA_TYPE_SND_UNIT)
 
 /* This object has one signal. */
