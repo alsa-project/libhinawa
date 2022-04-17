@@ -8,39 +8,11 @@ G_BEGIN_DECLS
 
 #define HINAWA_TYPE_SND_UNIT	(hinawa_snd_unit_get_type())
 
-#define HINAWA_SND_UNIT(obj)					\
-	(G_TYPE_CHECK_INSTANCE_CAST((obj),			\
-				    HINAWA_TYPE_SND_UNIT,	\
-				    HinawaSndUnit))
-#define HINAWA_IS_SND_UNIT(obj)					\
-	(G_TYPE_CHECK_INSTANCE_TYPE((obj),			\
-				    HINAWA_TYPE_SND_UNIT))
-
-#define HINAWA_SND_UNIT_CLASS(klass)				\
-	(G_TYPE_CHECK_CLASS_CAST((klass),			\
-				 HINAWA_TYPE_SND_UNIT,		\
-				 HinawaSndUnitClass))
-#define HINAWA_IS_SND_UNIT_CLASS(klass)				\
-	(G_TYPE_CHECK_CLASS_TYPE((klass),			\
-				 HINAWA_TYPE_SND_UNIT))
-#define HINAWA_SND_UNIT_GET_CLASS(obj)				\
-	(G_TYPE_INSTANCE_GET_CLASS((obj),			\
-				   HINAWA_TYPE_SND_UNIT,	\
-				   HinawaSndUnitClass))
+G_DECLARE_DERIVABLE_TYPE(HinawaSndUnit, hinawa_snd_unit, HINAWA, SND_UNIT, GObject);
 
 #define HINAWA_SND_UNIT_ERROR	hinawa_snd_unit_error_quark()
 
 GQuark hinawa_snd_unit_error_quark();
-
-typedef struct _HinawaSndUnit		HinawaSndUnit;
-typedef struct _HinawaSndUnitClass	HinawaSndUnitClass;
-typedef struct _HinawaSndUnitPrivate	HinawaSndUnitPrivate;
-
-struct _HinawaSndUnit {
-	GObject parent_instance;
-
-	HinawaSndUnitPrivate *priv;
-};
 
 struct _HinawaSndUnitClass {
 	GObjectClass parent_class;
@@ -70,8 +42,6 @@ struct _HinawaSndUnitClass {
 	 */
 	void (*disconnected)(HinawaSndUnit *self);
 };
-
-GType hinawa_snd_unit_get_type(void) G_GNUC_CONST;
 
 HinawaSndUnit *hinawa_snd_unit_new(void);
 
