@@ -462,8 +462,8 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 
 	if (HINAWA_IS_FW_NODE((gpointer)common->closure) && common->type == FW_CDEV_EVENT_BUS_RESET) {
 		handle_update(src->self);
-	} else if (HINAWA_IS_FW_RESP(common->closure) && common->type == FW_CDEV_EVENT_REQUEST2) {
-		hinawa_fw_resp_handle_request(HINAWA_FW_RESP(common->closure),
+	} else if (HINAWA_IS_FW_RESP((gpointer)common->closure) && common->type == FW_CDEV_EVENT_REQUEST2) {
+		hinawa_fw_resp_handle_request(HINAWA_FW_RESP((gpointer)common->closure),
 				(struct fw_cdev_event_request2 *)common);
 	} else if (HINAWA_IS_FW_REQ((gpointer)common->closure) && common->type == FW_CDEV_EVENT_RESPONSE) {
 		struct fw_cdev_event_response *ev = (struct fw_cdev_event_response *)common;
