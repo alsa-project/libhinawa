@@ -2,7 +2,7 @@
 libhinawa
 =========
 
-2022/03/11
+2022/04/17
 Takashi Sakamoto
 
 Instruction
@@ -90,11 +90,10 @@ How to build
 
 ::
 
-    $ meson . build
-    $ cd build
-    $ ninja
-    $ ninja install
-    ($ ninja test)
+    $ meson (--prefix=directory-to-install) build
+    $ meson compile -C build
+    $ meson install -C build
+    ($ meson test -C build)
 
 When working with gobject-introspection, ``Hinawa-3.0.typelib`` should be
 installed in your system girepository so that ``libgirepository`` can find
@@ -109,10 +108,11 @@ How to generate document
 
 ::
 
-    $ meson -Ddoc=true . build
-    $ cd build
-    $ ninja
-    $ ninja install
+    $ meson configure (--prefix=directory-to-install) -Ddoc=true build
+    $ meson compile -C build
+    $ meson install -C build
+
+You can see documentation files under ``(directory-to-install)/share/doc/hinawa/``.
 
 Sample scripts
 ==============
