@@ -73,7 +73,7 @@ Documentation
 Dependencies
 ============
 
-- Glib 2.34.0 or later
+- Glib 2.44.0 or later
 - GObject Introspection 1.32.1 or later
 - Linux kernel 3.12 or later
 
