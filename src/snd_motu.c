@@ -97,27 +97,27 @@ HinawaSndMotu *hinawa_snd_motu_new(void)
  * hinawa_snd_motu_open:
  * @self: A #HinawaSndUnit
  * @path: A full path of a special file for ALSA hwdep character device
- * @exception: A #GError. Error can be generated with three domains; #g_file_error_quark(),
+ * @error: A #GError. Error can be generated with three domains; #g_file_error_quark(),
  *	       #hinawa_fw_node_error_quark(), and #hinawa_snd_unit_error_quark().
  *
  * Open ALSA hwdep character device and check it for Motu devices.
  *
  * Since: 0.8
  */
-void hinawa_snd_motu_open(HinawaSndMotu *self, gchar *path, GError **exception)
+void hinawa_snd_motu_open(HinawaSndMotu *self, gchar *path, GError **error)
 {
 	g_return_if_fail(HINAWA_IS_SND_MOTU(self));
 	g_return_if_fail(path != NULL && strlen(path) > 0);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
-	hinawa_snd_unit_open(&self->parent_instance, path, exception);
+	hinawa_snd_unit_open(&self->parent_instance, path, error);
 }
 
 /**
  * hinawa_snd_motu_read_register_dsp_parameter:
  * @self: A #HinawaSndMotu.
  * @param: (inout): A #HinawaSndMotuRegisterDspParameter.
- * @exception: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
+ * @error: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
  *	       #hinawa_snd_unit_error_quark().
  *
  * Read parameter for register DSP models.
@@ -126,18 +126,18 @@ void hinawa_snd_motu_open(HinawaSndMotu *self, gchar *path, GError **exception)
  */
 void hinawa_snd_motu_read_register_dsp_parameter(HinawaSndMotu *self,
 						 HinawaSndMotuRegisterDspParameter *const *param,
-						 GError **exception)
+						 GError **error)
 {
 	struct snd_firewire_motu_register_dsp_parameter *arg;
 
 	g_return_if_fail(HINAWA_IS_SND_MOTU(self));
 	g_return_if_fail(*param != NULL);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	arg = (struct snd_firewire_motu_register_dsp_parameter *)(*param);
 
 	hinawa_snd_unit_ioctl(HINAWA_SND_UNIT(self),
-			      SNDRV_FIREWIRE_IOCTL_MOTU_REGISTER_DSP_PARAMETER, arg, exception);
+			      SNDRV_FIREWIRE_IOCTL_MOTU_REGISTER_DSP_PARAMETER, arg, error);
 
 }
 
@@ -146,7 +146,7 @@ void hinawa_snd_motu_read_register_dsp_parameter(HinawaSndMotu *self,
  * @self: A #HinawaSndMotu
  * @meter: (array fixed-size=48)(inout): The data of meter. Index 0 to 23 for inputs and index 24
  *	   to 47 for outputs.
- * @exception: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
+ * @error: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
  *	       #hinawa_snd_unit_error_quark().
  *
  * Read data of meter information for register DSP models.
@@ -154,25 +154,25 @@ void hinawa_snd_motu_read_register_dsp_parameter(HinawaSndMotu *self,
  * Since: 2.4
  */
 void hinawa_snd_motu_read_register_dsp_meter(HinawaSndMotu *self, guint8 *const meter[48],
-					     GError **exception)
+					     GError **error)
 {
 	struct snd_firewire_motu_register_dsp_meter *arg;
 
 	g_return_if_fail(HINAWA_IS_SND_MOTU(self));
 	g_return_if_fail(*meter != NULL);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	arg = (struct snd_firewire_motu_register_dsp_meter *)(*meter);
 
 	hinawa_snd_unit_ioctl(HINAWA_SND_UNIT(self), SNDRV_FIREWIRE_IOCTL_MOTU_REGISTER_DSP_METER,
-			      arg, exception);
+			      arg, error);
 }
 
 /**
  * hinawa_snd_motu_read_command_dsp_meter:
  * @self: A #HinawaSndMotu
  * @meter: (array fixed-size=400)(inout): The data for meter.
- * @exception: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
+ * @error: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
  *	       #hinawa_snd_unit_error_quark().
  *
  * Read data of meter information for command DSP models.
@@ -180,18 +180,18 @@ void hinawa_snd_motu_read_register_dsp_meter(HinawaSndMotu *self, guint8 *const 
  * Since: 2.4
  */
 void hinawa_snd_motu_read_command_dsp_meter(HinawaSndMotu *self, gfloat *const meter[400],
-					    GError **exception)
+					    GError **error)
 {
 	struct snd_firewire_motu_command_dsp_meter *arg;
 
 	g_return_if_fail(HINAWA_IS_SND_MOTU(self));
 	g_return_if_fail(*meter != NULL);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	arg = (struct snd_firewire_motu_command_dsp_meter *)(*meter);
 
 	hinawa_snd_unit_ioctl(HINAWA_SND_UNIT(self), SNDRV_FIREWIRE_IOCTL_MOTU_COMMAND_DSP_METER,
-			      arg, exception);
+			      arg, error);
 }
 
 void hinawa_snd_motu_handle_notification(HinawaSndMotu *self,

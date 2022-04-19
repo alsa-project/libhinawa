@@ -46,17 +46,17 @@ struct _HinawaSndMotuClass {
 
 HinawaSndMotu *hinawa_snd_motu_new(void);
 
-void hinawa_snd_motu_open(HinawaSndMotu *self, gchar *path, GError **exception);
+void hinawa_snd_motu_open(HinawaSndMotu *self, gchar *path, GError **error);
 
 void hinawa_snd_motu_read_register_dsp_parameter(HinawaSndMotu *self,
 						 HinawaSndMotuRegisterDspParameter *const *param,
-						 GError **exception);
+						 GError **error);
 
 void hinawa_snd_motu_read_register_dsp_meter(HinawaSndMotu *self, guint8 *const meter[48],
-					     GError **exception);
+					     GError **error);
 
 void hinawa_snd_motu_read_command_dsp_meter(HinawaSndMotu *self, gfloat *const meter[400],
-					    GError **exception);
+					    GError **error);
 
 G_END_DECLS
 
