@@ -2,12 +2,10 @@
 #include "internal.h"
 
 /**
- * SECTION:snd_motu_register_dsp_parameter
- * @Title: HinawaSndMotuRegisterDspParameter
- * @Short_description: A boxed object for container of parameter in register DSP model
- * @include: snd_motu_register_dsp_parameter.h
+ * HinawaSndMotuRegisterDspParameter:
+ * A boxed object for container of parameter in register DSP model.
  *
- * A #HinawaSndMotuRegisterDspParameter is a boxed object for container of parameter in register
+ * A [struct@SndMotuRegisterDspParameter] is a boxed object for container of parameter in register
  * DSP model.
  */
 HinawaSndMotuRegisterDspParameter *register_dsp_parameter_copy(const HinawaSndMotuRegisterDspParameter *self)
@@ -28,9 +26,9 @@ G_DEFINE_BOXED_TYPE(HinawaSndMotuRegisterDspParameter, hinawa_snd_motu_register_
 /**
  * hinawa_snd_motu_register_dsp_parameter_new:
  *
- * Instantiate #HinawaSndMotuRegisterDspParameter object and return the instance.
+ * Instantiate [struct@SndMotuRegisterDspParameter] object and return the instance.
  *
- * Returns: an instance of #HinawaSndMotuRegisterDspParameter.
+ * Returns: an instance of [struct@SndMotuRegisterDspParameter].
  * Since: 2.4
  */
 HinawaSndMotuRegisterDspParameter *hinawa_snd_motu_register_dsp_parameter_new(void)
@@ -40,7 +38,7 @@ HinawaSndMotuRegisterDspParameter *hinawa_snd_motu_register_dsp_parameter_new(vo
 
 /**
  * hinawa_snd_motu_register_dsp_parameter_get_mixer_source_gain:
- * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @self: A [struct@SndMotuRegisterDspParameter].
  * @mixer: the numeric index of mixer, up to 4.
  * @gain: (array fixed-size=20)(out)(transfer none): The array with elements for the data of source
  *	  gains.
@@ -63,7 +61,7 @@ void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_gain(
 
 /**
  * hinawa_snd_motu_register_dsp_parameter_get_mixer_source_pan:
- * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @self: A [struct@SndMotuRegisterDspParameter].
  * @mixer: the numeric index of mixer, up to 4.
  * @pan: (array fixed-size=20)(out)(transfer none): The array with elements for the data of source
  *	 pan.
@@ -86,7 +84,7 @@ void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_pan(
 
 /**
  * hinawa_snd_motu_register_dsp_parameter_get_mixer_source_flag:
- * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @self: A [struct@SndMotuRegisterDspParameter].
  * @mixer: the numeric index of mixer, up to 4.
  * @flag: (array fixed-size=20)(out)(transfer none): The array with elements for the data of source
  *	  flag.
@@ -112,7 +110,7 @@ void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_flag(
 
 /**
  * hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_balance:
- * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @self: A [struct@SndMotuRegisterDspParameter].
  * @mixer: the numeric index of mixer, up to 4.
  * @balance: (array fixed-size=20)(out)(transfer none): The array with elements for the data of
  *	     paired source L/R balance.
@@ -135,7 +133,7 @@ void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_balance(
 
 /**
  * hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_width:
- * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @self: A [struct@SndMotuRegisterDspParameter].
  * @mixer: the numeric index of mixer, up to 4.
  * @width: (array fixed-size=20)(out)(transfer none): The array with elements for the data of
  *	   paired source width.
@@ -158,7 +156,7 @@ void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_width(
 
 /**
  * hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_volume:
- * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @self: A [struct@SndMotuRegisterDspParameter].
  * @volume: (array fixed-size=4)(out)(transfer none): The array with elements for the data of
 *	    paired output volume.
  *
@@ -179,7 +177,7 @@ void hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_volume(
 
 /**
  * hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_flag:
- * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @self: A [struct@SndMotuRegisterDspParameter].
  * @flag: (array fixed-size=4)(out)(transfer none): The array with elements for the data of paired
  *	  output flag.
  *
@@ -203,7 +201,7 @@ void hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_flag(
 
 /**
  * hinawa_snd_motu_register_dsp_parameter_get_main_output_paired_volume:
- * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @self: A [struct@SndMotuRegisterDspParameter].
  * @volume: (out): The value of paired main output.
  *
  * Get the array with elements for the data of paired main output volume. The data has volume value
@@ -223,7 +221,7 @@ void hinawa_snd_motu_register_dsp_parameter_get_main_output_paired_volume(
 
 /**
  * hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_volume:
- * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @self: A [struct@SndMotuRegisterDspParameter].
  * @volume: (out): The value of paired headphone output.
  *
  * Get the array with elements for the data of paired headphone output volume. The data has volume
@@ -243,7 +241,7 @@ void hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_volume(
 
 /**
  * hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_assignment:
- * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @self: A [struct@SndMotuRegisterDspParameter].
  * @assignment: (out): The value of paired headphone assignment.
  *
  * Get the array with elements for the data of paired headphone output source. The data has index
@@ -263,7 +261,7 @@ void hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_assignme
 
 /**
  * hinawa_snd_motu_register_dsp_parameter_get_line_input_boost_flag:
- * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @self: A [struct@SndMotuRegisterDspParameter].
  * @boost_flag: (out): The flag of boost for line input.
  *
  * Get the data for flags of line input boost. The data consists of bit flags for corresponding line
@@ -283,7 +281,7 @@ void hinawa_snd_motu_register_dsp_parameter_get_line_input_boost_flag(
 
 /**
  * hinawa_snd_motu_register_dsp_parameter_get_line_input_nominal_level_flag:
- * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @self: A [struct@SndMotuRegisterDspParameter].
  * @nominal_level_flag: (out): The flag of boost for line input.
  *
  * Get the data for flags of line input nominal level. The data consists of bit flags for
@@ -304,7 +302,7 @@ void hinawa_snd_motu_register_dsp_parameter_get_line_input_nominal_level_flag(
 
 /**
  * hinawa_snd_motu_register_dsp_parameter_get_input_gain_and_invert:
- * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @self: A [struct@SndMotuRegisterDspParameter].
  * @gain_and_invert: (array fixed-size=10)(out)(transfer none): The array with elements for the data
  *		     of input gain and invert flags.
  *
@@ -332,7 +330,7 @@ void hinawa_snd_motu_register_dsp_parameter_get_input_gain_and_invert(
 
 /**
  * hinawa_snd_motu_register_dsp_parameter_get_input_flag:
- * @self: A #HinawaSndMotuRegisterDspParameter.
+ * @self: A [struct@SndMotuRegisterDspParameter].
  * @flag: (array fixed-size=10)(out)(transfer none): The array with elements for the data of input
  *	  flags.
  *
