@@ -15,11 +15,10 @@ struct _HinawaSndDg00xClass {
 
 	/**
 	 * HinawaSndDg00xClass::message:
-	 * @self: A #HinawaSndDg00x
+	 * @self: A [class@SndDg00x]
 	 * @message: A message
 	 *
-	 * When Dg00x models transfer notification, the #HinawaSndDg00xClass::message handler is
-	 * called.
+	 * Class closure for the [signal@SndDg00x::message] signal.
 	 *
 	 * Since: 1.2
 	 */

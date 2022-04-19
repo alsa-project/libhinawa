@@ -5,13 +5,10 @@
 #include <errno.h>
 
 /**
- * SECTION:snd_dg00x
- * @Title: HinawaSndDg00x
- * @Short_description: A notification listener for Dg00x models
- * @include: snd_dg00x.h
+ * HinawaSndDg00x:
+ * A notification listener for Digidesign Digi 00x models.
  *
- * A #HinawaSndDg00x listen to Dg00x notification and generates signal when
- * received. This inherits #HinawaSndUnit.
+ * A [class@SndDg00x] listen to Dg00x notification and generates signal when received.
  */
 
 G_DEFINE_TYPE(HinawaSndDg00x, hinawa_snd_dg00x, HINAWA_TYPE_SND_UNIT)
@@ -27,11 +24,10 @@ static void hinawa_snd_dg00x_class_init(HinawaSndDg00xClass *klass)
 {
 	/**
 	 * HinawaSndDg00x::message:
-	 * @self: A #HinawaSndDg00x
+	 * @self: A [class@SndDg00x]
 	 * @message: A message
 	 *
-	 * When Dg00x models transfer notification, the #HinawaSndDg00x::message signal is
-	 * generated.
+	 * Emitted when Dg00x models transfer notification.
 	 *
 	 * Since: 0.7
 	 */
@@ -53,9 +49,9 @@ static void hinawa_snd_dg00x_init(HinawaSndDg00x *self)
 /**
  * hinawa_snd_dg00x_new:
  *
- * Instantiate #HinawaSndDg00x object and return the instance.
+ * Instantiate [class@SndDg00x] object and return the instance.
  *
- * Returns: an instance of #HinawaSndDg00x.
+ * Returns: an instance of [class@SndDg00x].
  * Since: 1.3.
  */
 HinawaSndDg00x *hinawa_snd_dg00x_new(void)
@@ -65,12 +61,12 @@ HinawaSndDg00x *hinawa_snd_dg00x_new(void)
 
 /**
  * hinawa_snd_dg00x_open:
- * @self: A #HinawaSndUnit
+ * @self: A [class@SndDg00x]
  * @path: A full path of a special file for ALSA hwdep character device
- * @error: A #GError. Error can be generated with three domains; #g_file_error_quark(),
- *	       #hinawa_fw_node_error_quark(), and #hinawa_snd_unit_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with three domains; GLib.FileError,
+ *	   Hinawa.FwNodeError, and Hinawa.SndUnitError.
  *
- * Open ALSA hwdep character device and check it for Dg00x  devices.
+ * Open ALSA hwdep character device and check it for Dg00x devices.
  *
  * Since: 0.7
  */
