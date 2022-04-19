@@ -33,11 +33,11 @@ static const char *const err_msgs[] = {
 	[HINAWA_FW_RESP_ERROR_ADDR_SPACE_USED] = "The requested range of address is already used exclusively",
 };
 
-#define generate_local_error(exception, code) \
-	g_set_error_literal(exception, HINAWA_FW_RESP_ERROR, code, err_msgs[code])
+#define generate_local_error(error, code) \
+	g_set_error_literal(error, HINAWA_FW_RESP_ERROR, code, err_msgs[code])
 
-#define generate_syscall_error(exception, errno, format, arg)				\
-	g_set_error(exception, HINAWA_FW_RESP_ERROR, HINAWA_FW_RESP_ERROR_FAILED,	\
+#define generate_syscall_error(error, errno, format, arg)			\
+	g_set_error(error, HINAWA_FW_RESP_ERROR, HINAWA_FW_RESP_ERROR_FAILED,	\
 		    format " %d(%s)", arg, errno, strerror(errno))
 
 typedef struct {
@@ -235,7 +235,7 @@ HinawaFwResp *hinawa_fw_resp_new(void)
  * @region_start:  Start offset of address region in which range of address is looked up.
  * @region_end:  End offset of address region in which range of address is looked up.
  * @width: The width for range of address to be looked up.
- * @exception: A #GError. Error can be generated with two domain of #hinawa_fw_node_error_quark()
+ * @error: A #GError. Error can be generated with two domain of #hinawa_fw_node_error_quark()
  *	       and #hinawa_fw_resp_error_quark().
  *
  * Start to listen to range of address equals to #width in local node (e.g. 1394 OHCI host
@@ -246,7 +246,7 @@ HinawaFwResp *hinawa_fw_resp_new(void)
  */
 void hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *node,
 					  guint64 region_start, guint64 region_end, guint width,
-					  GError **exception)
+					  GError **error)
 {
 	HinawaFwRespPrivate *priv;
 	struct fw_cdev_allocate allocate = {0};
@@ -254,11 +254,11 @@ void hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *node
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
 	g_return_if_fail(width > 0);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinawa_fw_resp_get_instance_private(self);
 	if (priv->node != NULL) {
-		generate_local_error(exception, HINAWA_FW_RESP_ERROR_RESERVED);
+		generate_local_error(error, HINAWA_FW_RESP_ERROR_RESERVED);
 		return;
 	}
 
@@ -267,14 +267,14 @@ void hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *node
 	allocate.length = width;
 	allocate.region_end = region_end;
 
-	err = hinawa_fw_node_ioctl(node, FW_CDEV_IOC_ALLOCATE, &allocate, exception);
-	if (*exception != NULL)
+	err = hinawa_fw_node_ioctl(node, FW_CDEV_IOC_ALLOCATE, &allocate, error);
+	if (*error != NULL)
 		return;
 	if (err > 0) {
 		if (err == EBUSY)
-			generate_local_error(exception, HINAWA_FW_RESP_ERROR_ADDR_SPACE_USED);
+			generate_local_error(error, HINAWA_FW_RESP_ERROR_ADDR_SPACE_USED);
 		else
-			generate_syscall_error(exception, err, "ioctl(%s)", "FW_CDEV_IOC_ALLOCATE");
+			generate_syscall_error(error, err, "ioctl(%s)", "FW_CDEV_IOC_ALLOCATE");
 		return;
 	}
 
@@ -295,7 +295,7 @@ void hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *node
  * @node: A #HinawaFwNode.
  * @addr: A start address to listen to in host controller.
  * @width: The byte width of address to listen to host controller.
- * @exception: A #GError. Error can be generated with two domain of #hinawa_fw_node_error_quark()
+ * @error: A #GError. Error can be generated with two domain of #hinawa_fw_node_error_quark()
  *	       and #hinawa_fw_resp_error_quark().
  *
  * Start to listen to a range of address in host controller which connects to the node. The function
@@ -305,9 +305,9 @@ void hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *node
  * Since: 1.4.
  */
 void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode *node,
-			    guint64 addr, guint width, GError **exception)
+			    guint64 addr, guint width, GError **error)
 {
-	hinawa_fw_resp_reserve_within_region(self, node, addr, addr + width, width, exception);
+	hinawa_fw_resp_reserve_within_region(self, node, addr, addr + width, width, error);
 }
 
 /**
@@ -322,7 +322,7 @@ void hinawa_fw_resp_release(HinawaFwResp *self)
 {
 	HinawaFwRespPrivate *priv;
 	struct fw_cdev_deallocate deallocate = {0};
-	GError *exception = NULL;
+	GError *error = NULL;
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
 	priv = hinawa_fw_resp_get_instance_private(self);
@@ -332,8 +332,8 @@ void hinawa_fw_resp_release(HinawaFwResp *self)
 
 	// Ignore ioctl error.
 	deallocate.handle = priv->addr_handle;
-	hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_DEALLOCATE, &deallocate, &exception);
-	g_clear_error(&exception);
+	hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_DEALLOCATE, &deallocate, &error);
+	g_clear_error(&error);
 	g_object_unref(priv->node);
 	priv->node = NULL;
 
@@ -416,7 +416,7 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 	HinawaFwRespClass *klass;
 	struct fw_cdev_send_response resp = {0};
 	HinawaFwRcode rcode;
-	GError *exception = NULL;
+	GError *error = NULL;
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
 	priv = hinawa_fw_resp_get_instance_private(self);
@@ -451,6 +451,6 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self,
 	// Ignore ioctl error.
 	resp.rcode = (__u32)rcode;
 	resp.handle = event->handle;
-	hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_SEND_RESPONSE, &resp, &exception);
-	g_clear_error(&exception);
+	hinawa_fw_node_ioctl(priv->node, FW_CDEV_IOC_SEND_RESPONSE, &resp, &error);
+	g_clear_error(&error);
 }
