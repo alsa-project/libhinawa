@@ -39,18 +39,17 @@ HinawaFwFcp *hinawa_fw_fcp_new(void);
 void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
 			       const guint8 *req_frame, gsize req_frame_size,
 			       guint8 *const *resp_frame, gsize *resp_frame_size,
-			       GError **exception);
+			       GError **error);
 
-void hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node,
-			GError **exception);
+void hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node, GError **error);
 void hinawa_fw_fcp_unbind(HinawaFwFcp *self);
 
 void hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
-			   guint timeout_ms, GError **exception);
+			   guint timeout_ms, GError **error);
 
 void hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
 				   guint8 *const *resp, gsize *resp_size, guint timeout_ms,
-				   GError **exception);
+				   GError **error);
 
 G_END_DECLS
 
