@@ -19,27 +19,22 @@ struct _HinawaFwRespClass {
 
 	/**
 	 * HinawaFwRespClass::requested:
-	 * @self: A #HinawaFwResp
-	 * @tcode: One of #HinawaTcode enumerators
+	 * @self: A [class@FwResp]
+	 * @tcode: One of [enum@FwTcode] enumerations
 	 *
-	 * When any node transfers requests to the range of address to which this object listening,
-	 * the #HinawaFwRespClass::requested signal handler is called with #HinawaFwTcode, without the
-	 * case that #HinawaFwRespClass::requested2 signal handler is already assigned.
+	 * Class closure for the [signal@FwResp::requested] signal.
 	 *
-	 * The handler can get data frame by a call of #hinawa_fw_resp_get_req_frame() and set data
-	 * frame by a call of #hinawa_fw_resp_set_resp_frame(), then returns rcode.
+	 * Returns: One of [enum@FwRcode] enumerations corresponding to rcodes defined in IEEE 1394
+	 *	    specification.
 	 *
-	 * Returns: One of #HinawaRcode enumerators corresponding to rcodes defined in IEEE 1394
-	 * specification.
-	 *
-	 * Deprecated: 2.2: Use #HinawaFwRespClass::requested2, instead.
+	 * Deprecated: 2.2: Use [vfunc@FwResp.requested2], instead.
 	 */
 	HinawaFwRcode (*requested)(HinawaFwResp *self, HinawaFwTcode tcode);
 
 	/**
 	 * HinawaFwRespClass::requested2:
-	 * @self: A #HinawaFwResp
-	 * @tcode: One of #HinawaTcode enumerations
+	 * @self: A [class@FwResp]
+	 * @tcode: One of [enum@FwTcode] enumerations
 	 * @offset: The address offset at which the transaction arrives.
 	 * @src: The node ID of source for the transaction.
 	 * @dst: The node ID of destination for the transaction.
@@ -49,12 +44,9 @@ struct _HinawaFwRespClass {
 	 *	   data.
 	 * @length: The length of bytes for the frame.
 	 *
-	 * When any node transfers request subaction to the range of address to which this object
-	 * listening, the #HinawaFwResp::requested signal handler is called with arrived frame for
-	 * the subaction. The handler is expected to call #hinawa_fw_resp_set_resp_frame() with
-	 * frame and return rcode for response subaction.
+	 * Class closure for the [signal@FwResp::requested2] signal.
 	 *
-	 * Returns: One of #HinawaRcode enumerators corresponding to rcodes defined in IEEE 1394
+	 * Returns: One of [enum@FwRcode enumerations corresponding to rcodes defined in IEEE 1394
 	 *	    specification.
 	 *
 	 * Since: 2.2

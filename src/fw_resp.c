@@ -6,25 +6,24 @@
 #include <sys/ioctl.h>
 
 /**
- * SECTION:fw_resp
- * @Title: HinawaFwResp
- * @Short_description: A transaction responder for a FireWire node.
- * @include: fw_resp.h
+ * HinawaFwResp:
+ * A transaction responder for request initiated by node in IEEE 1394 bus.
  *
- * A HinawaFwResp responds requests from any units.
+ * The [class@FwResp] responds transaction initiated by node in IEEE 1394 bus.
  *
- * This class is an application of Linux FireWire subsystem. All of operations
- * utilize ioctl(2) with subsystem specific request commands.
+ * This class is an application of Linux FireWire subsystem. All of operations utilize ioctl(2)
+ * with subsystem specific request commands.
  */
 
 /**
  * hinawa_fw_resp_error_quark:
  *
- * Return the GQuark for error domain of GError which has code in #HinawaFwRespError.
+ * Return the [alias@GLib.Quark] for error domain of [struct@GLib.Error] which has code in
+ * Hinawa.FwRespError.
  *
  * Since: 2.2
  *
- * Returns: A #GQuark.
+ * Returns: A [alias@GLib.Quark].
  */
 G_DEFINE_QUARK(hinawa-fw-resp-error-quark, hinawa_fw_resp_error)
 
@@ -151,21 +150,22 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 
 	/**
 	 * HinawaFwResp::requested:
-	 * @self: A #HinawaFwResp
-	 * @tcode: One of #HinawaTcode enumerators
+	 * @self: A [class@FwResp]
+	 * @tcode: One of [enum@FwTcode] enumerations.
 	 *
-	 * When any node transfers requests to the range of address to which this object listening,
-	 * the #HinawaFwResp::requested signal handler is called with #HinawaFwTcode, without the
-	 * case that #HinawaFwResp::requested2 signal handler is already assigned.
+	 * Emitted when any node transfers requests to the range of address to which this object
+	 * listening, the [signal@FwResp::requested] signal handler is called with [enum@FwTcode],
+	 * without the case that [signal@FwResp::requested2] signal handler is already assigned.
 	 *
-	 * The handler can get data frame by a call of #hinawa_fw_resp_get_req_frame() and set data
-	 * frame by a call of #hinawa_fw_resp_set_resp_frame(), then returns rcode.
+	 * The handler can get data frame by a call of [method@FwResp.get_req_frame] and set data
+	 * frame by a call of [method@FwResp.set_resp_frame], then returns [enum@FwRcode] for
+	 * response subaction.
 	 *
-	 * Returns: One of #HinawaRcode enumerators corresponding to rcodes defined in IEEE 1394
-	 * specification.
+	 * Returns: One of [enum@FwRcode] enumerations corresponding to rcodes defined in IEEE 1394
+	 *	    specification.
 	 *
 	 * Since: 0.3
-	 * Deprecated: 2.2: Use #HinawaFwResp::requested2, instead.
+	 * Deprecated: 2.2: Use [signal@FwResp::requested2], instead.
 	 */
 	fw_resp_sigs[FW_RESP_SIG_TYPE_REQ] =
 		g_signal_new("requested",
@@ -178,8 +178,8 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 
 	/**
 	 * HinawaFwResp::requested2:
-	 * @self: A #HinawaFwResp
-	 * @tcode: One of #HinawaTcode enumerations
+	 * @self: A [class@FwResp]
+	 * @tcode: One of [enum@FwTcode] enumerations
 	 * @offset: The address offset at which the transaction arrives.
 	 * @src: The node ID of source for the transaction.
 	 * @dst: The node ID of destination for the transaction.
@@ -189,12 +189,12 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	 *	   data.
 	 * @length: The length of bytes for the frame.
 	 *
-	 * When any node transfers request subaction to the range of address to which this object
-	 * listening, the #HinawaFwResp::requested signal handler is called with arrived frame for
-	 * the subaction. The handler is expected to call #hinawa_fw_resp_set_resp_frame() with
-	 * frame and return rcode for response subaction.
+	 * Emitted when any node transfers request subaction to the range of address to which this
+	 * object listening, the [signal@FwResp::requested] signal handler is called with arrived
+	 * frame for the subaction. The handler is expected to call [method@FwResp.set_resp_frame]
+	 * with frame and return [enum@FwRcode] for response subaction.
 	 *
-	 * Returns: One of #HinawaRcode enumerators corresponding to rcodes defined in IEEE 1394
+	 * Returns: One of [enum@FwRcode] enumerations corresponding to rcodes defined in IEEE 1394
 	 *	    specification.
 	 * Since: 2.2
 	 */
@@ -218,9 +218,9 @@ static void hinawa_fw_resp_init(HinawaFwResp *self)
 /**
  * hinawa_fw_resp_new:
  *
- * Instantiate #HinawaFwResp object and return the instance.
+ * Instantiate [class@FwResp] object and return the instance.
  *
- * Returns: a new instance of #HinawaFwResp.
+ * Returns: a new instance of [class@FwResp].
  * Since: 1.3.
  */
 HinawaFwResp *hinawa_fw_resp_new(void)
@@ -230,17 +230,17 @@ HinawaFwResp *hinawa_fw_resp_new(void)
 
 /**
  * hinawa_fw_resp_reserve_within_region:
- * @self: A #HinawaFwResp.
- * @node: A #HinawaFwNode.
+ * @self: A [class@FwResp].
+ * @node: A [class@FwNode].
  * @region_start:  Start offset of address region in which range of address is looked up.
  * @region_end:  End offset of address region in which range of address is looked up.
  * @width: The width for range of address to be looked up.
- * @error: A #GError. Error can be generated with two domain of #hinawa_fw_node_error_quark()
- *	       and #hinawa_fw_resp_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with two domain of Hinawa.FwNodeError and
+ *	   Hinawa.FwRespError.
  *
  * Start to listen to range of address equals to #width in local node (e.g. 1394 OHCI host
  * controller), which is used to communicate to the node given as parameter. The range of address
- * is looked up in region between #region_start and #region_end.
+ * is looked up in region between region_start and region_end.
  *
  * Since: 2.3.
  */
@@ -291,15 +291,15 @@ void hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *node
 
 /**
  * hinawa_fw_resp_reserve:
- * @self: A #HinawaFwResp.
- * @node: A #HinawaFwNode.
+ * @self: A [class@FwResp].
+ * @node: A [class@FwNode].
  * @addr: A start address to listen to in host controller.
  * @width: The byte width of address to listen to host controller.
- * @error: A #GError. Error can be generated with two domain of #hinawa_fw_node_error_quark()
- *	       and #hinawa_fw_resp_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with two domain of Hinawa.FwNodeError and
+ *	   and Hinawa.FwRespError.
  *
  * Start to listen to a range of address in host controller which connects to the node. The function
- * is a variant of #hinawa_fw_resp_reserve_within_region() so that the exact range of address should
+ * is a variant of [method@FwResp.reserve_within_region] so that the exact range of address should
  * be reserved as given.
  *
  * Since: 1.4.
@@ -312,9 +312,9 @@ void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode *node,
 
 /**
  * hinawa_fw_resp_release:
- * @self: A HinawaFwResp.
+ * @self: A [class@FwResp].
  *
- * stop to listen to a range of address in host controller.
+ * stop to listen to a range of address in local node (e.g. OHCI 1394 controller).
  *
  * Since: 1.4.
  */
@@ -352,15 +352,14 @@ void hinawa_fw_resp_release(HinawaFwResp *self)
 
 /**
  * hinawa_fw_resp_get_req_frame:
- * @self: A #HinawaFwResp
- * @frame: (array length=length)(out)(transfer none): a 8bit array for response
- * 	   frame.
+ * @self: A [class@FwResp]
+ * @frame: (array length=length)(out)(transfer none): a 8bit array for response frame.
  * @length: (out): The length of bytes for the frame.
  *
  * Retrieve byte frame to be requested.
  *
  * Since: 2.0
- * Deprecated: 2.2: handler for #HinawaFwResp::requested2 signal can receive the frame in its
+ * Deprecated: 2.2: handler for [signal@FwResp::requested2] signal can receive the frame in its
  *		    argument.
  */
 void hinawa_fw_resp_get_req_frame(HinawaFwResp *self, const guint8 **frame,
@@ -382,9 +381,8 @@ void hinawa_fw_resp_get_req_frame(HinawaFwResp *self, const guint8 **frame,
 
 /**
  * hinawa_fw_resp_set_resp_frame:
- * @self: A #HinawaFwResp
- * @frame: (element-type guint8)(array length=length): a 8bit array for response
- * 	   frame.
+ * @self: A [class@FwResp]
+ * @frame: (element-type guint8)(array length=length): a 8bit array for response frame.
  * @length: The length of bytes for the frame.
  *
  * Register byte frame as response.
