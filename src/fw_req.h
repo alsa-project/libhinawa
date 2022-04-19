@@ -19,15 +19,13 @@ struct _HinawaFwReqClass {
 
 	/**
 	 * HinawaFwReqClass::responded:
-	 * @self: A #HinawaFwReq.
-	 * @rcode: One of #HinawaFwRcode.
+	 * @self: A [class@FwReq].
+	 * @rcode: One of [enum@FwRcode].
 	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for
 	 *	   byte data of response subaction for transaction.
 	 * @frame_size: The number of elements of the array.
 	 *
-	 * When the unit transfers asynchronous packet as response subaction for the transaction,
-	 * and the process successfully reads the content of packet from Linux firewire subsystem,
-	 * the #HinawaFwReqClass::responded handler is called.
+	 * Class closure for the [signal@FwReq::responded] signal.
 	 *
 	 * Since: 2.1
 	 */
