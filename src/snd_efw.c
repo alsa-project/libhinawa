@@ -5,23 +5,21 @@
 #include <errno.h>
 
 /**
- * SECTION:snd_efw
- * @Title: HinawaSndEfw
- * @Short_description: A transaction executor for Fireworks models
- * @include: snd_efw.h
+ * HinawaSndEfw:
+ * A transaction executor for Fireworks models.
  *
- * A #HinawaSndEfw is an application of Echo Fireworks Transaction (EFT).
- * This inherits #HinawaSndUnit.
+ * A [class@SndEfw] is an application of Echo Fireworks Transaction.
  */
 
 /**
  * hinawa_snd_efw_error_quark:
  *
- * Return the GQuark for error domain of GError which has code in #HinawaSndEfwStatus.
+ * Return the [alias@GLib.Quark] for error domain of [struct@GLib.Error] which has code in
+ * [enum@SndEfwStatus].
  *
  * Since: 2.1
  *
- * Returns: A #GQuark.
+ * Returns: A [alias@GLib.Quark].
  */
 G_DEFINE_QUARK(hinawa-snd-efw-error-quark, hinawa_snd_efw_error)
 
@@ -67,8 +65,8 @@ static void hinawa_snd_efw_class_init(HinawaSndEfwClass *klass)
 {
 	/**
 	 * HinawaSndEfw::responded:
-	 * @self: A #HinawaSndEfw.
-	 * @status: One of #HinawaSndEfwStatus.
+	 * @self: A [class@SndEfw].
+	 * @status: One of [enum@SndEfwStatus].
 	 * @seqnum: The sequence number of response.
 	 * @category: The value of category field in the response.
 	 * @command: The value of command field in the response.
@@ -76,10 +74,10 @@ static void hinawa_snd_efw_class_init(HinawaSndEfwClass *klass)
 	 *	   quadlet data of response for Echo Fireworks protocol.
 	 * @frame_size: The number of elements of the array.
 	 *
-	 * When the unit transfers asynchronous packet as response for Echo Audio Fireworks
-	 * protocol, and the process successfully reads the content of response from ALSA
-	 * Fireworks driver, the #HinawaSndEfw::responded signal handler is called with parameters
-	 * of the response.
+	 * Emitted when the unit transfers asynchronous packet as response for Echo Audio Fireworks
+	 * protocol, and the process successfully reads the content of response from ALSA Fireworks
+	 * driver, the [signal@SndEfw::responded] signal handler is called with parameters of the
+	 * response.
 	 *
 	 * Since: 2.1
 	 */
@@ -102,9 +100,9 @@ static void hinawa_snd_efw_init(HinawaSndEfw *self)
 /**
  * hinawa_snd_efw_new:
  *
- * Instantiate #HinawaSndEfw object and return the instance.
+ * Instantiate [class@SndEfw] object and return the instance.
  *
- * Returns: an instance of #HinawaSndEfw.
+ * Returns: an instance of [class@SndEfw].
  * Since: 1.3.
  */
 HinawaSndEfw *hinawa_snd_efw_new(void)
@@ -114,10 +112,10 @@ HinawaSndEfw *hinawa_snd_efw_new(void)
 
 /**
  * hinawa_snd_efw_open:
- * @self: A #HinawaSndUnit
+ * @self: A [class@SndEfw]
  * @path: A full path of a special file for ALSA hwdep character device
- * @error: A #GError. Error can be generated with three domains; #g_file_error_quark(),
- *	       #hinawa_fw_node_error_quark(), and #hinawa_snd_unit_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with three domains; GLib.FileError,
+ *	   Hinawa.FwNodeError, and Hinawa.SndUnitError.
  *
  * Open ALSA hwdep character device and check it for Fireworks devices.
  *
@@ -144,17 +142,18 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **error)
 
 /**
  * hinawa_snd_efw_transaction_async:
- * @self: A #HinawaSndEfw.
+ * @self: A [class@SndEfw].
  * @category: One of category for the transaction.
  * @command: One of commands for the transaction.
  * @args: (array length=arg_count)(in)(nullable): An array with elements for quadlet data as
  *	  arguments for command.
  * @arg_count: The number of quadlets in the args array.
  * @resp_seqnum: (out): The sequence number for response transaction;
- * @error: A #GError. Error can be generated with domain of #hinawa_snd_unit_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with domain of Hinawa.SndUnitError.
  *
  * Transfer asynchronous transaction for command frame of Echo Fireworks protocol. When receiving
- * asynchronous transaction for response frame, #HinawaSndEfw::responded GObject signal is emitted.
+ * asynchronous transaction for response frame, [signal@SndEfw::responded] GObject signal is
+ * emitted.
  *
  * Since: 2.1.
  */
@@ -243,23 +242,22 @@ static void handle_responded_signal(HinawaSndEfw *self, HinawaSndEfwStatus statu
 
 /**
  * hinawa_snd_efw_transaction_sync:
- * @self: A #HinawaSndEfw.
+ * @self: A [class@SndEfw].
  * @category: one of category for the transaction.
  * @command: one of commands for the transaction.
- * @args: (array length=arg_count)(in)(nullable): An array with elements for
- *	  quadlet data as arguments for command.
+ * @args: (array length=arg_count)(in)(nullable): An array with elements for quadlet data as
+ *	  arguments for command.
  * @arg_count: The number of quadlets in the args array.
- * @params: (array length=param_count)(inout)(nullable): An array with elements for
- *	    quadlet data to save parameters in response. Callers should give it
- *	    for buffer with enough space against the request since this library
- *	    performs no reallocation. Due to the reason, the value of this
- *	    argument should point to the pointer to the array and immutable.
- *	    The content of array is mutable for parameters in response.
+ * @params: (array length=param_count)(inout)(nullable): An array with elements for quadlet data
+ *	    to save parameters in response. Callers should give it for buffer with enough space
+ *	    against the request since this library performs no reallocation. Due to the reason,
+ *	    the value of this argument should point to the pointer to the array and immutable. The
+ *	    content of array is mutable for parameters in response.
  * @param_count: The number of quadlets in the params array.
  * @timeout_ms: The timeout to wait for response of the transaction since request is transferred in
  *		milliseconds.
- * @error: A #GError. Error can be generated with three domains; #hinawa_snd_unit_error_quark(),
- *	       and #hinawa_snd_efw_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with three domains; Hinawa.SndUnitError,
+ *	   and Hinawa.SndEfwError.
  *
  * Transfer asynchronous transaction for command frame of Echo Fireworks protocol, then wait
  * asynchronous transaction for response frame within the given timeout.
@@ -327,21 +325,20 @@ end:
 
 /**
  * hinawa_snd_efw_transaction:
- * @self: A #HinawaSndEfw.
+ * @self: A [class@SndEfw].
  * @category: one of category for the transaction.
  * @command: one of commands for the transaction.
- * @args: (array length=arg_count)(in)(nullable): An array with elements for
- *	  quadlet data as arguments for command.
+ * @args: (array length=arg_count)(in)(nullable): An array with elements for quadlet data as
+ *	  arguments for command.
  * @arg_count: The number of quadlets in the args array.
- * @params: (array length=param_count)(inout): An array with elements for
- *	    quadlet data to save parameters in response. Callers should give it
- *	    for buffer with enough space against the request since this library
- *	    performs no reallocation. Due to the reason, the value of this
- *	    argument should point to the pointer to the array and immutable.
- *	    The content of array is mutable for parameters in response.
+ * @params: (array length=param_count)(inout): An array with elements for quadlet data to save
+ *	    parameters in response. Callers should give it for buffer with enough space against
+ *	    the request since this library performs no reallocation. Due to the reason, the value
+ *	    of this argument should point to the pointer to the array and immutable. The content
+ *	    of array is mutable for parameters in response.
  * @param_count: The number of quadlets in the params array.
- * @error: A #GError. Error can be generated with three domains; #hinawa_snd_unit_error_quark(),
- *	       and #hinawa_snd_efw_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with three domains; Hinawa.SndUnitError
+ *	   and Hinawa.SndEfwError.
  *
  * Transfer request of transaction according to Echo Fireworks Transaction protocol, then wait for
  * the response of transaction within 200 millisecond timeout.
