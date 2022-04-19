@@ -5,29 +5,26 @@
 #include <errno.h>
 
 /**
- * SECTION:fw_fcp
- * @Title: HinawaFwFcp
- * @Short_description: A FCP transaction executor to a FireWire unit
- * @include: fw_fcp.h
+ * HinawaFwFcp:
+ * A FCP transaction executor to node in IEEE 1394 bus.
  *
  * A HinawaFwFcp supports Function Control Protocol (FCP) in IEC 61883-1, in which no way is defined
  * to match response against command by the contents of frames. In 'AV/C Digital Interface Command
  * Set General Specification Version 4.2' (Sep 1 2004, 1394TA), a pair of command and response is
- * loosely matched by the contents of frames. For convenience, HinawaFwFcp supports synchronous API
- * of command and response for AV/C specification.
+ * loosely matched by the contents of frames.
  *
- * Any of transaction frames should be aligned to 8bit (byte).
- * This class is an application of #HinawaFwReq / #HinawaFwResp.
+ * Any of transaction frames should be aligned to 8bit (byte). This class is an application of
+ * [class@FwReq] / [class@FwResp].
  */
 
 /**
  * hinawa_fw_fcp_error_quark:
  *
- * Return the GQuark for error domain of GError which has code in #HinawaFwFcpError.
+ * Return the [alias@GLib.Quark] for [struct@GLib.Error] which has code in [enum@FwFcpError].
  *
  * Since: 2.1
  *
- * Returns: A #GQuark.
+ * Returns: A [alias@GLib.Quark].
  */
 G_DEFINE_QUARK(hinawa-fw-fcp-error-quark, hinawa_fw_fcp_error)
 
@@ -148,7 +145,7 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 	 * HinawaFwFcp:timeout:
 	 *
 	 * Since 1.4
-	 * Deprecated: 2.1: Use timeout_ms parameter of #hinawa_fw_fcp_avc_transaction().
+	 * Deprecated: 2.1: Use timeout_ms parameter of [method@FwFcp.avc_transaction].
 	 */
 	fw_fcp_props[FW_FCP_PROP_TYPE_TIMEOUT] =
 		g_param_spec_uint("timeout", "timeout",
@@ -176,15 +173,13 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 
         /**
          * HinawaFwFcp::responded:
-         * @self: A #HinawaFwFcp.
+         * @self: A [class@FwFcp].
          * @frame: (array length=frame_size)(element-type guint8): The array with elements for byte
-         *         data of response for Function Control Protocol.
+         *         data of response for FCP.
          * @frame_size: The number of elements of the array.
          *
-         * When the unit transfers asynchronous packet as response for Echo Audio Fireworks
-         * protocol, and the process successfully reads the content of packet from ALSA
-         * Fireworks driver, the #HinawaFwFcp::responded signal handler is called with parameters
-	 * of the response.
+	 * Emitted when the node transfers asynchronous packet as response for FCP and the process
+	 * successfully read the content of packet.
 	 *
 	 * Since: 2.1
          */
@@ -208,9 +203,9 @@ static void hinawa_fw_fcp_init(HinawaFwFcp *self)
 /**
  * hinawa_fw_fcp_new:
  *
- * Instantiate #HinawaFwFcp object and return the instance.
+ * Instantiate [class@FwFcp] object and return the instance.
  *
- * Returns: an instance of #HinawaFwFcp.
+ * Returns: an instance of [class@FwFcp].
  * Since: 1.3.
  */
 HinawaFwFcp *hinawa_fw_fcp_new(void)
@@ -220,16 +215,16 @@ HinawaFwFcp *hinawa_fw_fcp_new(void)
 
 /**
  * hinawa_fw_fcp_command:
- * @self: A #HinawaFwFcp.
+ * @self: A [class@FwFcp].
  * @cmd: (array length=cmd_size): An array with elements for request byte data. The value of this
  *	 argument should point to the array and immutable.
  * @cmd_size: The size of array for request in byte unit.
  * @timeout_ms: The timeout to wait for response subaction of transaction for command frame.
- * @error: A #GError. Error can be generated with four domains; #hinawa_fw_node_error_quark(),
- *	       #hinawa_fw_req_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinoko.FwNodeError and
+ *	   Hinoko.FwReqError.
  *
- * Transfer command frame for FCP. When receiving response frame for FCP,
- * #HinawaFwFcp::responded signal is emitted.
+ * Transfer command frame for FCP. When receiving response frame for FCP, [signal@FwFcp::responded]
+ * signal is emitted.
  *
  * Since: 2.1.
  */
@@ -282,7 +277,7 @@ static void handle_responded_signal(HinawaFwFcp *self, const guint8 *frame, guin
 
 /**
  * hinawa_fw_fcp_avc_transaction:
- * @self: A #HinawaFwFcp.
+ * @self: A [class@FwFcp].
  * @cmd: (array length=cmd_size)(in): An array with elements for request byte data. The value of
  *	 this argument should point to the array and immutable.
  * @cmd_size: The size of array for request in byte unit.
@@ -293,13 +288,14 @@ static void handle_responded_signal(HinawaFwFcp *self, const guint8 *frame, guin
  * @resp_size: The size of array for response in byte unit. The value of this argument should point to
  *	       the numerical number and mutable.
  * @timeout_ms: The timeout to wait for response transaction since command transactions finishes.
- * @error: A #GError. Error can be generated with four domains; #hinawa_fw_node_error_quark(),
- *	       #hinawa_fw_req_error_quark(), and #hinawa_fw_fcp_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinawa.FwNodeError,
+ *	   Hinawa.FwReqError, and Hinawa.FwFcpError.
  *
- * Finish the pair of AV/C command and response transactions. The timeout_ms parameter is
- * used to wait for response transaction since the command transaction is initiated, ignoring
- * #HinawaFwFcp:timeout property of instance. The timeout is not expanded in the case that AV/C
- * INTERIM status is arrived, thus the caller should expand the timeout in advance for the case.
+ * Finish the pair of asynchronous transaction for AV/C command and response transactions. The
+ * timeout_ms parameter is used to wait for response transaction since the command transaction is
+ * initiated, ignoring [property@FwFcp:timeout] property of instance. The timeout is not expanded in
+ * the case that AV/C INTERIM status is arrived, thus the caller should expand the timeout in
+ * advance for the case.
  *
  * Since: 2.1.
  */
@@ -369,28 +365,26 @@ end:
 
 /**
  * hinawa_fw_fcp_transaction:
- * @self: A #HinawaFwFcp.
- * @req_frame: (array length=req_frame_size)(in): An array with elements for
- *	       request byte data. The value of this argument should point to
- *	       the array and immutable.
+ * @self: A [class@FwFcp].
+ * @req_frame: (array length=req_frame_size)(in): An array with elements for request byte data. The
+ *	       value of this argument should point to the array and immutable.
  * @req_frame_size: The size of array for request in byte unit.
- * @resp_frame: (array length=resp_frame_size)(inout): An array with elements
- *		for response byte data. Callers should give it for buffer with
- *		enough space against the request since this library performs no
- *		reallocation. Due to the reason, the value of this argument
- *		should point to the pointer to the array and immutable. The
- *		content of array is mutable.
- * @resp_frame_size: The size of array for response in byte unit. The value of
- *		     this argument should point to the numerical number and
- *		     mutable.
- * @error: A #GError. Error can be generated with four domains; #hinawa_fw_node_error_quark(),
- *	       #hinawa_fw_req_error_quark(), and #hinawa_fw_fcp_error_quark().
+ * @resp_frame: (array length=resp_frame_size)(inout): An array with elements for response byte
+ *		data. Callers should give it for buffer with enough space against the request
+ *		since this library performs no reallocation. Due to the reason, the value of this
+ *		argument should point to the pointer to the array and immutable. The content of
+ *		array is mutable.
+ * @resp_frame_size: The size of array for response in byte unit. The value of this argument should
+ *		     point to the numerical number and mutable.
+ * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinawa.FwNodeError,
+ *	   Hinawa.FwReqError, and Hinawa.FwFcpError.
  *
- * Finish the pair of command and response transactions for FCP. The value of #HinawaFwFcp:timeout
- * property is used to wait for response transaction since the command transaction is initiated.
+ * Finish the pair of command and response transactions for FCP. The value of
+ * [property@FwFcp:timeout] property is used to wait for response transaction since the command
+ * transaction is initiated.
  *
  * Since: 1.4.
- * Deprecated: 2.1: Use #hinawa_fw_fcp_avc_transaction(), instead.
+ * Deprecated: 2.1: Use [method@FwFcp.avc_transaction], instead.
  */
 void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
 			       const guint8 *req_frame, gsize req_frame_size,
@@ -425,9 +419,9 @@ static HinawaFwRcode handle_requested2_signal(HinawaFwResp *resp, HinawaFwTcode 
 
 /**
  * hinawa_fw_fcp_bind:
- * @self: A #HinawaFwFcp.
- * @node: A #HinawaFwNode.
- * @error: A #GError. Error can be generated with domain of #hinawa_fw_resp_error_quark().
+ * @self: A [class@FwFcp].
+ * @node: A [class@FwNode].
+ * @error: A [struct@GLib.Error]. Error can be generated with domain of Hinawa.FwFcpError.
  *
  * Start to listen to FCP responses.
  *
@@ -455,7 +449,7 @@ void hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node, GError **error)
 
 /**
  * hinawa_fw_fcp_unbind:
- * @self: A #HinawaFwFcp.
+ * @self: A [class@FwFcp].
  *
  * Stop to listen to FCP responses.
  *

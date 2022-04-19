@@ -19,15 +19,12 @@ struct _HinawaFwFcpClass {
 
         /**
          * HinawaFwFcpClass::responded:
-         * @self: A #HinawaFwFcp.
+         * @self: A [class@FwFcp].
          * @frame: (array length=frame_size)(element-type guint8): The array with elements for byte
          *         data of response for Function Control Protocol.
          * @frame_size: The number of elements of the array.
          *
-         * When the unit transfers asynchronous packet as response for Echo Audio Fireworks
-         * protocol, and the process successfully reads the content of packet from ALSA
-         * Fireworks driver, the #HinawaFwFcpClass::responded signal handler is called with
-	 * parameters of the response.
+	 * Class closure for the [signal@FwFcp::responded] signal.
 	 *
 	 * Since: 2.1
          */
