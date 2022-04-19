@@ -19,11 +19,10 @@ struct _HinawaSndDiceClass {
 
 	/**
 	 * HinawaSndDiceClass::notified:
-	 * @self: A #HinawaSndDice
+	 * @self: A [class@SndDice]
 	 * @message: A notification message
 	 *
-	 * When Dice models transfer notification, the #HinawaSndDiceClass::notified handler is
-	 * called.
+	 * Class closure for the [signal@SndDice::notified].
 	 *
 	 * Since: 1.2
 	 */
