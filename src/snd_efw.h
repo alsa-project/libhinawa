@@ -19,8 +19,8 @@ struct _HinawaSndEfwClass {
 
 	/**
 	 * HinawaSndEfwClass::responded:
-	 * @self: A #HinawaSndEfw.
-	 * @status: One of #HinawaSndEfwStatus.
+	 * @self: A [class@SndEfw].
+	 * @status: One of [enum@SndEfwStatus].
 	 * @seqnum: The sequence number of response.
 	 * @category: The value of category field in the response.
 	 * @command: The value of command field in the response.
@@ -28,10 +28,7 @@ struct _HinawaSndEfwClass {
 	 *	   quadlet data of response for Echo Fireworks protocol.
 	 * @frame_size: The number of elements of the array.
 	 *
-	 * When the unit transfers asynchronous packet as response for Echo Audio Fireworks
-	 * protocol, and the process successfully reads the content of response from ALSA
-	 * Fireworks driver, the #HinawaSndEfwClass::responded signal handler is called with parameters
-	 * of the response.
+	 * Class closure for the [signal@SndEfw::responded] signal.
 	 *
 	 * Since: 2.1
 	 */
