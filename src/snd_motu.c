@@ -5,13 +5,11 @@
 #include <errno.h>
 
 /**
- * SECTION:snd_motu
- * @Title: HinawaSndMotu
- * @Short_description: A notification listener for Motu models
- * @include: snd_motu.h
+ * HinawaSndMotu:
+ * A notification listener for Motu models.
  *
- * A #HinawaSndMotu is an application of asynchronous notification defined by
- * Mark of the Unicorn (MOTU). This inherits #HinawaSndUnit.
+ * A [class@SndMotu] is an application of asynchronous notification defined by Mark of the Unicorn
+ * (MOTU).
  */
 
 typedef struct {
@@ -31,11 +29,10 @@ static void hinawa_snd_motu_class_init(HinawaSndMotuClass *klass)
 {
 	/**
 	 * HinawaSndMotu::notified:
-	 * @self: A #HinawaSndMotu
+	 * @self: A [class@SndMotu]
 	 * @message: A notification message
 	 *
-	 * When Motu models transfer notification, the #HinawaSndMotu::notified signal is
-	 * generated.
+	 * Emitted when Motu models transfer notification.
 	 *
 	 * Since: 0.8
 	 */
@@ -50,17 +47,16 @@ static void hinawa_snd_motu_class_init(HinawaSndMotuClass *klass)
 
 	/**
 	 * HinawaSndMotu::register-dsp-changed:
-	 * @self: A #HinawaSndMotu
+	 * @self: A [class@SndMotu]
 	 * @events: (element-type guint32)(array length=length): The array with element for
 	 *	    unsigned 32 bit encoded data.
 	 * @length: The length of events.
 	 *
-	 * When MOTU register DSP models transfer events by messages in the sequence of isochronous
-	 * packet, the #HinawaSndMotu::register-dsp-changed signal is emit.
-	 * The event consists of encoded data. The most significant byte is the type of message. The
-	 * next two bytes are identifier 0 and 1. The least significant byte is value. The meaning
-	 * of identifier 0, 1 and value is decided depending on the type. For detail, see
-	 * `sound/firewire/motu/motu-register-dsp-message-parser.c` in Linux kernel.
+	 * Emitted when MOTU register DSP models transfer events by messages in the sequence of
+	 * isochronous packet. The event consists of encoded data. The most significant byte is the
+	 * type of message. The next two bytes are identifier 0 and 1. The least significant byte
+	 * is value. The meaning of identifier 0, 1 and value is decided depending on the type.
+	 * For detail, see `sound/firewire/motu/motu-register-dsp-message-parser.c` in Linux kernel.
 	 *
 	 * Since: 2.4
 	 */
@@ -83,9 +79,9 @@ static void hinawa_snd_motu_init(HinawaSndMotu *self)
 /**
  * hinawa_snd_motu_new:
  *
- * Instantiate #HinawaSndMotu object and return the instance.
+ * Instantiate [class@SndMotu] object and return the instance.
  *
- * Returns: an instance of #HinawaSndMotu.
+ * Returns: an instance of [class@SndMotu].
  * Since: 1.3.
  */
 HinawaSndMotu *hinawa_snd_motu_new(void)
@@ -95,10 +91,10 @@ HinawaSndMotu *hinawa_snd_motu_new(void)
 
 /**
  * hinawa_snd_motu_open:
- * @self: A #HinawaSndUnit
+ * @self: A [class@SndMotu]
  * @path: A full path of a special file for ALSA hwdep character device
- * @error: A #GError. Error can be generated with three domains; #g_file_error_quark(),
- *	       #hinawa_fw_node_error_quark(), and #hinawa_snd_unit_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with three domains; GLib.FileError,
+ *	   Hinawa.FwNodeError, and Hinawa.SndUnitError.
  *
  * Open ALSA hwdep character device and check it for Motu devices.
  *
@@ -115,10 +111,10 @@ void hinawa_snd_motu_open(HinawaSndMotu *self, gchar *path, GError **error)
 
 /**
  * hinawa_snd_motu_read_register_dsp_parameter:
- * @self: A #HinawaSndMotu.
- * @param: (inout): A #HinawaSndMotuRegisterDspParameter.
- * @error: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
- *	       #hinawa_snd_unit_error_quark().
+ * @self: A [class@SndMotu].
+ * @param: (inout): A [struct@SndMotuRegisterDspParameter].
+ * @error: A [struct@GLib.Error]. Error can be generated with two domains; GLib.FileError and
+ *	   Hinawa.SndUnitError.
  *
  * Read parameter for register DSP models.
  *
@@ -143,11 +139,11 @@ void hinawa_snd_motu_read_register_dsp_parameter(HinawaSndMotu *self,
 
 /**
  * hinawa_snd_motu_read_register_dsp_meter:
- * @self: A #HinawaSndMotu
+ * @self: A [class@SndMotu]
  * @meter: (array fixed-size=48)(inout): The data of meter. Index 0 to 23 for inputs and index 24
  *	   to 47 for outputs.
- * @error: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
- *	       #hinawa_snd_unit_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with two domains; GLib.FileError and
+ *	   Hinawa.SndUnitError.
  *
  * Read data of meter information for register DSP models.
  *
@@ -170,10 +166,10 @@ void hinawa_snd_motu_read_register_dsp_meter(HinawaSndMotu *self, guint8 *const 
 
 /**
  * hinawa_snd_motu_read_command_dsp_meter:
- * @self: A #HinawaSndMotu
+ * @self: A [class@SndMotu]
  * @meter: (array fixed-size=400)(inout): The data for meter.
- * @error: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
- *	       #hinawa_snd_unit_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with two domains; GLib.FileError and
+ *	   Hinawa.SndUnitError.
  *
  * Read data of meter information for command DSP models.
  *
