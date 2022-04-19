@@ -15,18 +15,16 @@ struct _HinawaSndTscmClass {
 
 	/**
 	 * HinawaSndTscmClass::control:
-	 * @self: A #HinawaSndTscm
-	 * @index: the numerical index on image of status and control info.
+	 * @self: A [class@SndTscm]
+	 * @index: the numeric index on image of status and control info.
 	 * @before: the value of info before changed.
 	 * @after: the value of info after changed.
 	 *
-	 * When TASCAM FireWire unit transfer control message, the #HinawaSndTscmClass::control
-	 * handler is emitted.
+	 * Class closure for the [signal@SndTscm::control] signal.
 	 *
 	 * Since: 1.2
 	 */
-	void (*control)(HinawaSndTscm *self, guint index, guint before,
-			guint after);
+	void (*control)(HinawaSndTscm *self, guint index, guint before, guint after);
 };
 
 HinawaSndTscm *hinawa_snd_tscm_new(void);

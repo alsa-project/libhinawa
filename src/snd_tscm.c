@@ -5,13 +5,10 @@
 #include <errno.h>
 
 /**
- * SECTION:snd_tscm
- * @Title: HinawaSndTscm
- * @Short_description: A state reader for Tascam FireWire models
- * @include: snd_tscm.h
+ * HinawaSndTscm:
+ * A state reader for Tascam FireWire models
  *
- * A #HinawaSndTscm is an application of protocol defined by TASCAM. This
- * inherits #HinawaSndUnit.
+ * A [class@SndTscm] is an application of protocol defined by TASCAM.
  */
 
 typedef struct {
@@ -31,13 +28,13 @@ static void hinawa_snd_tscm_class_init(HinawaSndTscmClass *klass)
 {
 	/**
 	 * HinawaSndTscm::control:
-	 * @self: A #HinawaSndTscm
-	 * @index: the numerical index on image of status and control info.
+	 * @self: A [class@SndTscm]
+	 * @index: the numeric index on image of status and control info.
 	 * @before: the value of info before changed.
 	 * @after: the value of info after changed.
 	 *
-	 * When TASCAM FireWire unit transfer control message, the #HinawaSndTscm::control
-	 * signal is emitted.
+	 * Emitted when TASCAM FireWire unit transfer control message.
+	 * is emitted.
 	 *
 	 * Since: 1.1
 	 */
@@ -60,9 +57,9 @@ static void hinawa_snd_tscm_init(HinawaSndTscm *self)
 /**
  * hinawa_snd_tscm_new:
  *
- * Instantiate #HinawaSndTscm object and return the instance.
+ * Instantiate [class@SndTscm] object and return the instance.
  *
- * Returns: an instance of #HinawaSndTscm.
+ * Returns: an instance of [class@SndTscm].
  * Since: 1.3.
  */
 HinawaSndTscm *hinawa_snd_tscm_new(void)
@@ -72,12 +69,12 @@ HinawaSndTscm *hinawa_snd_tscm_new(void)
 
 /**
  * hinawa_snd_tscm_open:
- * @self: A #HinawaSndUnit
+ * @self: A [class@SndTscm]
  * @path: A full path of a special file for ALSA hwdep character device
- * @error: A #GError. Error can be generated with three domains; #g_file_error_quark(),
- *	       #hinawa_fw_node_error_quark(), and #hinawa_snd_unit_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with three domains; GLib.FileError,
+ *	   Hinawa.FwNodeError, and Hinawa.SndUnitError.
  *
- * Open ALSA hwdep character device and check it for Dg00x  devices.
+ * Open ALSA hwdep character device and check it for Tascam devices.
  *
  * Since: 1.1
  */
@@ -92,8 +89,8 @@ void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **error)
 
 /**
  * hinawa_snd_tscm_get_state:
- * @self: A #HinawaSndTscm
- * @error: A #GError. Error can be generated with domain of #hinawa_snd_unit_error_quark().
+ * @self: A [class@SndTscm]
+ * @error: A [struct@GLib.Error]. Error can be generated with domain of Hinawa.SndUnitError.
  *
  * Get the latest states of target device.
  *
