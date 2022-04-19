@@ -54,8 +54,8 @@ static const char *const rcode_labels[] = {
 	[RCODE_NO_ACK]		= "no ack",
 };
 
-#define generate_local_error(exception, code)						\
-	g_set_error_literal(exception, HINAWA_FW_REQ_ERROR, code, rcode_labels[code])
+#define generate_local_error(error, code)						\
+	g_set_error_literal(error, HINAWA_FW_REQ_ERROR, code, rcode_labels[code])
 
 static void fw_req_get_property(GObject *obj, guint id, GValue *val,
 				GParamSpec *spec)
@@ -178,7 +178,7 @@ HinawaFwReq *hinawa_fw_req_new(void)
  * @frame_size: The size of array in byte unit. The value of this argument
  *		should point to the numerical number and mutable for read and
  *		lock transaction.
- * @exception: A #GError. Error can be generated with two domains; #hinawa_fw_node_error_quark(),
+ * @error: A #GError. Error can be generated with two domains; #hinawa_fw_node_error_quark(),
  *	       and #hinawa_fw_req_error_quark().
  *
  * Execute request subaction of transactions to the given node according to given code. When the
@@ -190,7 +190,7 @@ HinawaFwReq *hinawa_fw_req_new(void)
 void hinawa_fw_req_transaction_async(HinawaFwReq *self, HinawaFwNode *node,
 				     HinawaFwTcode tcode, guint64 addr, gsize length,
 				     guint8 *const *frame, gsize *frame_size,
-				     GError **exception)
+				     GError **error)
 {
 	struct fw_cdev_send_request req = {0};
 	guint64 generation;
@@ -200,7 +200,7 @@ void hinawa_fw_req_transaction_async(HinawaFwReq *self, HinawaFwNode *node,
 	g_return_if_fail(length > 0);
 	g_return_if_fail(frame != NULL);
 	g_return_if_fail(frame_size != NULL && *frame_size > 0);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	// Should be aligned to quadlet.
 	if (tcode == HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST ||
@@ -248,9 +248,9 @@ void hinawa_fw_req_transaction_async(HinawaFwReq *self, HinawaFwNode *node,
 		req.data = (guint64)(*frame);
 
 	// Send this transaction.
-	err = hinawa_fw_node_ioctl(node, FW_CDEV_IOC_SEND_REQUEST, &req, exception);
-	if (*exception == NULL && err > 0)
-		generate_local_error(exception, HINAWA_FW_RCODE_SEND_ERROR);
+	err = hinawa_fw_node_ioctl(node, FW_CDEV_IOC_SEND_REQUEST, &req, error);
+	if (*error == NULL && err > 0)
+		generate_local_error(error, HINAWA_FW_RCODE_SEND_ERROR);
 }
 
 struct waiter {
@@ -297,7 +297,7 @@ static void handle_responded_signal(HinawaFwReq *self, HinawaFwRcode rcode, cons
  *		lock transaction.
  * @timeout_ms: The timeout to wait for response subaction of the transaction since request
  *		subaction is initiated, in milliseconds.
- * @exception: A #GError. Error can be generated with two domains; #hinawa_fw_node_error_quark(),
+ * @error: A #GError. Error can be generated with two domains; #hinawa_fw_node_error_quark(),
  *	       and #hinawa_fw_req_error_quark().
  *
  * Execute request subaction of transaction to the given node according to given code, then wait
@@ -309,7 +309,7 @@ static void handle_responded_signal(HinawaFwReq *self, HinawaFwRcode rcode, cons
 void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
 			       HinawaFwTcode tcode, guint64 addr, gsize length,
 			       guint8 *const *frame, gsize *frame_size, guint timeout_ms,
-			       GError **exception)
+			       GError **error)
 {
 	gulong handler_id;
 	struct waiter w;
@@ -331,8 +331,8 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
 
 	g_object_ref(node);
 	hinawa_fw_req_transaction_async(self, node, tcode, addr, length, frame, frame_size,
-					exception);
-	if (*exception != NULL) {
+					error);
+	if (*error != NULL) {
 		g_signal_handler_disconnect(self, handler_id);
 		g_object_unref(node);
 		return;
@@ -353,7 +353,7 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
 	g_object_unref(node);
 
 	if (w.rcode == G_MAXUINT) {
-		generate_local_error(exception, HINAWA_FW_RCODE_CANCELLED);
+		generate_local_error(error, HINAWA_FW_RCODE_CANCELLED);
 		return;
 	}
 
@@ -375,7 +375,7 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
 			break;
 		}
 
-		generate_local_error(exception, w.rcode);
+		generate_local_error(error, w.rcode);
 		return;
 	}
 
@@ -398,7 +398,7 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
  * @frame_size: The size of array in byte unit. The value of this argument
  *		should point to the numerical number and mutable for read and
  *		lock transaction.
- * @exception: A #GError. Error can be generated with two domains; #hinawa_fw_node_error_quark(),
+ * @error: A #GError. Error can be generated with two domains; #hinawa_fw_node_error_quark(),
  *	       and #hinawa_fw_req_error_quark().
  *
  * Execute request subaction of transaction to the given node according to given code, then wait
@@ -410,7 +410,7 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
 void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 			       HinawaFwTcode tcode, guint64 addr, gsize length,
 			       guint8 *const *frame, gsize *frame_size,
-			       GError **exception)
+			       GError **error)
 {
 	HinawaFwReqPrivate *priv;
 
@@ -418,7 +418,7 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 	priv = hinawa_fw_req_get_instance_private(self);
 
 	hinawa_fw_req_transaction_sync(self, node, tcode, addr, length, frame, frame_size,
-				       priv->timeout, exception);
+				       priv->timeout, error);
 }
 
 // NOTE: For HinawaFwNode, internal.
