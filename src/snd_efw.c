@@ -48,8 +48,8 @@ static const char *const efw_status_names[] = {
 	[HINAWA_SND_EFW_STATUS_LARGE_RESP]	= "The size of response is larger than expected",
 };
 
-#define generate_local_error(exception, code)							\
-	g_set_error_literal(exception, HINAWA_SND_EFW_ERROR, code, efw_status_names[code])
+#define generate_local_error(error, code)						\
+	g_set_error_literal(error, HINAWA_SND_EFW_ERROR, code, efw_status_names[code])
 
 typedef struct {
 	guint seqnum;
@@ -116,25 +116,25 @@ HinawaSndEfw *hinawa_snd_efw_new(void)
  * hinawa_snd_efw_open:
  * @self: A #HinawaSndUnit
  * @path: A full path of a special file for ALSA hwdep character device
- * @exception: A #GError. Error can be generated with three domains; #g_file_error_quark(),
+ * @error: A #GError. Error can be generated with three domains; #g_file_error_quark(),
  *	       #hinawa_fw_node_error_quark(), and #hinawa_snd_unit_error_quark().
  *
  * Open ALSA hwdep character device and check it for Fireworks devices.
  *
  * Since: 0.3
  */
-void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
+void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **error)
 {
 	HinawaSndEfwPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_SND_EFW(self));
 	g_return_if_fail(path != NULL && strlen(path) > 0);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinawa_snd_efw_get_instance_private(self);
 
-	hinawa_snd_unit_open(&self->parent_instance, path, exception);
-	if (*exception != NULL)
+	hinawa_snd_unit_open(&self->parent_instance, path, error);
+	if (*error != NULL)
 		return;
 
 	priv = hinawa_snd_efw_get_instance_private(self);
@@ -151,7 +151,7 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
  *	  arguments for command.
  * @arg_count: The number of quadlets in the args array.
  * @resp_seqnum: (out): The sequence number for response transaction;
- * @exception: A #GError. Error can be generated with domain of #hinawa_snd_unit_error_quark().
+ * @error: A #GError. Error can be generated with domain of #hinawa_snd_unit_error_quark().
  *
  * Transfer asynchronous transaction for command frame of Echo Fireworks protocol. When receiving
  * asynchronous transaction for response frame, #HinawaSndEfw::responded GObject signal is emitted.
@@ -160,7 +160,7 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception)
  */
 void hinawa_snd_efw_transaction_async(HinawaSndEfw *self, guint category, guint command,
 				      const guint32 *args, gsize arg_count, guint32 *resp_seqnum,
-				      GError **exception)
+				      GError **error)
 {
 	HinawaSndEfwPrivate *priv;
 	struct snd_efw_transaction *frame;
@@ -170,7 +170,7 @@ void hinawa_snd_efw_transaction_async(HinawaSndEfw *self, guint category, guint 
 	g_return_if_fail(HINAWA_IS_SND_EFW(self));
 	g_return_if_fail(sizeof(*args) * arg_count + sizeof(*frame) < MAXIMUM_FRAME_BYTES);
 	g_return_if_fail(resp_seqnum != NULL);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinawa_snd_efw_get_instance_private(self);
 
@@ -200,7 +200,7 @@ void hinawa_snd_efw_transaction_async(HinawaSndEfw *self, guint category, guint 
 	g_mutex_unlock(&priv->lock);
 
 	// Send this request frame.
-	hinawa_snd_unit_write(&self->parent_instance, frame, quads * sizeof(__be32), exception);
+	hinawa_snd_unit_write(&self->parent_instance, frame, quads * sizeof(__be32), error);
 
 	g_free(frame);
 }
@@ -258,7 +258,7 @@ static void handle_responded_signal(HinawaSndEfw *self, HinawaSndEfwStatus statu
  * @param_count: The number of quadlets in the params array.
  * @timeout_ms: The timeout to wait for response of the transaction since request is transferred in
  *		milliseconds.
- * @exception: A #GError. Error can be generated with three domains; #hinawa_snd_unit_error_quark(),
+ * @error: A #GError. Error can be generated with three domains; #hinawa_snd_unit_error_quark(),
  *	       and #hinawa_snd_efw_error_quark().
  *
  * Transfer asynchronous transaction for command frame of Echo Fireworks protocol, then wait
@@ -269,7 +269,7 @@ static void handle_responded_signal(HinawaSndEfw *self, HinawaSndEfwStatus statu
 void hinawa_snd_efw_transaction_sync(HinawaSndEfw *self, guint category, guint command,
 				     const guint32 *args, gsize arg_count,
 				     guint32 *const *params, gsize *param_count,
-				     guint timeout_ms, GError **exception)
+				     guint timeout_ms, GError **error)
 {
 	gulong handler_id;
 	struct waiter w;
@@ -277,7 +277,7 @@ void hinawa_snd_efw_transaction_sync(HinawaSndEfw *self, guint category, guint c
 
 	g_return_if_fail(HINAWA_IS_SND_EFW(self));
 	g_return_if_fail(param_count != NULL);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	// This predicates against suprious wakeup.
 	w.status = 0xffffffff;
@@ -297,8 +297,8 @@ void hinawa_snd_efw_transaction_sync(HinawaSndEfw *self, guint category, guint c
 	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
 
 	hinawa_snd_efw_transaction_async(self, category, command, args, arg_count, &w.seqnum,
-					 exception);
-	if (*exception != NULL) {
+					 error);
+	if (*error != NULL) {
 		g_signal_handler_disconnect(self, handler_id);
 		goto end;
 	}
@@ -313,11 +313,11 @@ void hinawa_snd_efw_transaction_sync(HinawaSndEfw *self, guint category, guint c
 	g_mutex_unlock(&w.mutex);
 
 	if (w.status == 0xffffffff)
-		generate_local_error(exception, HINAWA_SND_EFW_STATUS_TIMEOUT);
+		generate_local_error(error, HINAWA_SND_EFW_STATUS_TIMEOUT);
 	else if (w.status != HINAWA_SND_EFW_STATUS_OK)
-		generate_local_error(exception, w.status);
+		generate_local_error(error, w.status);
 	else if (w.param_count > *param_count)
-		generate_local_error(exception, HINAWA_SND_EFW_STATUS_LARGE_RESP);
+		generate_local_error(error, HINAWA_SND_EFW_STATUS_LARGE_RESP);
 	else
 		*param_count = w.param_count;
 end:
@@ -340,7 +340,7 @@ end:
  *	    argument should point to the pointer to the array and immutable.
  *	    The content of array is mutable for parameters in response.
  * @param_count: The number of quadlets in the params array.
- * @exception: A #GError. Error can be generated with three domains; #hinawa_snd_unit_error_quark(),
+ * @error: A #GError. Error can be generated with three domains; #hinawa_snd_unit_error_quark(),
  *	       and #hinawa_snd_efw_error_quark().
  *
  * Transfer request of transaction according to Echo Fireworks Transaction protocol, then wait for
@@ -352,10 +352,10 @@ void hinawa_snd_efw_transaction(HinawaSndEfw *self,
 				guint category, guint command,
 				const guint32 *args, gsize arg_count,
 				guint32 *const *params, gsize *param_count,
-				GError **exception)
+				GError **error)
 {
 	hinawa_snd_efw_transaction_sync(self, category, command, args, arg_count,
-					params, param_count, 200, exception);
+					params, param_count, 200, error);
 }
 
 void hinawa_snd_efw_handle_response(HinawaSndEfw *self,

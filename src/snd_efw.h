@@ -41,22 +41,22 @@ struct _HinawaSndEfwClass {
 
 HinawaSndEfw *hinawa_snd_efw_new(void);
 
-void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **exception);
+void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **error);
 
 void hinawa_snd_efw_transaction_async(HinawaSndEfw *self, guint category, guint command,
 				      const guint32 *args, gsize arg_count, guint32 *resp_seqnum,
-				      GError **exception);
+				      GError **error);
 
 void hinawa_snd_efw_transaction(HinawaSndEfw *self,
 				guint category, guint command,
 				const guint32 *args, gsize arg_count,
 				guint32 *const *params, gsize *param_count,
-				GError **exception);
+				GError **error);
 
 void hinawa_snd_efw_transaction_sync(HinawaSndEfw *self, guint category, guint command,
 				     const guint32 *args, gsize arg_count,
 				     guint32 *const *params, gsize *param_count,
-				     guint timeout_ms, GError **exception);
+				     guint timeout_ms, GError **error);
 
 G_END_DECLS
 
