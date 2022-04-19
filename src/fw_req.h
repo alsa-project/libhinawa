@@ -40,17 +40,17 @@ HinawaFwReq *hinawa_fw_req_new(void);
 void hinawa_fw_req_transaction_async(HinawaFwReq *self, HinawaFwNode *node,
 				     HinawaFwTcode tcode, guint64 addr, gsize length,
 				     guint8 *const *frame, gsize *frame_size,
-				     GError **exception);
+				     GError **error);
 
 void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
 			       HinawaFwTcode tcode, guint64 addr, gsize length,
 			       guint8 *const *frame, gsize *frame_size, guint timeout_ms,
-			       GError **exception);
+			       GError **error);
 
 void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 			       HinawaFwTcode tcode, guint64 addr, gsize length,
 			       guint8 *const *frame, gsize *frame_size,
-			       GError **exception);
+			       GError **error);
 
 G_END_DECLS
 
