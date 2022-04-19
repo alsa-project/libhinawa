@@ -19,11 +19,9 @@ struct _HinawaFwNodeClass {
 
 	/**
 	 * HinawaFwNodeClass::bus_update:
-	 * @self: A #HinawaFwNode.
+	 * @self: A [class@FwNode].
 	 *
-	 * When IEEE 1394 bus is updated, the #HinawaFwNodeClass::bus-update handler is called.
-	 * The handlers can read current generation in the bus via 'generation'
-	 * property.
+	 * Class closure for the [signal@FwNode::bus-update].
 	 *
 	 * Since: 1.4.
 	 */
@@ -31,10 +29,9 @@ struct _HinawaFwNodeClass {
 
 	/**
 	 * HinawaFwNodeClass::disconnected:
-	 * @self: A #HinawaFwNode
+	 * @self: A [class@FwNode]
 	 *
-	 * When phicical FireWire devices are disconnected from IEEE 1394 bus,
-	 * the #HinawaFwNodeClass::disconnected handler is called.
+	 * Class closure for the [signal@FwNode::disconnected].
 	 *
 	 * Since: 1.4.
 	 */

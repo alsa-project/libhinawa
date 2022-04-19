@@ -9,14 +9,12 @@
 #include <errno.h>
 
 /**
- * SECTION:fw_node
- * @Title: HinawaFwNode
- * @Short_description: An event listener for FireWire node
- * @include: fw_node.h
+ * HinawaFwNode:
+ * An event listener for FireWire node
  *
- * A #HinawaFwNode is an event listener for a specified node on IEEE 1394 bus.
- * This class is an application of Linux FireWire subsystem.
- * All of operations utilize ioctl(2) with subsystem specific request commands.
+ * A [class@FwNode] is an event listener for a specified node on IEEE 1394 bus. This class is an
+ * application of Linux FireWire subsystem. All of operations utilize ioctl(2) with subsystem
+ * specific request commands.
  *
  * Since: 1.4.
  */
@@ -43,11 +41,11 @@ G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwNode, hinawa_fw_node, G_TYPE_OBJECT)
 /**
  * hinawa_fw_node_error_quark:
  *
- * Return the GQuark for error domain of GError which has code in #HinawaFwNodeError.
+ * Return the [alias@GLib.Quark] for [struct@GLib.Error] with Hinawa.FwNodeError domain.
  *
  * Since: 2.1
  *
- * Returns: A #GQuark.
+ * Returns: A [alias@GLib.Quark].
  */
 G_DEFINE_QUARK(hinawa-fw-node-error-quark, hinawa_fw_node_error)
 
@@ -228,11 +226,10 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 
 	/**
 	 * HinawaFwNode::bus-update:
-	 * @self: A #HinawaFwNode.
+	 * @self: A [class@FwNode].
 	 *
-	 * When IEEE 1394 bus is updated, the #HinawaFwNode::bus-update signal is generated.
-	 * Handlers can read current generation in the bus via 'generation'
-	 * property.
+	 * Emitted when IEEE 1394 bus is updated. Handlers can read current generation in the bus
+	 * via [property@FwNode:generation] property.
 	 *
 	 * Since: 1.4
 	 */
@@ -247,10 +244,10 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 
 	/**
 	 * HinawaFwNode::disconnected:
-	 * @self: A #HinawaFwNode.
+	 * @self: A [class@FwNode].
 	 *
-	 * When phicical FireWire devices are disconnected from IEEE 1394 bus,
-	 * the #HinawaFwNode::disconnected signal is generated.
+	 * Emitted when the node is not available anymore due to removal from IEEE 1394 bus. It's
+	 * preferable to call [method@GObject.Object.unref] immediately to release file descriptor.
 	 *
 	 * Since: 1.4
 	 */
@@ -276,9 +273,9 @@ static void hinawa_fw_node_init(HinawaFwNode *self)
 /**
  * hinawa_fw_node_new:
  *
- * Instantiate #HinawaFwNode object and return the instance.
+ * Instantiate [class@FwNode] object and return the instance.
  *
- * Returns: an instance of #HinawaFwNode.
+ * Returns: an instance of [class@FwNode].
  * Since: 1.4.
  */
 HinawaFwNode *hinawa_fw_node_new(void)
@@ -316,10 +313,10 @@ static int update_info(HinawaFwNode *self)
 
 /**
  * hinawa_fw_node_open:
- * @self: A #HinawaFwNode
+ * @self: A [class@FwNode]
  * @path: A path to Linux FireWire character device
- * @error: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
- *	       #hinawa_fw_node_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with two domains; GLib.Error and
+ *	   Hinawa.FwNodeError.
  *
  * Open Linux FireWire character device to operate node on IEEE 1394 bus.
  *
@@ -371,11 +368,10 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
 
 /**
  * hinawa_fw_node_get_config_rom:
- * @self: A #HinawaFwNode
- * @image: (array length=length)(out)(transfer none): The content of
- *	   configuration ROM.
+ * @self: A [class@FwNode]
+ * @image: (array length=length)(out)(transfer none): The content of configuration ROM.
  * @length: (out): The number of bytes consists of the configuration rom.
- * @error: A #GError.
+ * @error: A [struct@GLib.Error].
  *
  * Get cached content of configuration ROM aligned to big-endian.
  *
@@ -493,13 +489,12 @@ static void finalize_src(GSource *gsrc)
 
 /**
  * hinawa_fw_node_create_source:
- * @self: A #HinawaFwNode.
- * @gsrc: (out): A #GSource.
- * @error: A #GError. Error can be generated with domain of #hinawa_fw_node_error_quark()
- *	       and code of #HinawaFwNodeError.
+ * @self: A [class@FwNode].
+ * @gsrc: (out): A [struct@GLib.Source].
+ * @error: A [struct@GLib.Error]. Error can be generated with domain of Hinawa.FwNodeError.
  *
- * Create Gsource for GMainContext to dispatch events for the node on IEEE 1394
- * bus.
+ * Create [struct@GLib.Source] for [struct@GLib.MainContext] to dispatch events for the node on
+ * IEEE 1394 bus.
  *
  * Since: 1.4.
  */
