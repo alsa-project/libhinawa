@@ -68,9 +68,9 @@ HinawaFwResp *hinawa_fw_resp_new(void);
 
 void hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *node,
 					  guint64 region_start, guint64 region_end, guint width,
-					  GError **exception);
+					  GError **error);
 void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode*node,
-			    guint64 addr, guint width, GError **exception);
+			    guint64 addr, guint width, GError **error);
 void hinawa_fw_resp_release(HinawaFwResp *self);
 
 void hinawa_fw_resp_get_req_frame(HinawaFwResp *self, const guint8 **frame,
