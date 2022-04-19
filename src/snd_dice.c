@@ -5,23 +5,20 @@
 #include <errno.h>
 
 /**
- * SECTION:snd_dice
- * @Title: HinawaSndDice
- * @Short_description: A notification listener for Dice models
- * @include: snd_dice.h
+ * HinawaSndDice:
+ * A notification listener for Dice models.
  *
- * A #HinawaSndDice listen to Dice notification and generates signal when
- * received. This inherits #HinawaSndUnit.
+ * A [class@SndDice] listen to Dice notification and generates signal when received.
  */
 
 /**
  * hinawa_snd_dice_error_quark:
  *
- * Return the GQuark for error domain of GError which has code in #HinawaSndDiceError.
+ * Return the [alias@GLib.Quark] for [struct@GLib.Error] which has code in Hinawa.SndDiceError.
  *
  * Since: 2.1
  *
- * Returns: A #GQuark.
+ * Returns: A [alias@GLib.Quark].
  */
 G_DEFINE_QUARK(hinawa-snd-dice-error-quark, hinawa_snd_dice_error)
 
@@ -71,11 +68,10 @@ static void hinawa_snd_dice_class_init(HinawaSndDiceClass *klass)
 
 	/**
 	 * HinawaSndDice::notified:
-	 * @self: A #HinawaSndDice
+	 * @self: A [class@SndDice]
 	 * @message: A notification message
 	 *
-	 * When Dice models transfer notification, the #HinawaSndDice::notified signal is
-	 * generated.
+	 * Emitted when Dice unit transfers notification.
 	 *
 	 * Since: 0.3
 	 */
@@ -97,9 +93,9 @@ static void hinawa_snd_dice_init(HinawaSndDice *self)
 /**
  * hinawa_snd_dice_new:
  *
- * Instantiate #HinawaSndDice object and return the instance.
+ * Instantiate [class@SndDice] object and return the instance.
  *
- * Returns: an instance of #HinawaSndDice.
+ * Returns: an instance of [class@SndDice].
  * Since: 1.3.
  */
 HinawaSndDice *hinawa_snd_dice_new(void)
@@ -109,12 +105,12 @@ HinawaSndDice *hinawa_snd_dice_new(void)
 
 /**
  * hinawa_snd_dice_open:
- * @self: A #HinawaSndUnit
+ * @self: A [class@SndDice]
  * @path: A full path of a special file for ALSA hwdep character device
- * @error: A #GError. Error can be generated with three domains; #g_file_error_quark(),
- *	       #hinawa_fw_node_error_quark(), and #hinawa_snd_unit_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with three domains; GLib.FileError,
+ *	   Hinawa.FwNodeError, and Hinawa.SndUnitError.
  *
- * Open ALSA hwdep character device and check it for Dice  devices.
+ * Open ALSA hwdep character device and check it for Dice devices.
  *
  * Since: 0.4
  */
@@ -140,17 +136,15 @@ void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **error)
 
 /**
  * hinawa_snd_dice_transaction:
- * @self: A #HinawaSndDice
+ * @self: A [class@SndDice]
  * @addr: A destination address of target device
- * @frame: (array length=frame_count)(in): An array with elements for quadlet
- *	   data to transmit.
+ * @frame: (array length=frame_count)(in): An array with elements for quadlet data to transmit.
  * @frame_count: The number of quadlets in the frame.
  * @bit_flag: bit flag to wait
- * @error: A #GError. Error can be generated with three domains; #hinawa_fw_node_error_quark(),
- *	       #hinawa_fw_req_error_quark(), and #hinawa_snd_dice_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with three domains; Hinawa.FwNodeError,
+ *	   Hinawa.FwReqError, and Hinawa.SndDiceError.
  *
- * Execute write transactions to the given address, then wait and check
- * notification.
+ * Execute write transactions to the given address, then wait and check notification.
  *
  * Since: 1.4.
  */
