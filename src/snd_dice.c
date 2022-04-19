@@ -29,8 +29,8 @@ const char *const err_msgs[] = {
 	[HINAWA_SND_DICE_ERROR_TIMEOUT] = "The transaction is canceled due to response timeout",
 };
 
-#define generate_local_error(exception, code)						\
-	g_set_error_literal(exception, HINAWA_SND_DICE_ERROR, code, err_msgs[code])
+#define generate_local_error(error, code)					\
+	g_set_error_literal(error, HINAWA_SND_DICE_ERROR, code, err_msgs[code])
 
 struct notification_waiter {
 	guint32 bit_flag;
@@ -111,25 +111,25 @@ HinawaSndDice *hinawa_snd_dice_new(void)
  * hinawa_snd_dice_open:
  * @self: A #HinawaSndUnit
  * @path: A full path of a special file for ALSA hwdep character device
- * @exception: A #GError. Error can be generated with three domains; #g_file_error_quark(),
+ * @error: A #GError. Error can be generated with three domains; #g_file_error_quark(),
  *	       #hinawa_fw_node_error_quark(), and #hinawa_snd_unit_error_quark().
  *
  * Open ALSA hwdep character device and check it for Dice  devices.
  *
  * Since: 0.4
  */
-void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
+void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **error)
 {
 	HinawaSndDicePrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_SND_DICE(self));
 	g_return_if_fail(path != NULL && strlen(path) > 0);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinawa_snd_dice_get_instance_private(self);
 
-	hinawa_snd_unit_open(&self->parent_instance, path, exception);
-	if (*exception != NULL)
+	hinawa_snd_unit_open(&self->parent_instance, path, error);
+	if (*error != NULL)
 		return;
 
 	priv->req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
@@ -146,7 +146,7 @@ void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
  *	   data to transmit.
  * @frame_count: The number of quadlets in the frame.
  * @bit_flag: bit flag to wait
- * @exception: A #GError. Error can be generated with three domains; #hinawa_fw_node_error_quark(),
+ * @error: A #GError. Error can be generated with three domains; #hinawa_fw_node_error_quark(),
  *	       #hinawa_fw_req_error_quark(), and #hinawa_snd_dice_error_quark().
  *
  * Execute write transactions to the given address, then wait and check
@@ -156,7 +156,7 @@ void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception)
  */
 void hinawa_snd_dice_transaction(HinawaSndDice *self, guint64 addr,
 			         const guint32 *frame, gsize frame_count,
-				 guint32 bit_flag, GError **exception)
+				 guint32 bit_flag, GError **error)
 {
 	HinawaSndDicePrivate *priv;
 	HinawaFwTcode tcode;
@@ -171,7 +171,7 @@ void hinawa_snd_dice_transaction(HinawaSndDice *self, guint64 addr,
 	g_return_if_fail(HINAWA_IS_SND_DICE(self));
 	g_return_if_fail(frame != NULL);
 	g_return_if_fail(frame_count > 0);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinawa_snd_dice_get_instance_private(self);
 
@@ -203,9 +203,9 @@ void hinawa_snd_dice_transaction(HinawaSndDice *self, guint64 addr,
 	// default timeout of HinawaFwReq.
 	hinawa_snd_unit_get_node(&self->parent_instance, &node);
 	hinawa_fw_req_transaction(priv->req, node, tcode, addr, length,
-				  &req_frame, &length, exception);
+				  &req_frame, &length, error);
 	g_free(req_frame);
-	if (*exception)
+	if (*error)
 		goto end;
 
 	while (!waiter.awakened) {
@@ -213,7 +213,7 @@ void hinawa_snd_dice_transaction(HinawaSndDice *self, guint64 addr,
 			break;
 	}
 	if (!waiter.awakened)
-		generate_local_error(exception, HINAWA_SND_DICE_ERROR_TIMEOUT);
+		generate_local_error(error, HINAWA_SND_DICE_ERROR_TIMEOUT);
 end:
 	priv->waiters = g_list_remove(priv->waiters, (gpointer *)&waiter);
 

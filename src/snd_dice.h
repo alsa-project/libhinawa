@@ -32,11 +32,11 @@ struct _HinawaSndDiceClass {
 
 HinawaSndDice *hinawa_snd_dice_new(void);
 
-void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **exception);
+void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **error);
 
 void hinawa_snd_dice_transaction(HinawaSndDice *self, guint64 addr,
 			         const guint32 *frame, gsize frame_count,
-				 guint32 bit_flag, GError **exception);
+				 guint32 bit_flag, GError **error);
 
 G_END_DECLS
 
