@@ -15,11 +15,10 @@ struct _HinawaSndMotuClass {
 
 	/**
 	 * HinawaSndMotuClass::notified:
-	 * @self: A #HinawaSndMotu
+	 * @self: A [class@SndMotu]
 	 * @message: A notification message
 	 *
-	 * When Motu models transfer notification, the #HinawaSndMotuClass::notified handler is
-	 * called.
+	 * Class closure for the [signal@SndMotu::notified] signal.
 	 *
 	 * Since: 1.2
 	 */
@@ -27,17 +26,12 @@ struct _HinawaSndMotuClass {
 
 	/**
 	 * HinawaSndMotuClass::register_dsp_changed:
-	 * @self: A #HinawaSndMotu
+	 * @self: A [class@SndMotu]
 	 * @events: (element-type guint32)(array length=length): The array with element for
 	 *	    unsigned 32 bit encoded data.
 	 * @length: The length of events.
 	 *
-	 * When MOTU register DSP models transfer events by messages in the sequence of isochronous
-	 * packet, the #HinawaSndMotuClass::register_dsp_changed handle is called.
-	 * The event consists of encoded data. The most significant byte is the type of message. The
-	 * next two bytes are identifier 0 and 1. The least significant byte is value. The meaning
-	 * of identifier 0, 1 and value is decided depending on the type. For detail, see
-	 * `sound/firewire/motu/motu-register-dsp-message-parser.c` in Linux kernel.
+	 * Class closure for the [signal@SndMotu::register-dsp-changed] signal.
 	 *
 	 * Since: 2.4
 	 */
