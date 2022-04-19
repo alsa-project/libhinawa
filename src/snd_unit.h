@@ -19,11 +19,10 @@ struct _HinawaSndUnitClass {
 
 	/**
 	 * HinawaSndUnitClass::lock_status:
-	 * @self: A #HinawaSndUnit
+	 * @self: A [class@SndUnit]
 	 * @state: %TRUE when locked, %FALSE when unlocked.
 	 *
-	 * When ALSA kernel-streaming status is changed, this #HinawaSndUnitClass::lock_status
-	 * handler is called.
+	 * Class closure for the [signal@SndUnit::lock-status],
 	 *
 	 * Since: 1.2
 	 */
@@ -31,12 +30,9 @@ struct _HinawaSndUnitClass {
 
 	/**
 	 * HinawaSndUnitClass::disconnected:
-	 * @self: A #HinawaSndUnit
+	 * @self: A [class@SndUnit]
 	 *
-	 * When the sound card is not available anymore due to unbinding driver
-	 * or hot unplugging, this signal is emit. The owner of this object
-	 * should call g_object_free() as quickly as possible to release ALSA
-	 * hwdep character device.
+	 * Class closure for the [signal@SndUnit::disconnected].
 	 *
 	 * Since: 2.0
 	 */

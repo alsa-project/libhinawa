@@ -13,23 +13,21 @@
 #include <sys/mman.h>
 
 /**
- * SECTION:snd_unit
- * @Title: HinawaSndUnit
- * @Short_description: An event listener for ALSA FireWire sound devices
- * @include: snd_unit.h
+ * HinawaSndUnit:
+ * An event listener for ALSA FireWire sound devices.
  *
- * This class is an application of ALSA FireWire stack. Any functionality which
- * ALSA drivers in the stack can be available.
+ * This class is an application of ALSA FireWire stack. Any functionality which ALSA drivers in the
+ * stack can be available.
  */
 
 /**
  * hinawa_snd_unit_error_quark:
  *
- * Return the GQuark for error domain of GError which has code in #HinawaSndUnitError.
+ * Return the [alias@GLib.Quark] for [struct@GLib.Error] which has code in Hinawa.SndUnitError.
  *
  * Since: 2.1
  *
- * Returns: A #GQuark.
+ * Returns: A [alias@GLib.Quark].
  */
 G_DEFINE_QUARK(hinawa-snd-unit-error-quark, hinawa_snd_unit_error)
 
@@ -201,11 +199,11 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 
 	/**
 	 * HinawaSndUnit::lock-status:
-	 * @self: A #HinawaSndUnit
+	 * @self: A [class@SndUnit]
 	 * @state: %TRUE when locked, %FALSE when unlocked.
 	 *
-	 * When ALSA kernel-streaming status is changed, this #HinawaSndUnit::lock-status
-	 * signal is generated.
+	 * Emitted when corresponding ALSA driver changes status of lock by starting/stopping
+	 * packet streaming requested by ALSA PCM/Rawmidi applications.
 	 *
 	 * Since: 0.3
 	 */
@@ -220,12 +218,11 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 
 	/**
 	 * HinawaSndUnit::disconnected:
-	 * @self: A #HinawaSndUnit
+	 * @self: A [class@SndUnit]
 	 *
-	 * When the sound card is not available anymore due to unbinding driver
-	 * or hot unplugging, this signal is emit. The owner of this object
-	 * should call g_object_free() as quickly as possible to release ALSA
-	 * hwdep character device.
+	 * Emitted when the sound card is not available anymore due to unbinding driver or hot
+	 * unplugging. The owner of this object should call [method@GObject.Object.unref] as
+	 * quickly as possible to release ALSA hwdep character device.
 	 *
 	 * Since: 2.0
 	 */
@@ -250,9 +247,9 @@ static void hinawa_snd_unit_init(HinawaSndUnit *self)
 /**
  * hinawa_snd_unit_new:
  *
- * Instantiate #HinawaSndUnit object and return the instance.
+ * Instantiate [class@SndUnit] object and return the instance.
  *
- * Returns: an instance of #HinawaSndUnit.
+ * Returns: an instance of [class@SndUnit].
  * Since: 1.3.
  */
 HinawaSndUnit *hinawa_snd_unit_new(void)
@@ -262,10 +259,10 @@ HinawaSndUnit *hinawa_snd_unit_new(void)
 
 /**
  * hinawa_snd_unit_open:
- * @self: A #HinawaSndUnit
+ * @self: A [class@SndUnit]
  * @path: A full path of a special file for ALSA hwdep character device
- * @error: A #GError. Error can be generated with three domains; #g_file_error_quark(),
- *	       #hinawa_fw_node_error_quark(), and #hinawa_snd_unit_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with three domains; GLib.FileError,
+ *	   Hinawa.FwNodeError, and Hinawa.SndUnitError.
  *
  * Open ALSA hwdep character device and check it for FireWire sound devices.
  *
@@ -343,10 +340,10 @@ end:
 
 /**
  * hinawa_snd_unit_get_node:
- * @self: A #HinawaSndUnit.
- * @node: (out)(transfer none): A #HinawaFwNode.
+ * @self: A [class@SndUnit].
+ * @node: (out)(transfer none): A [class@FwNode].
  *
- * Retrieve an instance of #HinawaFwNode associated to the given unit.
+ * Retrieve an instance of [class@FwNode] associated to the given unit.
  *
  * Since: 2.0.
  */
@@ -364,10 +361,10 @@ void hinawa_snd_unit_get_node(HinawaSndUnit *self, HinawaFwNode **node)
 }
 /**
  * hinawa_snd_unit_lock:
- * @self: A #HinawaSndUnit
- * @error: A #GError. Error can be generated with domain of #hinawa_snd_unit_error_quark().
+ * @self: A [class@SndUnit]
+ * @error: A [struct@GLib.Error]. Error can be generated with domain of Hinawa.SndUnitError.
  *
- * Disallow ALSA to start kernel-streaming.
+ * Disallow corresponding ALSA driver to start packet streaming.
  *
  * Since: 0.3
  */
@@ -396,10 +393,10 @@ void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **error)
 
 /**
  * hinawa_snd_unit_unlock:
- * @self: A #HinawaSndUnit
- * @error: A #GError. Error can be generated with domain of #hinawa_snd_unit_error_quark().
+ * @self: A [class@SndUnit]
+ * @error: A [struct@GLib.Error]. Error can be generated with domain of Hinawa.SndUnitError.
  *
- * Allow ALSA to start kernel-streaming.
+ * Allow corresponding ALSA driver to start packet streaming.
  *
  * Since: 0.3
  */
@@ -593,11 +590,12 @@ static void finalize_src(GSource *gsrc)
 
 /**
  * hinawa_snd_unit_create_source:
- * @self: A #HinawaSndUnit.
- * @gsrc: (out): A #GSource.
- * @error: A #GError. Error can be generated with domain with #hinawa_snd_unit_error_quark().
+ * @self: A [class@SndUnit].
+ * @gsrc: (out): A [struct@GLib.Source].
+ * @error: A [struct@GLib.Error]. Error can be generated with domain with Hinawa.SndUnitError.
  *
- * Create Gsource for GMainContext to dispatch events for the sound device.
+ * Create [struct@GLib.Source] for [struct@GLib.MainContext] to dispatch events for the sound
+ * device.
  *
  * Since: 1.4.
  */
