@@ -57,14 +57,14 @@ static const char *const err_msgs[] = {
 	[HINAWA_FW_NODE_ERROR_NOT_OPENED] = "The instance is not associated to node",
 };
 
-#define generate_local_error(exception, code) \
-	g_set_error_literal(exception, HINAWA_FW_NODE_ERROR, code, err_msgs[code])
+#define generate_local_error(error, code) \
+	g_set_error_literal(error, HINAWA_FW_NODE_ERROR, code, err_msgs[code])
 
-#define generate_file_error(exception, code, format, arg) \
-	g_set_error(exception, G_FILE_ERROR, code, format, arg)
+#define generate_file_error(error, code, format, arg) \
+	g_set_error(error, G_FILE_ERROR, code, format, arg)
 
-#define generate_syscall_error(exception, errno, format, arg)				\
-	g_set_error(exception, HINAWA_FW_NODE_ERROR, HINAWA_FW_NODE_ERROR_FAILED,	\
+#define generate_syscall_error(error, errno, format, arg)				\
+	g_set_error(error, HINAWA_FW_NODE_ERROR, HINAWA_FW_NODE_ERROR_FAILED,	\
 		    format " %d(%s)", arg, errno, strerror(errno))
 
 typedef struct {
@@ -318,7 +318,7 @@ static int update_info(HinawaFwNode *self)
  * hinawa_fw_node_open:
  * @self: A #HinawaFwNode
  * @path: A path to Linux FireWire character device
- * @exception: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
+ * @error: A #GError. Error can be generated with two domains; #g_file_error_quark(), and
  *	       #hinawa_fw_node_error_quark().
  *
  * Open Linux FireWire character device to operate node on IEEE 1394 bus.
@@ -326,31 +326,31 @@ static int update_info(HinawaFwNode *self)
  * Since: 1.4.
  */
 void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
-			 GError **exception)
+			 GError **error)
 {
 	HinawaFwNodePrivate *priv;
 	int err;
 
 	g_return_if_fail(HINAWA_IS_FW_NODE(self));
 	g_return_if_fail(path != NULL && strlen(path) > 0);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinawa_fw_node_get_instance_private(self);
 	if (priv->fd >= 0) {
-		generate_local_error(exception, HINAWA_FW_NODE_ERROR_OPENED);
+		generate_local_error(error, HINAWA_FW_NODE_ERROR_OPENED);
 		return;
 	}
 
 	priv->fd = open(path, O_RDONLY);
 	if (priv->fd < 0) {
 		if (errno == ENODEV) {
-			generate_local_error(exception, HINAWA_FW_NODE_ERROR_DISCONNECTED);
+			generate_local_error(error, HINAWA_FW_NODE_ERROR_DISCONNECTED);
 		} else {
 			GFileError code = g_file_error_from_errno(errno);
 			if (code != G_FILE_ERROR_FAILED)
-				generate_file_error(exception, code, "open(%s)", path);
+				generate_file_error(error, code, "open(%s)", path);
 			else
-				generate_syscall_error(exception, errno, "open(%s)", path);
+				generate_syscall_error(error, errno, "open(%s)", path);
 		}
 		return;
 	}
@@ -361,9 +361,9 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
 
 	if (err > 0) {
 		if (err == ENODEV)
-			generate_local_error(exception, HINAWA_FW_NODE_ERROR_DISCONNECTED);
+			generate_local_error(error, HINAWA_FW_NODE_ERROR_DISCONNECTED);
 		else
-			generate_syscall_error(exception, errno, "ioctl(%s)", "FW_CDEV_IOC_GET_INFO");
+			generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_GET_INFO");
 		close(priv->fd);
 		priv->fd = -1;
 	}
@@ -375,26 +375,26 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
  * @image: (array length=length)(out)(transfer none): The content of
  *	   configuration ROM.
  * @length: (out): The number of bytes consists of the configuration rom.
- * @exception: A #GError.
+ * @error: A #GError.
  *
  * Get cached content of configuration ROM aligned to big-endian.
  *
  * Since: 1.4.
  */
 void hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
-				   gsize *length, GError **exception)
+				   gsize *length, GError **error)
 {
 	HinawaFwNodePrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_FW_NODE(self));
 	g_return_if_fail(image != NULL);
 	g_return_if_fail(length != NULL);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 
 	priv = hinawa_fw_node_get_instance_private(self);
 	if (priv->fd < 0) {
-		generate_local_error(exception, HINAWA_FW_NODE_ERROR_NOT_OPENED);
+		generate_local_error(error, HINAWA_FW_NODE_ERROR_NOT_OPENED);
 		return;
 	}
 
@@ -425,7 +425,7 @@ static gboolean check_src(GSource *gsrc)
 	FwNodeSource *src = (FwNodeSource *)gsrc;
 	GIOCondition condition;
 
-	// Don't go to dispatch if nothing available. As an exception, return
+	// Don't go to dispatch if nothing available. As an error, return
 	// TRUE for POLLERR to call .dispatch for internal destruction.
 	condition = g_source_query_unix_fd(gsrc, src->tag);
 	return !!(condition & (G_IO_IN | G_IO_ERR));
@@ -495,7 +495,7 @@ static void finalize_src(GSource *gsrc)
  * hinawa_fw_node_create_source:
  * @self: A #HinawaFwNode.
  * @gsrc: (out): A #GSource.
- * @exception: A #GError. Error can be generated with domain of #hinawa_fw_node_error_quark()
+ * @error: A #GError. Error can be generated with domain of #hinawa_fw_node_error_quark()
  *	       and code of #HinawaFwNodeError.
  *
  * Create Gsource for GMainContext to dispatch events for the node on IEEE 1394
@@ -504,7 +504,7 @@ static void finalize_src(GSource *gsrc)
  * Since: 1.4.
  */
 void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
-				  GError **exception)
+				  GError **error)
 {
         static GSourceFuncs funcs = {
                 .check          = check_src,
@@ -516,11 +516,11 @@ void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
 
 	g_return_if_fail(HINAWA_IS_FW_NODE(self));
 	g_return_if_fail(gsrc != NULL);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinawa_fw_node_get_instance_private(self);
 	if (priv->fd < 0) {
-		generate_local_error(exception, HINAWA_FW_NODE_ERROR_NOT_OPENED);
+		generate_local_error(error, HINAWA_FW_NODE_ERROR_NOT_OPENED);
 		return;
 	}
 
@@ -541,16 +541,16 @@ void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
 }
 
 // Internal use only.
-int hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args, GError **exception)
+int hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args, GError **error)
 {
 	HinawaFwNodePrivate *priv;
 
 	g_return_val_if_fail(HINAWA_IS_FW_NODE(self), ENXIO);
-	g_return_val_if_fail(exception != NULL, EINVAL);
+	g_return_val_if_fail(error != NULL, EINVAL);
 
 	priv = hinawa_fw_node_get_instance_private(self);
 	if (priv->fd < 0) {
-		generate_local_error(exception, HINAWA_FW_NODE_ERROR_NOT_OPENED);
+		generate_local_error(error, HINAWA_FW_NODE_ERROR_NOT_OPENED);
 		return ENXIO;
 	}
 
@@ -563,7 +563,7 @@ int hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args, GErr
 
 	if (ioctl(priv->fd, req, args) < 0) {
 		if (errno == ENODEV)
-			generate_local_error(exception, HINAWA_FW_NODE_ERROR_DISCONNECTED);
+			generate_local_error(error, HINAWA_FW_NODE_ERROR_DISCONNECTED);
 		return errno;
 	}
 
