@@ -28,8 +28,7 @@ struct _HinawaSndDg00xClass {
 
 HinawaSndDg00x *hinawa_snd_dg00x_new(void);
 
-void hinawa_snd_dg00x_open(HinawaSndDg00x *self, gchar *path,
-			   GError **exception);
+void hinawa_snd_dg00x_open(HinawaSndDg00x *self, gchar *path, GError **error);
 
 G_END_DECLS
 

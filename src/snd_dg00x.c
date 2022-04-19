@@ -67,20 +67,20 @@ HinawaSndDg00x *hinawa_snd_dg00x_new(void)
  * hinawa_snd_dg00x_open:
  * @self: A #HinawaSndUnit
  * @path: A full path of a special file for ALSA hwdep character device
- * @exception: A #GError. Error can be generated with three domains; #g_file_error_quark(),
+ * @error: A #GError. Error can be generated with three domains; #g_file_error_quark(),
  *	       #hinawa_fw_node_error_quark(), and #hinawa_snd_unit_error_quark().
  *
  * Open ALSA hwdep character device and check it for Dg00x  devices.
  *
  * Since: 0.7
  */
-void hinawa_snd_dg00x_open(HinawaSndDg00x *self, gchar *path, GError **exception)
+void hinawa_snd_dg00x_open(HinawaSndDg00x *self, gchar *path, GError **error)
 {
 	g_return_if_fail(HINAWA_IS_SND_DG00X(self));
 	g_return_if_fail(path != NULL && strlen(path) > 0);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
-	hinawa_snd_unit_open(&self->parent_instance, path, exception);
+	hinawa_snd_unit_open(&self->parent_instance, path, error);
 }
 
 void hinawa_snd_dg00x_handle_msg(HinawaSndDg00x *self, const void *buf,
