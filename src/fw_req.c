@@ -6,26 +6,24 @@
 #include <sys/ioctl.h>
 
 /**
- * SECTION:fw_req
- * @Title: HinawaFwReq
- * @Short_description: A transaction executor to a FireWire unit.
- * @include: fw_req.h
+ * HinawaFwReq:
+ * A transaction executor to a FireWire unit.
  *
- * A HinawaFwReq supports some types of transactions in IEEE 1212. Mainly for
- * read, write and lock operations.
+ * A HinawaFwReq supports some types of transactions in IEEE 1212. Mainly for read, write and lock
+ * operations.
  *
- * This class is an application of Linux FireWire subsystem. All of operations
- * utilize ioctl(2) with subsystem specific request commands.
+ * This class is an application of Linux FireWire subsystem. All of operations utilize ioctl(2)
+ * with subsystem specific request commands.
  */
 
 /**
  * hinawa_fw_req_error_quark:
  *
- * Return the GQuark for error domain of GError which has code in #HinawaFwRcode.
+ * Return the [alias@GLib.Quark] for [struct@GLib.Error] with code of [enum@FwRcode].
  *
  * Since: 2.1
  *
- * Returns: A #GQuark.
+ * Returns: A [alias@GLib.Quark].
  */
 G_DEFINE_QUARK(hinawa-fw-req-error-quark, hinawa_fw_req_error)
 
@@ -106,7 +104,7 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 	 * HinawaFwReq:timeout:
 	 *
 	 * Since: 1.4
-	 * Deprecated: 2.1: Use timeout_ms parameter of #hinawa_fw_req_transaction_sync().
+	 * Deprecated: 2.1: Use timeout_ms parameter of [method@FwReq.transaction_sync].
 	 */
 	fw_req_props[FW_REQ_PROP_TYPE_TIMEOUT] =
 		g_param_spec_uint("timeout", "timeout",
@@ -121,15 +119,15 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 
 	/**
 	 * HinawaFwReq::responded:
-	 * @self: A #HinawaFwReq.
-	 * @rcode: One of #HinawaFwRcode.
+	 * @self: A [class@FwReq].
+	 * @rcode: One of [enum@FwRcode].
 	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for
 	 *	   byte data of response subaction for transaction.
 	 * @frame_size: The number of elements of the array.
 	 *
-	 * When the unit transfers asynchronous packet as response subaction for the transaction,
-	 * and the process successfully reads the content of packet from Linux firewire subsystem,
-	 * the #HinawaFwReq::responded signal handler is called.
+	 * Emitted when the unit transfers asynchronous packet as response subaction for the
+	 * transaction and the process successfully reads the content of packet from Linux firewire
+	 * subsystem.
 	 *
 	 * Since: 2.1
 	 */
@@ -152,9 +150,9 @@ static void hinawa_fw_req_init(HinawaFwReq *self)
 /**
  * hinawa_fw_req_new:
  *
- * Instantiate #HinawaFwReq object and return the instance.
+ * Instantiate [class@FwReq] object and return the instance.
  *
- * Returns: an instance of #HinawaFwReq.
+ * Returns: an instance of [class@FwReq].
  * Since: 1.3.
  */
 HinawaFwReq *hinawa_fw_req_new(void)
@@ -164,25 +162,23 @@ HinawaFwReq *hinawa_fw_req_new(void)
 
 /**
  * hinawa_fw_req_transaction_async:
- * @self: A #HinawaFwReq.
- * @node: A #HinawaFwNode.
- * @tcode: A transaction code of HinawaFwTcode.
+ * @self: A [class@FwReq].
+ * @node: A [class@FwNode].
+ * @tcode: A transaction code of [enum@FwTcode].
  * @addr: A destination address of target device
  * @length: The range of address in byte unit.
- * @frame: (array length=frame_size)(inout): An array with elements for byte
- *	   data. Callers should give it for buffer with enough space against the
- *	   request since this library performs no reallocation. Due to the
- *	   reason, the value of this argument should point to the pointer to the
- *	   array and immutable. The content of array is mutable for read and
- *	   lock transaction.
- * @frame_size: The size of array in byte unit. The value of this argument
- *		should point to the numerical number and mutable for read and
- *		lock transaction.
- * @error: A #GError. Error can be generated with two domains; #hinawa_fw_node_error_quark(),
- *	       and #hinawa_fw_req_error_quark().
+ * @frame: (array length=frame_size)(inout): An array with elements for byte data. Callers should
+ *	   give it for buffer with enough space against the request since this library performs no
+ *	   reallocation. Due to the reason, the value of this argument should point to the pointer
+ *	   to the array and immutable. The content of array is mutable for read and lock
+ *	   transaction.
+ * @frame_size: The size of array in byte unit. The value of this argument should point to the
+ *		numerical number and mutable for read and lock transaction.
+ * @error: A [struct@GLib.Error]. Error can be generated with two domains; Hinawa.FwNodeError and
+ *	   Hinawa.FwReqError.
  *
  * Execute request subaction of transactions to the given node according to given code. When the
- * response subaction arrives and read the contents, #HinawaFwReq::responded signal handler is called
+ * response subaction arrives and read the contents, [signal@FwReq::responded] signal handler is called
  * as long as event dispatcher runs.
  *
  * Since: 2.1.
@@ -281,28 +277,26 @@ static void handle_responded_signal(HinawaFwReq *self, HinawaFwRcode rcode, cons
 
 /**
  * hinawa_fw_req_transaction_sync:
- * @self: A #HinawaFwReq.
- * @node: A #HinawaFwNode.
- * @tcode: A transaction code of HinawaFwTcode.
+ * @self: A [class@FwReq].
+ * @node: A [class@FwNode].
+ * @tcode: A transaction code of [enum@FwTcode].
  * @addr: A destination address of target device
  * @length: The range of address in byte unit.
- * @frame: (array length=frame_size)(inout): An array with elements for byte
- *	   data. Callers should give it for buffer with enough space against the
- *	   request since this library performs no reallocation. Due to the
- *	   reason, the value of this argument should point to the pointer to the
- *	   array and immutable. The content of array is mutable for read and
- *	   lock transaction.
- * @frame_size: The size of array in byte unit. The value of this argument
- *		should point to the numerical number and mutable for read and
- *		lock transaction.
+ * @frame: (array length=frame_size)(inout): An array with elements for byte data. Callers should
+ *	   give it for buffer with enough space against the request since this library performs no
+ *	   reallocation. Due to the reason, the value of this argument should point to the pointer
+ *	   to the array and immutable. The content of array is mutable for read and lock
+ *	   transaction.
+ * @frame_size: The size of array in byte unit. The value of this argument should point to the
+ *		numeric number and mutable for read and lock transaction.
  * @timeout_ms: The timeout to wait for response subaction of the transaction since request
  *		subaction is initiated, in milliseconds.
- * @error: A #GError. Error can be generated with two domains; #hinawa_fw_node_error_quark(),
- *	       and #hinawa_fw_req_error_quark().
+ * @error: A [struct@GLib.Error]. Error can be generated with two domains; Hinawa.FwNodeError and
+ *	   Hinawa.FwReqError.
  *
  * Execute request subaction of transaction to the given node according to given code, then wait
- * for response subaction within the given timeout. The #HinawaFwReq:timeout property of instance
- * is ignored.
+ * for response subaction within the given timeout. The [property@FwReq:timeout] property of
+ * instance is ignored.
  *
  * Since: 2.1.
  */
@@ -384,28 +378,26 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
 
 /**
  * hinawa_fw_req_transaction:
- * @self: A #HinawaFwReq.
- * @node: A #HinawaFwNode.
- * @tcode: A transaction code of HinawaFwTcode.
+ * @self: A [class@FwReq].
+ * @node: A [class@FwNode].
+ * @tcode: A transaction code of [enum@FwTcode].
  * @addr: A destination address of target device
  * @length: The range of address in byte unit.
- * @frame: (array length=frame_size)(inout): An array with elements for byte
- *	   data. Callers should give it for buffer with enough space against the
- *	   request since this library performs no reallocation. Due to the
- *	   reason, the value of this argument should point to the pointer to the
- *	   array and immutable. The content of array is mutable for read and
- *	   lock transaction.
- * @frame_size: The size of array in byte unit. The value of this argument
- *		should point to the numerical number and mutable for read and
- *		lock transaction.
- * @error: A #GError. Error can be generated with two domains; #hinawa_fw_node_error_quark(),
- *	       and #hinawa_fw_req_error_quark().
+ * @frame: (array length=frame_size)(inout): An array with elements for byte data. Callers should
+ *	   give it for buffer with enough space against the request since this library performs no
+ *	   reallocation. Due to the reason, the value of this argument should point to the pointer
+ *	   to the array and immutable. The content of array is mutable for read and lock
+ *	   transaction.
+ * @frame_size: The size of array in byte unit. The value of this argument should point to the
+ *		numerical number and mutable for read and lock transaction.
+ * @error: A [struct@GLib.Error]. Error can be generated with two domains; Hinawa.FwNodeError and
+ *	   Hinawa.FwReqError.
  *
  * Execute request subaction of transaction to the given node according to given code, then wait
- * for response subaction within #HinawaFwReq:timeout.
+ * for response subaction within the value of timeout argument.
  *
  * Since: 1.4
- * Deprecated: 2.1: Use #hinawa_fw_req_transaction_sync(), instead.
+ * Deprecated: 2.1: Use [method@FwReq.transaction_sync] instead.
  */
 void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 			       HinawaFwTcode tcode, guint64 addr, gsize length,
