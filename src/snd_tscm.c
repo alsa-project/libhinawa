@@ -74,26 +74,26 @@ HinawaSndTscm *hinawa_snd_tscm_new(void)
  * hinawa_snd_tscm_open:
  * @self: A #HinawaSndUnit
  * @path: A full path of a special file for ALSA hwdep character device
- * @exception: A #GError. Error can be generated with three domains; #g_file_error_quark(),
+ * @error: A #GError. Error can be generated with three domains; #g_file_error_quark(),
  *	       #hinawa_fw_node_error_quark(), and #hinawa_snd_unit_error_quark().
  *
  * Open ALSA hwdep character device and check it for Dg00x  devices.
  *
  * Since: 1.1
  */
-void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **exception)
+void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **error)
 {
 	g_return_if_fail(HINAWA_IS_SND_TSCM(self));
 	g_return_if_fail(path != NULL && strlen(path) > 0);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
-	hinawa_snd_unit_open(&self->parent_instance, path, exception);
+	hinawa_snd_unit_open(&self->parent_instance, path, error);
 }
 
 /**
  * hinawa_snd_tscm_get_state:
  * @self: A #HinawaSndTscm
- * @exception: A #GError. Error can be generated with domain of #hinawa_snd_unit_error_quark().
+ * @error: A #GError. Error can be generated with domain of #hinawa_snd_unit_error_quark().
  *
  * Get the latest states of target device.
  *
@@ -101,21 +101,20 @@ void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **exception)
  *
  * Since: 1.1
  */
-const guint32 *hinawa_snd_tscm_get_state(HinawaSndTscm *self,
-					 GError **exception)
+const guint32 *hinawa_snd_tscm_get_state(HinawaSndTscm *self, GError **error)
 {
 	HinawaSndTscmPrivate *priv;
 	int i;
 
 	g_return_val_if_fail(HINAWA_IS_SND_TSCM(self), NULL);
-	g_return_val_if_fail(exception == NULL || *exception == NULL, NULL);
+	g_return_val_if_fail(error == NULL || *error == NULL, NULL);
 
 	priv = hinawa_snd_tscm_get_instance_private(self);
 
 	hinawa_snd_unit_ioctl(&self->parent_instance,
 			      SNDRV_FIREWIRE_IOCTL_TASCAM_STATE, &priv->image,
-			      exception);
-	if (*exception != NULL)
+			      error);
+	if (*error != NULL)
 		return NULL;
 
 	for (i = 0; i < SNDRV_FIREWIRE_TASCAM_STATE_COUNT; ++i)

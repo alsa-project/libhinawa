@@ -31,9 +31,8 @@ struct _HinawaSndTscmClass {
 
 HinawaSndTscm *hinawa_snd_tscm_new(void);
 
-void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **exception);
+void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **error);
 
-const guint32 *hinawa_snd_tscm_get_state(HinawaSndTscm *self,
-					 GError **exception);
+const guint32 *hinawa_snd_tscm_get_state(HinawaSndTscm *self, GError **error);
 
 #endif
