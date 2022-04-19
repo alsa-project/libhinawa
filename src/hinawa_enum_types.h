@@ -115,7 +115,7 @@ typedef enum {
  *					firewire character device.
  * @HINAWA_FW_NODE_ERROR_FAILED:	The system call fails.
  *
- * A set of error code for GError with domain which equals to #hinawa_fw_node_error_quark().
+ * A set of error code for [struct@GLib.Error] with domain which equals to Hinawa.FwNodeError.
  *
  * Since: 2.1
  */
@@ -132,7 +132,7 @@ typedef enum {
  * @HINAWA_FW_RESP_ERROR_RESERVED:		The instance is already associated to reserved address range.
  * @HINAWA_FW_RESP_ERROR_ADDR_SPACE_USED:	The address space is used exclusively.
  *
- * A set of error code for GError with domain which equals to #hinawa_fw_resp_error_quark().
+ * A set of error code for [struct@GLib.Error] with domain which equals to Hinawa.FwRespError.
  *
  * Since: 2.2
  */
@@ -147,7 +147,7 @@ typedef enum {
  * @HINAWA_FW_FCP_ERROR_TIMEOUT:	The transaction is canceled due to response timeout.
  * @HINAWA_FW_FCP_ERROR_LARGE_RESP:	The size of response is larger than expected.
  *
- * A set of error code for GError with domain which equals to #hinawa_fw_fcp_error_quark().
+ * A set of error code for [struct@GLib.Error] with domain which equals to Hinawa.FwFcpError.
  *
  * Since: 2.1
  */
@@ -169,7 +169,7 @@ typedef enum {
  * @HINAWA_SND_UNIT_ERROR_WRONG_CLASS:	The hwdep device is not for the unit expected by the class.
  * @HINAWA_SND_UNIT_ERROR_FAILED:	The system call fails.
  *
- * A set of error code for GError with domain which equals to #hinawa_snd_unit_error_quark().
+ * A set of error code for [struct@GLib.Error] with domain which equals to Hinawa.SndUnitError.
  *
  * Since: 2.1
  */
@@ -188,7 +188,7 @@ typedef enum {
  * HinawaSndDiceError:
  * @HINAWA_SND_DICE_ERROR_TIMEOUT:	The transaction is canceled due to response timeout.
  *
- * A set of error code for GError with domain which equals to #hinawa_snd_dice_error_quark().
+ * A set of error code for [structGLib.Error] with domain which equals to Hinawa.SndDiceError.
  *
  * Since: 2.1
  */
