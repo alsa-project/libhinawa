@@ -36,8 +36,8 @@ static const char *const local_err_msgs[] = {
 	[HINAWA_FW_FCP_ERROR_LARGE_RESP]	= "The size of response is larger than expected",
 };
 
-#define generate_local_error(exception, code)						\
-	g_set_error_literal(exception, HINAWA_FW_FCP_ERROR, code, local_err_msgs[code])
+#define generate_local_error(error, code)						\
+	g_set_error_literal(error, HINAWA_FW_FCP_ERROR, code, local_err_msgs[code])
 
 #define FCP_MAXIMUM_FRAME_BYTES	0x200U
 #define FCP_REQUEST_ADDR	0xfffff0000b00
@@ -225,7 +225,7 @@ HinawaFwFcp *hinawa_fw_fcp_new(void)
  *	 argument should point to the array and immutable.
  * @cmd_size: The size of array for request in byte unit.
  * @timeout_ms: The timeout to wait for response subaction of transaction for command frame.
- * @exception: A #GError. Error can be generated with four domains; #hinawa_fw_node_error_quark(),
+ * @error: A #GError. Error can be generated with four domains; #hinawa_fw_node_error_quark(),
  *	       #hinawa_fw_req_error_quark().
  *
  * Transfer command frame for FCP. When receiving response frame for FCP,
@@ -234,7 +234,7 @@ HinawaFwFcp *hinawa_fw_fcp_new(void)
  * Since: 2.1.
  */
 void hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
-			   guint timeout_ms, GError **exception)
+			   guint timeout_ms, GError **error)
 {
 	HinawaFwFcpPrivate *priv;
 	HinawaFwReq *req;
@@ -242,7 +242,7 @@ void hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
 	g_return_if_fail(cmd != NULL);
 	g_return_if_fail(cmd_size > 0 && cmd_size < FCP_MAXIMUM_FRAME_BYTES);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinawa_fw_fcp_get_instance_private(self);
 
@@ -251,7 +251,7 @@ void hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
 	// Finish transaction for command frame.
 	hinawa_fw_req_transaction_sync(req, priv->node, HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST,
 				       FCP_REQUEST_ADDR, cmd_size, (guint8 *const *)&cmd, &cmd_size,
-				       timeout_ms, exception);
+				       timeout_ms, error);
 	g_object_unref(req);
 }
 
@@ -293,7 +293,7 @@ static void handle_responded_signal(HinawaFwFcp *self, const guint8 *frame, guin
  * @resp_size: The size of array for response in byte unit. The value of this argument should point to
  *	       the numerical number and mutable.
  * @timeout_ms: The timeout to wait for response transaction since command transactions finishes.
- * @exception: A #GError. Error can be generated with four domains; #hinawa_fw_node_error_quark(),
+ * @error: A #GError. Error can be generated with four domains; #hinawa_fw_node_error_quark(),
  *	       #hinawa_fw_req_error_quark(), and #hinawa_fw_fcp_error_quark().
  *
  * Finish the pair of AV/C command and response transactions. The timeout_ms parameter is
@@ -305,7 +305,7 @@ static void handle_responded_signal(HinawaFwFcp *self, const guint8 *frame, guin
  */
 void hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
 				   guint8 *const *resp, gsize *resp_size, guint timeout_ms,
-				   GError **exception)
+				   GError **error)
 {
 	gulong handler_id;
 	struct waiter w = {0};
@@ -316,7 +316,7 @@ void hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize c
 	g_return_if_fail(cmd_size > 2 && cmd_size < FCP_MAXIMUM_FRAME_BYTES);
 	g_return_if_fail(resp != NULL);
 	g_return_if_fail(resp_size != NULL && *resp_size > 0);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	w.frame = *resp;
 	w.frame_size = *resp_size;
@@ -334,8 +334,8 @@ void hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize c
 	g_mutex_lock(&w.mutex);
 
 	// Finish transaction for command frame.
-	hinawa_fw_fcp_command(self, cmd, cmd_size, timeout_ms, exception);
-	if (*exception)
+	hinawa_fw_fcp_command(self, cmd, cmd_size, timeout_ms, error);
+	if (*error)
 		goto end;
 deferred:
 	while (w.frame[0] == 0xff) {
@@ -345,7 +345,7 @@ deferred:
 	}
 
 	if (w.frame[0] == 0xff) {
-		generate_local_error(exception, HINAWA_FW_FCP_ERROR_TIMEOUT);
+		generate_local_error(error, HINAWA_FW_FCP_ERROR_TIMEOUT);
 	} else if (w.frame[0] == AVC_STATUS_INTERIM) {
 		// It's a deffered transaction, wait again.
 		w.frame[0] = 0x00;
@@ -354,7 +354,7 @@ deferred:
 		// use the finite value for safe.
 		goto deferred;
 	} else if (w.frame_size > *resp_size) {
-		generate_local_error(exception, HINAWA_FW_FCP_ERROR_LARGE_RESP);
+		generate_local_error(error, HINAWA_FW_FCP_ERROR_LARGE_RESP);
 	} else {
 		*resp_size = w.frame_size;
 	}
@@ -383,7 +383,7 @@ end:
  * @resp_frame_size: The size of array for response in byte unit. The value of
  *		     this argument should point to the numerical number and
  *		     mutable.
- * @exception: A #GError. Error can be generated with four domains; #hinawa_fw_node_error_quark(),
+ * @error: A #GError. Error can be generated with four domains; #hinawa_fw_node_error_quark(),
  *	       #hinawa_fw_req_error_quark(), and #hinawa_fw_fcp_error_quark().
  *
  * Finish the pair of command and response transactions for FCP. The value of #HinawaFwFcp:timeout
@@ -395,14 +395,14 @@ end:
 void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
 			       const guint8 *req_frame, gsize req_frame_size,
 			       guint8 *const *resp_frame, gsize *resp_frame_size,
-			       GError **exception)
+			       GError **error)
 {
 	guint timeout_ms;
 
 	g_object_get(G_OBJECT(self), "timeout", &timeout_ms, NULL);
 
 	hinawa_fw_fcp_avc_transaction(self, req_frame, req_frame_size, resp_frame, resp_frame_size,
-				      timeout_ms, exception);
+				      timeout_ms, error);
 }
 
 static HinawaFwRcode handle_requested2_signal(HinawaFwResp *resp, HinawaFwTcode tcode, guint64 offset,
@@ -427,28 +427,27 @@ static HinawaFwRcode handle_requested2_signal(HinawaFwResp *resp, HinawaFwTcode 
  * hinawa_fw_fcp_bind:
  * @self: A #HinawaFwFcp.
  * @node: A #HinawaFwNode.
- * @exception: A #GError. Error can be generated with domain of #hinawa_fw_resp_error_quark().
+ * @error: A #GError. Error can be generated with domain of #hinawa_fw_resp_error_quark().
  *
  * Start to listen to FCP responses.
  *
  * Since: 1.4
  */
-void hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node,
-			GError **exception)
+void hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node, GError **error)
 {
 	HinawaFwFcpPrivate *priv;
 
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
 	g_return_if_fail(node != NULL);
-	g_return_if_fail(exception == NULL || *exception == NULL);
+	g_return_if_fail(error == NULL || *error == NULL);
 
 	priv = hinawa_fw_fcp_get_instance_private(self);
 
 	if (priv->node == NULL) {
 		hinawa_fw_resp_reserve(HINAWA_FW_RESP(self), node,
 				FCP_RESPOND_ADDR, FCP_MAXIMUM_FRAME_BYTES,
-				exception);
-		if (*exception != NULL)
+				error);
+		if (*error != NULL)
 			return;
 		priv->node = g_object_ref(node);
 	}
