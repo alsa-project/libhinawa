@@ -523,8 +523,6 @@ void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
 	src = (FwNodeSource *)(*gsrc);
 
         g_source_set_name(*gsrc, "HinawaFwNode");
-        g_source_set_priority(*gsrc, G_PRIORITY_HIGH_IDLE);
-        g_source_set_can_recurse(*gsrc, TRUE);
 
         // MEMO: allocate one page because we cannot assume the size of
         // transaction frame.
