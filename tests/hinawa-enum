@@ -43,6 +43,19 @@ fw_rcode_enumerators = (
     'NO_ACK',
 )
 
+fw_req_error_enumerations = (
+    'CONFLICT_ERROR',
+    'DATA_ERROR',
+    'TYPE_ERROR',
+    'ADDRESS_ERROR',
+    'SEND_ERROR',
+    'CANCELLED',
+    'BUSY',
+    'GENERATION',
+    'NO_ACK',
+    'INVALID',
+)
+
 snd_unit_type_enumerators = (
     'DICE',
     'FIREWORKS',
@@ -109,6 +122,7 @@ snd_efw_status_enumerators = (
 types = {
     Hinawa.FwTcode: fw_tcode_enumerators,
     Hinawa.FwRcode: fw_rcode_enumerators,
+    Hinawa.FwReqError: fw_req_error_enumerations,
     Hinawa.SndUnitType: snd_unit_type_enumerators,
     Hinawa.FwNodeError: fw_node_error_enumerators,
     Hinawa.FwRespError: fw_resp_error_enumerations,

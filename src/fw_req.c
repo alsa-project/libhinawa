@@ -40,25 +40,25 @@ typedef struct {
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwReq, hinawa_fw_req, G_TYPE_OBJECT)
 
 static const char *const err_labels[] = {
-	[RCODE_COMPLETE]	= "no error",
-	[RCODE_CONFLICT_ERROR]	= "conflict error",
-	[RCODE_DATA_ERROR]	= "data error",
-	[RCODE_TYPE_ERROR]	= "type error",
-	[RCODE_ADDRESS_ERROR]	= "address error",
-	[RCODE_SEND_ERROR]	= "send error",
-	[RCODE_CANCELLED]	= "timeout",
-	[RCODE_BUSY]		= "busy",
-	[RCODE_GENERATION]	= "bus reset",
-	[RCODE_NO_ACK]		= "no ack",
+	[HINAWA_FW_REQ_ERROR_CONFLICT_ERROR]	= "conflict error",
+	[HINAWA_FW_REQ_ERROR_DATA_ERROR]	= "data error",
+	[HINAWA_FW_REQ_ERROR_TYPE_ERROR]	= "type error",
+	[HINAWA_FW_REQ_ERROR_ADDRESS_ERROR]	= "address error",
+	[HINAWA_FW_REQ_ERROR_SEND_ERROR]	= "send error",
+	[HINAWA_FW_REQ_ERROR_CANCELLED]		= "timeout",
+	[HINAWA_FW_REQ_ERROR_BUSY]		= "busy",
+	[HINAWA_FW_REQ_ERROR_GENERATION]	= "bus reset",
+	[HINAWA_FW_REQ_ERROR_NO_ACK]		= "no ack",
+	[HINAWA_FW_REQ_ERROR_INVALID]		= "invalid",
 };
 
-static void generate_fw_req_error_with_errno(GError **error, HinawaFwRcode code, int err_no)
+static void generate_fw_req_error_with_errno(GError **error, HinawaFwReqError code, int err_no)
 {
 	g_set_error(error, HINAWA_FW_REQ_ERROR, code,
 		    "%s %d (%s)", err_labels[code], err_no, strerror(err_no));
 }
 
-static void generate_fw_req_error_literal(GError **error, HinawaFwRcode code)
+static void generate_fw_req_error_literal(GError **error, HinawaFwReqError code)
 {
 	g_set_error_literal(error, HINAWA_FW_REQ_ERROR, code, err_labels[code]);
 }
@@ -254,7 +254,7 @@ void hinawa_fw_req_transaction_async(HinawaFwReq *self, HinawaFwNode *node,
 	// Send this transaction.
 	err = hinawa_fw_node_ioctl(node, FW_CDEV_IOC_SEND_REQUEST, &req, error);
 	if (*error == NULL && err > 0)
-		generate_fw_req_error_with_errno(error, HINAWA_FW_RCODE_SEND_ERROR, err);
+		generate_fw_req_error_with_errno(error, HINAWA_FW_REQ_ERROR_SEND_ERROR, err);
 }
 
 struct waiter {
@@ -355,7 +355,7 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
 	g_object_unref(node);
 
 	if (w.rcode == G_MAXUINT) {
-		generate_fw_req_error_literal(error, HINAWA_FW_RCODE_CANCELLED);
+		generate_fw_req_error_literal(error, HINAWA_FW_REQ_ERROR_CANCELLED);
 		return;
 	}
 
@@ -372,10 +372,10 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
 	case RCODE_BUSY:
 	case RCODE_GENERATION:
 	case RCODE_NO_ACK:
-		generate_fw_req_error_literal(error, w.rcode);
+		generate_fw_req_error_literal(error, (HinawaFwReqError)w.rcode);
 		break;
 	default:
-		generate_fw_req_error_literal(error, HINAWA_FW_RCODE_INVALID);
+		generate_fw_req_error_literal(error, HINAWA_FW_REQ_ERROR_INVALID);
 		break;
 	}
 }

@@ -153,3 +153,8 @@ HINAWA_2_4_0 {
     "hinawa_snd_motu_register_dsp_parameter_get_input_gain_and_invert";
     "hinawa_snd_motu_register_dsp_parameter_get_input_flag";
 } HINAWA_2_3_0;
+
+HINAWA_2_5_0 {
+  global:
+    "hinawa_fw_req_error_get_type";
+} HINAWA_2_3_0;
