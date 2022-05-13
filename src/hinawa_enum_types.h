@@ -81,6 +81,37 @@ typedef enum {
 } HinawaFwRcode;
 
 /**
+ * HinawaFwReqError:
+ * @HINAWA_FW_REQ_ERROR_CONFLICT_ERROR:	For error of conflicting.
+ * @HINAWA_FW_REQ_ERROR_DATA_ERROR:	For error of data.
+ * @HINAWA_FW_REQ_ERROR_TYPE_ERROR:	For error of type.
+ * @HINAWA_FW_REQ_ERROR_ADDRESS_ERROR:	For error of address.
+ * @HINAWA_FW_REQ_ERROR_SEND_ERROR:	For error of sending.
+ * @HINAWA_FW_REQ_ERROR_CANCELLED:	For cancellation.
+ * @HINAWA_FW_REQ_ERROR_BUSY:		For busyness.
+ * @HINAWA_FW_REQ_ERROR_GENERATION:	For generation.
+ * @HINAWA_FW_REQ_ERROR_NO_ACK:		For no acknowledge.
+ * @HINAWA_FW_REQ_ERROR_INVALID:	For rcode out of specification.
+ *
+ * A set of error code for [class@Hinawa.FwReq]. Each of them has the same value as the
+ * corresponding enumeration in [enum@Hinawa.FwRcode].
+ *
+ * Since: 2.5.
+ */
+typedef enum {
+	HINAWA_FW_REQ_ERROR_CONFLICT_ERROR	= HINAWA_FW_RCODE_CONFLICT_ERROR,
+	HINAWA_FW_REQ_ERROR_DATA_ERROR		= HINAWA_FW_RCODE_DATA_ERROR,
+	HINAWA_FW_REQ_ERROR_TYPE_ERROR		= HINAWA_FW_RCODE_TYPE_ERROR,
+	HINAWA_FW_REQ_ERROR_ADDRESS_ERROR	= HINAWA_FW_RCODE_ADDRESS_ERROR,
+	HINAWA_FW_REQ_ERROR_SEND_ERROR		= HINAWA_FW_RCODE_SEND_ERROR,
+	HINAWA_FW_REQ_ERROR_CANCELLED		= HINAWA_FW_RCODE_CANCELLED,
+	HINAWA_FW_REQ_ERROR_BUSY		= HINAWA_FW_RCODE_BUSY,
+	HINAWA_FW_REQ_ERROR_GENERATION		= HINAWA_FW_RCODE_GENERATION,
+	HINAWA_FW_REQ_ERROR_NO_ACK		= HINAWA_FW_RCODE_NO_ACK,
+	HINAWA_FW_REQ_ERROR_INVALID		= HINAWA_FW_RCODE_INVALID,
+} HinawaFwReqError;
+
+/**
  * HinawaSndUnitType:
  * @HINAWA_SND_UNIT_TYPE_DICE:		The type of DICE ASIC.
  * @HINAWA_SND_UNIT_TYPE_FIREWORKS:	The type of Fireworks board module.
