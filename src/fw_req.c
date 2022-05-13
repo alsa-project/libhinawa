@@ -351,29 +351,25 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
 		return;
 	}
 
-	if (w.rcode != RCODE_COMPLETE) {
-		switch (w.rcode) {
-		case RCODE_COMPLETE:
-		case RCODE_CONFLICT_ERROR:
-		case RCODE_DATA_ERROR:
-		case RCODE_TYPE_ERROR:
-		case RCODE_ADDRESS_ERROR:
-		case RCODE_SEND_ERROR:
-		case RCODE_CANCELLED:
-		case RCODE_BUSY:
-		case RCODE_GENERATION:
-		case RCODE_NO_ACK:
-			break;
-		default:
-			w.rcode = HINAWA_FW_RCODE_INVALID;
-			break;
-		}
-
+	switch (w.rcode) {
+	case RCODE_COMPLETE:
+		*frame_size = w.length;
+		break;
+	case RCODE_CONFLICT_ERROR:
+	case RCODE_DATA_ERROR:
+	case RCODE_TYPE_ERROR:
+	case RCODE_ADDRESS_ERROR:
+	case RCODE_SEND_ERROR:
+	case RCODE_CANCELLED:
+	case RCODE_BUSY:
+	case RCODE_GENERATION:
+	case RCODE_NO_ACK:
 		generate_local_error(error, w.rcode);
-		return;
+		break;
+	default:
+		generate_local_error(error, HINAWA_FW_RCODE_INVALID);
+		break;
 	}
-
-	*frame_size = w.length;
 }
 
 /**
