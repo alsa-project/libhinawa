@@ -39,7 +39,7 @@ typedef struct {
 } HinawaFwReqPrivate;
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwReq, hinawa_fw_req, G_TYPE_OBJECT)
 
-static const char *const rcode_labels[] = {
+static const char *const err_labels[] = {
 	[RCODE_COMPLETE]	= "no error",
 	[RCODE_CONFLICT_ERROR]	= "conflict error",
 	[RCODE_DATA_ERROR]	= "data error",
@@ -52,8 +52,16 @@ static const char *const rcode_labels[] = {
 	[RCODE_NO_ACK]		= "no ack",
 };
 
-#define generate_local_error(error, code)						\
-	g_set_error_literal(error, HINAWA_FW_REQ_ERROR, code, rcode_labels[code])
+static void generate_fw_req_error_with_errno(GError **error, HinawaFwRcode code, int err_no)
+{
+	g_set_error(error, HINAWA_FW_REQ_ERROR, code,
+		    "%s %d (%s)", err_labels[code], err_no, strerror(err_no));
+}
+
+static void generate_fw_req_error_literal(GError **error, HinawaFwRcode code)
+{
+	g_set_error_literal(error, HINAWA_FW_REQ_ERROR, code, err_labels[code]);
+}
 
 static void fw_req_get_property(GObject *obj, guint id, GValue *val,
 				GParamSpec *spec)
@@ -246,7 +254,7 @@ void hinawa_fw_req_transaction_async(HinawaFwReq *self, HinawaFwNode *node,
 	// Send this transaction.
 	err = hinawa_fw_node_ioctl(node, FW_CDEV_IOC_SEND_REQUEST, &req, error);
 	if (*error == NULL && err > 0)
-		generate_local_error(error, HINAWA_FW_RCODE_SEND_ERROR);
+		generate_fw_req_error_with_errno(error, HINAWA_FW_RCODE_SEND_ERROR, err);
 }
 
 struct waiter {
@@ -347,7 +355,7 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
 	g_object_unref(node);
 
 	if (w.rcode == G_MAXUINT) {
-		generate_local_error(error, HINAWA_FW_RCODE_CANCELLED);
+		generate_fw_req_error_literal(error, HINAWA_FW_RCODE_CANCELLED);
 		return;
 	}
 
@@ -364,10 +372,10 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
 	case RCODE_BUSY:
 	case RCODE_GENERATION:
 	case RCODE_NO_ACK:
-		generate_local_error(error, w.rcode);
+		generate_fw_req_error_literal(error, w.rcode);
 		break;
 	default:
-		generate_local_error(error, HINAWA_FW_RCODE_INVALID);
+		generate_fw_req_error_literal(error, HINAWA_FW_RCODE_INVALID);
 		break;
 	}
 }
