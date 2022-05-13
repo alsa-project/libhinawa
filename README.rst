@@ -2,7 +2,7 @@
 libhinawa
 =========
 
-2022/04/17
+2022/05/13
 Takashi Sakamoto
 
 Instruction
@@ -120,6 +120,7 @@ Sample scripts
 Some sample scripts are available under ``samples`` directory:
 
 - gtk3 - PyGObject is required.
+- gtk4 - PyGObject is required.
 - qt5 - PyQt5 is required.
 
 How to make DEB package
