@@ -119,7 +119,7 @@ Sample scripts
 
 Some sample scripts are available under ``samples`` directory:
 
-- gtk - PyGObject is required.
+- gtk3 - PyGObject is required.
 - qt5 - PyQt5 is required.
 
 How to make DEB package
