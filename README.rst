@@ -117,9 +117,7 @@ You can see documentation files under ``(directory-to-install)/share/doc/hinawa/
 Sample scripts
 ==============
 
-::
-
-    $ ./samples/run.sh [gtk|qt5]
+Some sample scripts are available under ``samples`` directory:
 
 - gtk - PyGObject is required.
 - qt5 - PyQt5 is required.
