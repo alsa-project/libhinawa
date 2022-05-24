@@ -12,6 +12,10 @@ dependencies = [
   "GObject-2.0",
 ]
 
+related = [
+  "Hitaki-0.0",
+]
+
 [dependencies."GLib-2.0"]
 name = "GLib"
 description = "The base utility library"
@@ -21,6 +25,11 @@ docs_url = "https://docs.gtk.org/glib/"
 name = "GObject"
 description = "The base type system and object class"
 docs_url = "https://docs.gtk.org/gobject/"
+
+[related."Hitaki-0.0"]
+name = "Hitaki"
+description = "Library to abstract the access to the ALSA firewire hwdep device "
+docs_url = "https://alsa-project.github.io/libhitaki-doc/"
 
 [source-location]
 base_url = "https://github.com/alsa-project/libhinawa/blob/master/"

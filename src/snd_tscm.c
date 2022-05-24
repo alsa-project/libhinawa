@@ -9,6 +9,8 @@
  * A state reader for Tascam FireWire models
  *
  * A [class@SndTscm] is an application of protocol defined by TASCAM.
+ *
+ * Deprecated: 2.5. libhitaki library provides [class@Hitaki.SndTascam] as the alternative.
  */
 
 typedef struct {
@@ -37,11 +39,13 @@ static void hinawa_snd_tscm_class_init(HinawaSndTscmClass *klass)
 	 * is emitted.
 	 *
 	 * Since: 1.1
+	 * Deprecated: 2.5. Use implementation of [signal@Hitaki.TascamProtocol::changed] in
+	 *	       [class@Hitaki.SndTascam] instead.
 	 */
 	tscm_sigs[TSCM_SIG_TYPE_CTL] =
 		g_signal_new("control",
 			     G_OBJECT_CLASS_TYPE(klass),
-			     G_SIGNAL_RUN_LAST,
+			     G_SIGNAL_RUN_LAST | G_SIGNAL_DEPRECATED,
 			     G_STRUCT_OFFSET(HinawaSndTscmClass, control),
 			     NULL, NULL,
 			     hinawa_sigs_marshal_VOID__UINT_UINT_UINT,
@@ -60,7 +64,9 @@ static void hinawa_snd_tscm_init(HinawaSndTscm *self)
  * Instantiate [class@SndTscm] object and return the instance.
  *
  * Returns: an instance of [class@SndTscm].
+ *
  * Since: 1.3.
+ * Deprecated: 2.5. Use [method@Hitaki.SndTascam.new] instead.
  */
 HinawaSndTscm *hinawa_snd_tscm_new(void)
 {
@@ -77,6 +83,8 @@ HinawaSndTscm *hinawa_snd_tscm_new(void)
  * Open ALSA hwdep character device and check it for Tascam devices.
  *
  * Since: 1.1
+ * Deprecated: 2.5. Use implementation of [method@Hitaki.AlsaFirewire.open] in
+ *	       [class@Hitaki.SndTascam] instead.
  */
 void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **error)
 {
@@ -97,6 +105,8 @@ void hinawa_snd_tscm_open(HinawaSndTscm *self, gchar *path, GError **error)
  * Returns: (element-type guint32) (array fixed-size=64) (transfer none): state image.
  *
  * Since: 1.1
+ * Deprecated: 2.5. Use implementation of [method@Hitaki.TascamProtocol.read_state] in
+ *	       [class@Hitaki.SndTascam] instead.
  */
 const guint32 *hinawa_snd_tscm_get_state(HinawaSndTscm *self, GError **error)
 {

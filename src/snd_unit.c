@@ -18,6 +18,8 @@
  *
  * This class is an application of ALSA FireWire stack. Any functionality which ALSA drivers in the
  * stack can be available.
+ *
+ * Deprecated: 2.5. libhitaki library provides [class@Hitaki.SndUnit] as the alternative.
  */
 
 /**
@@ -26,6 +28,7 @@
  * Return the [alias@GLib.Quark] for [struct@GLib.Error] which has code in Hinawa.SndUnitError.
  *
  * Since: 2.1
+ * Deprecated: 2.5. Use Hitaki.AlsaFirewireError instead.
  *
  * Returns: A [alias@GLib.Quark].
  */
@@ -139,59 +142,64 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 	 * HinawaSndUnit:type:
 	 *
 	 * Since: 1.0
+	 * Deprecated: 2.5. Use [property@Hitaki.AlsaFirewire:unit-type] instead.
 	 */
 	snd_unit_props[SND_UNIT_PROP_TYPE_FW_TYPE] =
 		g_param_spec_enum("type", "type",
 				  "The value of HinawaSndUnitType enumerators",
 				  HINAWA_TYPE_SND_UNIT_TYPE,
 				  HINAWA_SND_UNIT_TYPE_DICE,
-				  G_PARAM_READABLE);
+				  G_PARAM_READABLE | G_PARAM_DEPRECATED);
 
 	/**
 	 * HinawaSndUnit:card:
 	 *
 	 * Since: 2.0
+	 * Deprecated: 2.5. Use [property@Hitaki.AlsaFirewire:card] instead.
 	 */
 	snd_unit_props[SND_UNIT_PROP_TYPE_CARD_ID] =
 		g_param_spec_uint("card", "card",
 				  "The numeric ID for ALSA sound card",
 				  0, G_MAXUINT,
 				  0,
-				  G_PARAM_READABLE);
+				  G_PARAM_READABLE | G_PARAM_DEPRECATED);
 
 	/**
 	 * HinawaSndUnit:device:
 	 *
 	 *
 	 * Since: 0.3
+	 * Deprecated: 2.5. Use [property@Hitaki.AlsaFirewire:node-device] instead.
 	 */
 	snd_unit_props[SND_UNIT_PROP_TYPE_DEVICE] =
 		g_param_spec_string("device", "device",
 				    "A name of special file as FireWire unit.",
 				    NULL,
-				    G_PARAM_READABLE);
+				    G_PARAM_READABLE | G_PARAM_DEPRECATED);
 
 	/**
 	 * HinawaSndUnit:streaming:
 	 *
 	 * Since: 0.4
+	 * Deprecated: 2.5. Use [property@Hitaki.AlsaFirewire:is-locked] instead.
 	 */
 	snd_unit_props[SND_UNIT_PROP_TYPE_STREAMING] =
 		g_param_spec_boolean("streaming", "streaming",
 				     "Whether this device is streaming or not",
 				     FALSE,
-				     G_PARAM_READABLE);
+				     G_PARAM_READABLE | G_PARAM_DEPRECATED);
 
 	/**
 	 * HinawaSndUnit:guid:
 	 *
 	 * Since: 0.4
+	 * Deprecated: 2.5. Use [property@Hitaki.AlsaFirewire:guid] instead.
 	 */
 	snd_unit_props[SND_UNIT_PROP_TYPE_GUID] =
 		g_param_spec_uint64("guid", "guid",
 				    "Global unique ID for this firewire unit.",
 				    0, G_MAXUINT64, 0,
-				    G_PARAM_READABLE);
+				    G_PARAM_READABLE | G_PARAM_DEPRECATED);
 
 	g_object_class_install_properties(gobject_class,
 					  SND_UNIT_PROP_TYPE_COUNT,
@@ -206,11 +214,13 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 	 * packet streaming requested by ALSA PCM/Rawmidi applications.
 	 *
 	 * Since: 0.3
+	 * Deprecated: 2.5. Use change notify signal of [property@Hitaki.AlsaFirewire:is-locked]
+	 *	       instead.
 	 */
 	snd_unit_sigs[SND_UNIT_SIG_TYPE_LOCK_STATUS] =
 		g_signal_new("lock-status",
 			     G_OBJECT_CLASS_TYPE(klass),
-			     G_SIGNAL_RUN_LAST,
+			     G_SIGNAL_RUN_LAST | G_SIGNAL_DEPRECATED,
 			     G_STRUCT_OFFSET(HinawaSndUnitClass, lock_status),
 			     NULL, NULL,
 			     g_cclosure_marshal_VOID__BOOLEAN,
@@ -225,11 +235,13 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 	 * quickly as possible to release ALSA hwdep character device.
 	 *
 	 * Since: 2.0
+	 * Deprecated: 2.5. Use change notify signal of
+	 *	       [property@Hitaki.AlsaFirewire:is-disconnected] instead.
 	 */
 	snd_unit_sigs[SND_UNIT_SIG_TYPE_DISCONNECTED] =
 		g_signal_new("disconnected",
 			     G_OBJECT_CLASS_TYPE(klass),
-			     G_SIGNAL_RUN_LAST,
+			     G_SIGNAL_RUN_LAST | G_SIGNAL_DEPRECATED,
 			     G_STRUCT_OFFSET(HinawaSndUnitClass, disconnected),
 			     NULL, NULL,
 			     g_cclosure_marshal_VOID__VOID,
@@ -250,7 +262,9 @@ static void hinawa_snd_unit_init(HinawaSndUnit *self)
  * Instantiate [class@SndUnit] object and return the instance.
  *
  * Returns: an instance of [class@SndUnit].
+ *
  * Since: 1.3.
+ * Deprecated: 2.5. Use [method@Hitaki.SndUnit.new] instead.
  */
 HinawaSndUnit *hinawa_snd_unit_new(void)
 {
@@ -267,6 +281,8 @@ HinawaSndUnit *hinawa_snd_unit_new(void)
  * Open ALSA hwdep character device and check it for FireWire sound devices.
  *
  * Since: 0.4
+ * Deprecated: 2.5. Use implementation of [method@Hitaki.AlsaFirewire.open] in
+ *	       [class@Hitaki.SndUnit] instead.
  */
 void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **error)
 {
@@ -346,6 +362,8 @@ end:
  * Retrieve an instance of [class@FwNode] associated to the given unit.
  *
  * Since: 2.0.
+ * Deprecated: 2.5. Instantiate [class@FwNode] according to
+ *	       [property@Hitaki.AlsaFirewire:node-device] instead.
  */
 void hinawa_snd_unit_get_node(HinawaSndUnit *self, HinawaFwNode **node)
 {
@@ -367,6 +385,8 @@ void hinawa_snd_unit_get_node(HinawaSndUnit *self, HinawaFwNode **node)
  * Disallow corresponding ALSA driver to start packet streaming.
  *
  * Since: 0.3
+ * Deprecated: 2.5. Use implementation of [method@Hitaki.AlsaFirewire.lock] in
+ *	       [class@Hitaki.SndUnit] instead.
  */
 void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **error)
 {
@@ -399,6 +419,8 @@ void hinawa_snd_unit_lock(HinawaSndUnit *self, GError **error)
  * Allow corresponding ALSA driver to start packet streaming.
  *
  * Since: 0.3
+ * Deprecated: 2.5. Use implementation of [method@Hitaki.AlsaFirewire.unlock] in
+ *	       [class@Hitaki.SndUnit] instead.
  */
 void hinawa_snd_unit_unlock(HinawaSndUnit *self, GError **error)
 {
@@ -598,6 +620,8 @@ static void finalize_src(GSource *gsrc)
  * device.
  *
  * Since: 1.4.
+ * Deprecated: 2.5. Use implementation of [method@Hitaki.AlsaFirewire.create_source] in
+ *	       [class@Hitaki.SndUnit] instead.
  */
 void hinawa_snd_unit_create_source(HinawaSndUnit *self, GSource **gsrc,
 				   GError **error)

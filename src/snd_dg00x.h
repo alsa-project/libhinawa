@@ -21,6 +21,8 @@ struct _HinawaSndDg00xClass {
 	 * Class closure for the [signal@SndDg00x::message] signal.
 	 *
 	 * Since: 1.2
+	 * Deprecated: 2.5. Use implementation of [vfunc@Hitaki.AlsaFirewire.notified] in
+	 *	       [class@Hitaki.SndDigi00x] instead.
 	 */
 	void (*message)(HinawaSndDg00x *self, guint32 message);
 };

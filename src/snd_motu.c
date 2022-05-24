@@ -10,6 +10,8 @@
  *
  * A [class@SndMotu] is an application of asynchronous notification defined by Mark of the Unicorn
  * (MOTU).
+ *
+ * Deprecated: 2.5. libhitaki library provides [class@Hitaki.SndMotu] as the alternative.
  */
 
 typedef struct {
@@ -35,11 +37,13 @@ static void hinawa_snd_motu_class_init(HinawaSndMotuClass *klass)
 	 * Emitted when Motu models transfer notification.
 	 *
 	 * Since: 0.8
+	 * Deprecated: 2.5. Use implementation of [signal@Hitaki.QuadletNotification::notified]
+	 *	       in [class@Hitaki.SndMotu] instead.
 	 */
 	motu_sigs[MOTU_SIG_TYPE_NOTIFIED] =
 		g_signal_new("notified",
 			     G_OBJECT_CLASS_TYPE(klass),
-			     G_SIGNAL_RUN_LAST,
+			     G_SIGNAL_RUN_LAST | G_SIGNAL_DEPRECATED,
 			     G_STRUCT_OFFSET(HinawaSndMotuClass, notified),
 			     NULL, NULL,
 			     g_cclosure_marshal_VOID__UINT,
@@ -59,11 +63,13 @@ static void hinawa_snd_motu_class_init(HinawaSndMotuClass *klass)
 	 * For detail, see `sound/firewire/motu/motu-register-dsp-message-parser.c` in Linux kernel.
 	 *
 	 * Since: 2.4
+	 * Deprecated: 2.5. Use implementation [signal@Hitaki.MotuRegisterDsp::changed] in
+	 *	       [class@Hitaki.SndMotu] instead.
 	 */
 	motu_sigs[MOTU_SIG_TYPE_REGISTER_DSP_CHANGED] =
 		g_signal_new("register-dsp-changed",
 			     G_OBJECT_CLASS_TYPE(klass),
-			     G_SIGNAL_RUN_LAST,
+			     G_SIGNAL_RUN_LAST | G_SIGNAL_DEPRECATED,
 			     G_STRUCT_OFFSET(HinawaSndMotuClass, register_dsp_changed),
 			     NULL, NULL,
 			     hinawa_sigs_marshal_VOID__POINTER_UINT,
@@ -82,7 +88,9 @@ static void hinawa_snd_motu_init(HinawaSndMotu *self)
  * Instantiate [class@SndMotu] object and return the instance.
  *
  * Returns: an instance of [class@SndMotu].
+ *
  * Since: 1.3.
+ * Deprecated: 2.5. Use [method@Hitaki.SndMotu.new] instead.
  */
 HinawaSndMotu *hinawa_snd_motu_new(void)
 {
@@ -99,6 +107,8 @@ HinawaSndMotu *hinawa_snd_motu_new(void)
  * Open ALSA hwdep character device and check it for Motu devices.
  *
  * Since: 0.8
+ * Deprecated: 2.5. Use implementation of [method@Hitaki.AlsaFirewire.open] in
+ *	       [class@Hitaki.SndMotu] instead.
  */
 void hinawa_snd_motu_open(HinawaSndMotu *self, gchar *path, GError **error)
 {
@@ -119,6 +129,8 @@ void hinawa_snd_motu_open(HinawaSndMotu *self, gchar *path, GError **error)
  * Read parameter for register DSP models.
  *
  * Since: 2.4
+ * Deprecated: 2.5. Use implementation of [method@Hitaki.MotuRegisterDsp.read_parameter] in
+ *	       [class@Hitaki.SndMotu] instead.
  */
 void hinawa_snd_motu_read_register_dsp_parameter(HinawaSndMotu *self,
 						 HinawaSndMotuRegisterDspParameter *const *param,
@@ -148,6 +160,8 @@ void hinawa_snd_motu_read_register_dsp_parameter(HinawaSndMotu *self,
  * Read data of meter information for register DSP models.
  *
  * Since: 2.4
+ * Deprecated: 2.5. Use implementation of [method@Hitaki.MotuRegisterDsp.read_byte_meter] in
+ *	       [class@Hitaki.SndMotu] instead.
  */
 void hinawa_snd_motu_read_register_dsp_meter(HinawaSndMotu *self, guint8 *const meter[48],
 					     GError **error)
@@ -174,6 +188,8 @@ void hinawa_snd_motu_read_register_dsp_meter(HinawaSndMotu *self, guint8 *const 
  * Read data of meter information for command DSP models.
  *
  * Since: 2.4
+ * Deprecated: 2.5. Use implementation of [method@Hitaki.MotuCommandDsp.read_float_meter] in
+ *	       [class@Hitaki.SndMotu] instead.
  */
 void hinawa_snd_motu_read_command_dsp_meter(HinawaSndMotu *self, gfloat *const meter[400],
 					    GError **error)

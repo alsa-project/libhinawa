@@ -7,6 +7,10 @@
  *
  * A [struct@SndMotuRegisterDspParameter] is a boxed object for container of parameter in register
  * DSP model.
+ *
+ * Since: 2.4.
+ * Deprecated: 2.5. libhitaki library provides [struct@Hitaki.SndMotuRegisterDspParameter] as the
+ *	       alternative.
  */
 HinawaSndMotuRegisterDspParameter *register_dsp_parameter_copy(const HinawaSndMotuRegisterDspParameter *self)
 {
@@ -29,7 +33,9 @@ G_DEFINE_BOXED_TYPE(HinawaSndMotuRegisterDspParameter, hinawa_snd_motu_register_
  * Instantiate [struct@SndMotuRegisterDspParameter] object and return the instance.
  *
  * Returns: an instance of [struct@SndMotuRegisterDspParameter].
+ *
  * Since: 2.4
+ * Deprecated: 2.5. Use [method@Hitaki.SndMotuRegisterDspParameter.new] instead.
  */
 HinawaSndMotuRegisterDspParameter *hinawa_snd_motu_register_dsp_parameter_new(void)
 {
@@ -45,6 +51,8 @@ HinawaSndMotuRegisterDspParameter *hinawa_snd_motu_register_dsp_parameter_new(vo
  *
  * Get the array with elements for the data of source gains in indicated mixer. The data has gain
  * value between 0x00 and 0x80.
+ *
+ * Deprecated: 2.5. Use [method@Hitaki.SndMotuRegisterDspParameter.get_mixer_source_gain] instead.
  */
 void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_gain(
 	const HinawaSndMotuRegisterDspParameter *self, gsize mixer, const guint8 *gain[20])
@@ -68,6 +76,8 @@ void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_gain(
  *
  * Get the array with elements for the data of source pans in indicated mixer. The data has pan
  * value between 0x00 and 0x80.
+ *
+ * Deprecated: 2.5. Use [method@Hitaki.SndMotuRegisterDspParameter.get_mixer_source_pan] instead.
  */
 void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_pan(
 	const HinawaSndMotuRegisterDspParameter *self, gsize mixer, const guint8 *pan[20])
@@ -94,6 +104,8 @@ void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_pan(
  *
  *  - 0x01: whether to enable mute function for the source.
  *  - 0x02: whether to enable solo function for the source.
+ *
+ * Deprecated: 2.5. Use [method@Hitaki.SndMotuRegisterDspParameter.get_mixer_source_flag] instead.
  */
 void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_flag(
 	const HinawaSndMotuRegisterDspParameter *self, gsize mixer, const guint8 *flag[20])
@@ -117,6 +129,9 @@ void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_flag(
  *
  * Get the array with elements for the data of paired source L/R balance in indicated mixer. The
  * data has L/R balance value between 0x00 and 0x80.
+ *
+ * Deprecated: 2.5. Use [method@Hitaki.SndMotuRegisterDspParameter.get_mixer_source_paired_balance]
+ *	       instead.
  */
 void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_balance(
 	const HinawaSndMotuRegisterDspParameter *self, gsize mixer, const guint8 *balance[20])
@@ -140,6 +155,9 @@ void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_balance(
  *
  * Get the array with elements for the data of paired source width in indicated mixer. The data
  * has width value between 0x00 and 0x80.
+ *
+ * Deprecated: 2.5. Use [method@Hitaki.SndMotuRegisterDspParameter.get_mixer_source_paired_width]
+ *	       instead.
  */
 void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_width(
 	const HinawaSndMotuRegisterDspParameter *self, gsize mixer, const guint8 *width[20])
@@ -162,6 +180,9 @@ void hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_width(
  *
  * Get the array with elements for the data of paired output volume in indicated mixer. The data
  * has gain value between 0x00 and 0x80.
+ *
+ * Deprecated: 2.5. Use [method@Hitaki.SndMotuRegisterDspParameter.get_mixer_output_paired_volume]
+ *	       instead.
  */
 void hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_volume(
 	const HinawaSndMotuRegisterDspParameter *self, const guint8 *volume[4])
@@ -186,6 +207,9 @@ void hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_volume(
  *
  *  - 0x0f: the mask for destination of paired output
  *  - 0x10: whether to enable mute for paired output
+ *
+ * Deprecated: 2.5. Use [method@Hitaki.SndMotuRegisterDspParameter.get_mixer_output_paired_flag]
+ *	       instead.
  */
 void hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_flag(
 	const HinawaSndMotuRegisterDspParameter *self, const guint8 *flag[4])
@@ -206,6 +230,9 @@ void hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_flag(
  *
  * Get the array with elements for the data of paired main output volume. The data has volume value
  * between 0x00 and 0x80.
+ *
+ * Deprecated: 2.5. Use [method@Hitaki.SndMotuRegisterDspParameter.get_main_output_paired_volume]
+ *	       instead.
  */
 void hinawa_snd_motu_register_dsp_parameter_get_main_output_paired_volume(
 	const HinawaSndMotuRegisterDspParameter *self, guint8 *volume)
@@ -226,6 +253,10 @@ void hinawa_snd_motu_register_dsp_parameter_get_main_output_paired_volume(
  *
  * Get the array with elements for the data of paired headphone output volume. The data has volume
  * value between 0x00 and 0x80.
+ *
+ * Deprecated: 2.5. Use
+ *	       [method@Hitaki.SndMotuRegisterDspParameter.get_headphone_output_paired_volume]
+ *	       instead.
  */
 void hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_volume(
 	const HinawaSndMotuRegisterDspParameter *self, guint8 *volume)
@@ -246,6 +277,10 @@ void hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_volume(
  *
  * Get the array with elements for the data of paired headphone output source. The data has index
  * value of source.
+ *
+ * Deprecated: 2.5. Use
+ *	       [method@Hitaki.SndMotuRegisterDspParameter.get_headphone_output_paired_assignment]
+ *	       instead.
  */
 void hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_assignment(
 	const HinawaSndMotuRegisterDspParameter *self, guint8 *assignment)
@@ -266,6 +301,9 @@ void hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_assignme
  *
  * Get the data for flags of line input boost. The data consists of bit flags for corresponding line
  * input channel. When the flag stands, the input is boosted.
+ *
+ * Deprecated: 2.5. Use [method@Hitaki.SndMotuRegisterDspParameter.get_line_input_boost_flag]
+ *	       instead.
  */
 void hinawa_snd_motu_register_dsp_parameter_get_line_input_boost_flag(
 	const HinawaSndMotuRegisterDspParameter *self, guint8 *boost_flag)
@@ -287,6 +325,10 @@ void hinawa_snd_motu_register_dsp_parameter_get_line_input_boost_flag(
  * Get the data for flags of line input nominal level. The data consists of bit flags for
  * corresponding line input channel. When the flag stands, the nominal level of input is +4 dBu,
  * else -10 dBV.
+ *
+ * Deprecated: 2.5. Use
+ *	       [method@Hitaki.SndMotuRegisterDspParameter.get_line_input_nominal_level_flag]
+ *	       instead.
  */
 void hinawa_snd_motu_register_dsp_parameter_get_line_input_nominal_level_flag(
 	const HinawaSndMotuRegisterDspParameter *self, guint8 *nominal_level_flag)
@@ -315,6 +357,9 @@ void hinawa_snd_motu_register_dsp_parameter_get_line_input_nominal_level_flag(
  * - Audio Express and 4 pre
  *     - 0x3f: the gain
  *     - 0x40: whether to invert phase of the input
+ *
+ * Deprecated: 2.5. Use [method@Hitaki.SndMotuRegisterDspParameter.get_input_gain_and_invert] 
+ *	       instead.
  */
 void hinawa_snd_motu_register_dsp_parameter_get_input_gain_and_invert(
 	const HinawaSndMotuRegisterDspParameter *self, const guint8 *gain_and_invert[10])
@@ -340,6 +385,8 @@ void hinawa_snd_motu_register_dsp_parameter_get_input_gain_and_invert(
  * - 0x02: whether to enable phantom powering
  * - 0x04: whether to enable attenuation pad
  * - 0x08: whether to detect plug insert to jack
+ *
+ * Deprecated: 2.5. Use [method@Hitaki.SndMotuRegisterDspParameter.get_input_flag] instead.
  */
 void hinawa_snd_motu_register_dsp_parameter_get_input_flag(
 	const HinawaSndMotuRegisterDspParameter *self, const guint8 *flag[10])

@@ -9,6 +9,8 @@
  * A transaction executor for Fireworks models.
  *
  * A [class@SndEfw] is an application of Echo Fireworks Transaction.
+ *
+ * Deprecated: 2.5. libhitaki library provides [class@Hitaki.SndEfw] as the alternative.
  */
 
 /**
@@ -18,6 +20,7 @@
  * [enum@SndEfwStatus].
  *
  * Since: 2.1
+ * Deprecated: 2.5. Use Hitaki.EfwProtocolError instead.
  *
  * Returns: A [alias@GLib.Quark].
  */
@@ -80,11 +83,13 @@ static void hinawa_snd_efw_class_init(HinawaSndEfwClass *klass)
 	 * response.
 	 *
 	 * Since: 2.1
+	 * Deprecated: 2.5. Use implementation of [class@Hitaki.SndEfw] for
+	 *	       [signal@Hitaki.EfwProtocol::responded] instead.
 	 */
 	efw_sigs[EFW_SIG_TYPE_RESPONDED] =
 		g_signal_new("responded",
 			     G_OBJECT_CLASS_TYPE(klass),
-			     G_SIGNAL_RUN_LAST,
+			     G_SIGNAL_RUN_LAST | G_SIGNAL_DEPRECATED,
 			     G_STRUCT_OFFSET(HinawaSndEfwClass, responded),
 			     NULL, NULL,
 			     hinawa_sigs_marshal_VOID__ENUM_UINT_UINT_UINT_POINTER_UINT,
@@ -103,7 +108,9 @@ static void hinawa_snd_efw_init(HinawaSndEfw *self)
  * Instantiate [class@SndEfw] object and return the instance.
  *
  * Returns: an instance of [class@SndEfw].
+ *
  * Since: 1.3.
+ * Deprecated: 2.5. Use [method@Hitaki.SndEfw.new] instead.
  */
 HinawaSndEfw *hinawa_snd_efw_new(void)
 {
@@ -120,6 +127,8 @@ HinawaSndEfw *hinawa_snd_efw_new(void)
  * Open ALSA hwdep character device and check it for Fireworks devices.
  *
  * Since: 0.3
+ * Deprecated: 2.5. Use implementation of [method@Hitaki.AlsaFirewire.open] in
+ *	       [class@Hitaki.SndEfw] instead.
  */
 void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **error)
 {
@@ -156,6 +165,8 @@ void hinawa_snd_efw_open(HinawaSndEfw *self, gchar *path, GError **error)
  * emitted.
  *
  * Since: 2.1.
+ * Deprecated: 2.5. Use implementation of [method@Hitaki.EfwProtocol.transmit_request] in
+ *	       [class@Hitaki.SndEfw] instead.
  */
 void hinawa_snd_efw_transaction_async(HinawaSndEfw *self, guint category, guint command,
 				      const guint32 *args, gsize arg_count, guint32 *resp_seqnum,
@@ -263,6 +274,8 @@ static void handle_responded_signal(HinawaSndEfw *self, HinawaSndEfwStatus statu
  * asynchronous transaction for response frame within the given timeout.
  *
  * Since: 2.1.
+ * Deprecated: 2.5. Use implementation of [method@Hitaki.EfwProtocol.transaction] in
+ *	       [class@Hitaki.SndEfw] instead.
  */
 void hinawa_snd_efw_transaction_sync(HinawaSndEfw *self, guint category, guint command,
 				     const guint32 *args, gsize arg_count,
@@ -344,6 +357,8 @@ end:
  * the response of transaction within 200 millisecond timeout.
  *
  * Since: 1.4.
+ * Deprecated: 2.5. Use implementation of [method@Hitaki.EfwProtocol.transaction] in
+ *	       [class@Hitaki.SndEfw] instead.
  */
 void hinawa_snd_efw_transaction(HinawaSndEfw *self,
 				guint category, guint command,

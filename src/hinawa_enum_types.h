@@ -125,6 +125,7 @@ typedef enum {
  * A representation of type for sound unit defined by Linux sound subsystem.
  *
  * Since: 1.0
+ * Deprecated: 2.5. Use [enum@Hitaki.AlsaFirewireType] in libhitaki library instead.
  */
 typedef enum {
 	HINAWA_SND_UNIT_TYPE_DICE = 1,
@@ -203,6 +204,7 @@ typedef enum {
  * A set of error code for [struct@GLib.Error] with domain which equals to Hinawa.SndUnitError.
  *
  * Since: 2.1
+ * Deprecated: 2.5. Use Hitaki.AlsaFirewireError in libhitaki library instead.
  */
 typedef enum {
 	HINAWA_SND_UNIT_ERROR_DISCONNECTED,
@@ -222,6 +224,7 @@ typedef enum {
  * A set of error code for [structGLib.Error] with domain which equals to Hinawa.SndDiceError.
  *
  * Since: 2.1
+ * Deprecated: 2.5. Use Hitaki.AlsaFirewireError in libhitaki library instead.
  */
 typedef enum {
 	HINAWA_SND_DICE_ERROR_TIMEOUT,
@@ -250,6 +253,7 @@ typedef enum {
  * A set of status code for Echo Audio Fireworks Transaction.
  *
  * Since: 2.1
+ * Deprecated: 2.5. Use Hitaki.EfwProtocolError in libhitaki library instead.
  */
 typedef enum {
 	HINAWA_SND_EFW_STATUS_OK		= 0,

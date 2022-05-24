@@ -25,6 +25,8 @@ struct _HinawaSndDiceClass {
 	 * Class closure for the [signal@SndDice::notified].
 	 *
 	 * Since: 1.2
+	 * Deprecated: 2.5. Use implementation of [class@Hitaki.SndDice] for
+	 *	       [vfunc@Hitaki.QuadletNotification.notified] instead.
 	 */
 	void (*notified)(HinawaSndDice *self, guint message);
 };
