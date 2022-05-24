@@ -9,6 +9,8 @@
  * A notification listener for Digidesign Digi 00x models.
  *
  * A [class@SndDg00x] listen to Dg00x notification and generates signal when received.
+ *
+ * Deprecated: 2.5. libhitaki library provides [class@Hitaki.SndDigi00x] as the alternative.
  */
 
 G_DEFINE_TYPE(HinawaSndDg00x, hinawa_snd_dg00x, HINAWA_TYPE_SND_UNIT)
@@ -30,11 +32,13 @@ static void hinawa_snd_dg00x_class_init(HinawaSndDg00xClass *klass)
 	 * Emitted when Dg00x models transfer notification.
 	 *
 	 * Since: 0.7
+	 * Deprecated: 2.5. Use implementation of [signal@Hitaki.AlsaFirewire::notified] in
+	 *	       [class@Hitaki.SndDigi00x] instead.
 	 */
 	dg00x_sigs[DG00X_SIG_TYPE_MESSAGE] =
 		g_signal_new("message",
 			     G_OBJECT_CLASS_TYPE(klass),
-			     G_SIGNAL_RUN_LAST,
+			     G_SIGNAL_RUN_LAST | G_SIGNAL_DEPRECATED,
 			     G_STRUCT_OFFSET(HinawaSndDg00xClass, message),
 			     NULL, NULL,
 			     g_cclosure_marshal_VOID__UINT,
@@ -52,7 +56,9 @@ static void hinawa_snd_dg00x_init(HinawaSndDg00x *self)
  * Instantiate [class@SndDg00x] object and return the instance.
  *
  * Returns: an instance of [class@SndDg00x].
+ *
  * Since: 1.3.
+ * Deprecated: 2.5. Use [method@Hitaki.SndDigi00x.new] instead.
  */
 HinawaSndDg00x *hinawa_snd_dg00x_new(void)
 {
@@ -69,6 +75,8 @@ HinawaSndDg00x *hinawa_snd_dg00x_new(void)
  * Open ALSA hwdep character device and check it for Dg00x devices.
  *
  * Since: 0.7
+ * Deprecated: 2.5. Use implementation of [method@Hitaki.AlsaFirewire.open]
+ *	       [class@Hitaki.SndDigi00x] for instead.
  */
 void hinawa_snd_dg00x_open(HinawaSndDg00x *self, gchar *path, GError **error)
 {

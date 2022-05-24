@@ -31,6 +31,8 @@ struct _HinawaSndEfwClass {
 	 * Class closure for the [signal@SndEfw::responded] signal.
 	 *
 	 * Since: 2.1
+	 * Deprecated: 2.5. Use implementation of [vfunc@Hitaki.EfwProtocol.responded] in
+	 *	       [class@Hitaki.SndEfw] instead.
 	 */
 	void (*responded)(HinawaSndEfw *self, HinawaSndEfwStatus status, guint seqnum,
 			  guint category, guint command, const guint32 *frame, guint frame_size);

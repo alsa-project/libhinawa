@@ -23,6 +23,8 @@ struct _HinawaSndTscmClass {
 	 * Class closure for the [signal@SndTscm::control] signal.
 	 *
 	 * Since: 1.2
+	 * Deprecated: 2.5. Use implementation of [vfunc@Hitaki.TascamProtocol.changed] in
+	 *	       [class@Hitaki.SndTascam] instead.
 	 */
 	void (*control)(HinawaSndTscm *self, guint index, guint before, guint after);
 };

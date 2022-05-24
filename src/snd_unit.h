@@ -25,6 +25,8 @@ struct _HinawaSndUnitClass {
 	 * Class closure for the [signal@SndUnit::lock-status],
 	 *
 	 * Since: 1.2
+	 * Deprecated: 2.5. Use change notify signal of [property@Hitaki.AlsaFirewire:is-locked]
+	 *	       instead.
 	 */
 	void (*lock_status)(HinawaSndUnit *self, gboolean state);
 
@@ -35,6 +37,8 @@ struct _HinawaSndUnitClass {
 	 * Class closure for the [signal@SndUnit::disconnected].
 	 *
 	 * Since: 2.0
+	 * Deprecated: 2.5. Use change notify signal of
+	 *	       [property@Hitaki.AlsaFirewire:is-disconnected] instead.
 	 */
 	void (*disconnected)(HinawaSndUnit *self);
 };

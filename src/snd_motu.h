@@ -21,6 +21,8 @@ struct _HinawaSndMotuClass {
 	 * Class closure for the [signal@SndMotu::notified] signal.
 	 *
 	 * Since: 1.2
+	 * Deprecated: 2.5. Use implementation of [vfunc@Hitaki.QuadletNotification.notified]
+	 *	       in [class@Hitaki.SndMotu] instead.
 	 */
 	void (*notified)(HinawaSndMotu *self, guint message);
 
@@ -34,6 +36,8 @@ struct _HinawaSndMotuClass {
 	 * Class closure for the [signal@SndMotu::register-dsp-changed] signal.
 	 *
 	 * Since: 2.4
+	 * Deprecated: 2.5. Use implementation [vfunc@Hitaki.MotuRegisterDsp.changed] in
+	 *	       [class@Hitaki.SndMotu] instead.
 	 */
 	void (*register_dsp_changed)(HinawaSndMotu *self, const guint32 *events, guint length);
 };

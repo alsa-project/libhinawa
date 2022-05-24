@@ -9,6 +9,8 @@
  * A notification listener for Dice models.
  *
  * A [class@SndDice] listen to Dice notification and generates signal when received.
+ *
+ * Deprecated: 2.5. libhitaki library provides [class@Hitaki.SndDice] as the alternative.
  */
 
 /**
@@ -17,6 +19,7 @@
  * Return the [alias@GLib.Quark] for [struct@GLib.Error] which has code in Hinawa.SndDiceError.
  *
  * Since: 2.1
+ * Deprecated: 2.5.
  *
  * Returns: A [alias@GLib.Quark].
  */
@@ -74,11 +77,13 @@ static void hinawa_snd_dice_class_init(HinawaSndDiceClass *klass)
 	 * Emitted when Dice unit transfers notification.
 	 *
 	 * Since: 0.3
+	 * Deprecated: 2.5. Use implementation of [class@Hitaki.SndDice] for
+	 *	       [signal@Hitaki.QuadletNotification::notified] instead.
 	 */
 	dice_sigs[DICE_SIG_TYPE_NOTIFIED] =
 		g_signal_new("notified",
 			     G_OBJECT_CLASS_TYPE(klass),
-			     G_SIGNAL_RUN_LAST,
+			     G_SIGNAL_RUN_LAST | G_SIGNAL_DEPRECATED,
 			     G_STRUCT_OFFSET(HinawaSndDiceClass, notified),
 			     NULL, NULL,
 			     g_cclosure_marshal_VOID__UINT,
@@ -96,7 +101,9 @@ static void hinawa_snd_dice_init(HinawaSndDice *self)
  * Instantiate [class@SndDice] object and return the instance.
  *
  * Returns: an instance of [class@SndDice].
+ *
  * Since: 1.3.
+ * Deprecated: 2.5. Use [method@Hitaki.SndDice.new] instead.
  */
 HinawaSndDice *hinawa_snd_dice_new(void)
 {
@@ -113,6 +120,8 @@ HinawaSndDice *hinawa_snd_dice_new(void)
  * Open ALSA hwdep character device and check it for Dice devices.
  *
  * Since: 0.4
+ * Deprecated: 2.5. Use implementation of [method@Hitaki.AlsaFirewire.open] in
+ *	       [class@Hitaki.SndDice] instead.
  */
 void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **error)
 {
@@ -147,6 +156,9 @@ void hinawa_snd_dice_open(HinawaSndDice *self, gchar *path, GError **error)
  * Execute write transactions to the given address, then wait and check notification.
  *
  * Since: 1.4.
+ * Deprecated: 2.5. Use [class@FwReq] to send write request transaction to the unit, then use
+ *		    implementaion of [signal@Hitaki.QuadletNotification::notified] in
+ *		    [class@Hitaki.SndDice] to wait for notification.
  */
 void hinawa_snd_dice_transaction(HinawaSndDice *self, guint64 addr,
 			         const guint32 *frame, gsize frame_count,
