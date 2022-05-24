@@ -170,7 +170,7 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	fw_resp_sigs[FW_RESP_SIG_TYPE_REQ] =
 		g_signal_new("requested",
 			     G_OBJECT_CLASS_TYPE(klass),
-			     G_SIGNAL_RUN_LAST,
+			     G_SIGNAL_RUN_LAST | G_SIGNAL_DEPRECATED,
 			     G_STRUCT_OFFSET(HinawaFwRespClass, requested),
 			     NULL, NULL,
 			     hinawa_sigs_marshal_ENUM__ENUM,
