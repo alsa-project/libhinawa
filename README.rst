@@ -8,19 +8,16 @@ Takashi Sakamoto
 Instruction
 ===========
 
-I design this library to send asynchronous transaction to units in
-IEEE 1394 bus from Linux userspace applications, written by any language
-binding supporting GObject Introspection. According to this design, the
-library is an application of Linux FireWire subsystem and GLib/GObject.
+I design the library for userspace application to send asynchronous transaction to node in
+IEEE 1394 bus and to handle asynchronous transaction initiated by the node. The library is
+itself an application of Linux FireWire subsystem,
+`GLib and GObject <https://gitlab.gnome.org/GNOME/glib>`_.
 
-Additionally, my recent work since 2013 for Linux sound subsystem, a.k.a
-ALSA, adds some loadable modules into Linux kernel as drivers for some
-Audio and Music units in IEEE 1394 bus. They allow userspace applications
-to transfer PCM frames and MIDI messages via ALSA PCM, RawMidi, and
-Sequencer interfaces. The modules also supports ALSA HwDep interface for
-model-specific functions such as notification. The library includes some
-helper objects for the model-specific functions. According to this design,
-a part of this library is an application of Linux sound subsystem.
+The library also has originally included some helper object classes for model-specific functions
+via ALSA HwDep character device added by drivers in ALSA firewire stack. The object classes have
+been already obsoleted and deligated the functions to
+`libhitaki <https://github.com/alsa-project/libhitaki>`_, while are still kept for backward
+compatibility. They should not be used for applications written newly.
 
 Example of Python3 with PyGobject
 =================================
@@ -29,36 +26,35 @@ Example of Python3 with PyGobject
 
     #!/usr/bin/env python3
 
-    from threading import Thread
-
     import gi
     gi.require_version('GLib', '2.0')
-    gi.require_version('Hinawa', '2.0')
+    gi.require_version('Hinawa', '3.0')
     from gi.repository import GLib, Hinawa
 
-    unit = Hinawa.SndUnit()
-    unit.open('/dev/snd/hwC0D0')
-    node = unit.get_node()
+    from threading import Thread
+    from struct import unpack
+
+    node = Hinawa.FwNode.new()
+    node.open('/dev/fw1')
 
     ctx = GLib.MainContext.new()
-    unit_src = unit.create_source()
-    node_src = node.create_source()
-    unit_src.attach(ctx)
-    node_src.attach(ctx)
-    dispatcher = GLib.MainLoop.new(ctx, False)
-    dispatch_th = Thread(target=lambda d: d.run(), args=(dispatcher,))
-    dispatch_th.start()
+    src = node.create_source()
+    src.attach(ctx)
 
-    addr = 0xfffff0000904
-    req = Hinawa.FwReq()
-    frame = bytearray(4)
-    frame = req.transaction_sync(node, Hinawa.FwTcode.READ_QUADLET_REQUEST, addr, 4,
-                                 frame, 50)
-    for i, frame in enumerate(frame):
-        print('0x{:016x}: 0x{:02x}'.format(addr + i, frame))
+    dispatcher = GLib.MainLoop.new(ctx, False)
+    th = Thread(target=lambda d: d.run(), args=(dispatcher, ))
+    th.start()
+
+    addr = 0xfffff0000404
+    req = Hinawa.FwReq.new()
+    frame = [0] * 4
+    frame = req.transaction_sync(node, Hinawa.FwTcode.READ_QUADLET_REQUEST, addr,
+                                 len(frame), frame, 50)
+    quad = unpack('>I', frame)[0]
+    print('0x{:012x}: 0x{:02x}'.format(addr, quad))
 
     dispatcher.quit()
-    dispatcher_th.join()
+    th.join()
 
 License
 =======
@@ -159,6 +155,83 @@ How to make RPM package
 ::
 
     $ rpmbuild -bb libhinawa.spec
+
+Deprecated object classes since v2.5 release
+============================================
+
+As I noted, some object classes are deprecated since `libhitaki <https://github.com/alsa-project/libhitaki>`_
+is newly released with alternative classes. This is a list of the combination between deprecated
+classes and alternatives:
+
+- Hinawa.SndUnit / Hitaki.SndUnit
+- Hinawa.SndDice / Hitaki.SndDice
+- Hinawa.SndDg00x / Hitaki.SndDigi00x
+- Hinawa.SndEfw / Hitaki.SndEfw
+- Hinawa.SndMotu / Hitaki.SndMotu
+- Hinawa.SndMotuRegisterDspParameter / Hitaki.SndMotuRegisterDspParameter
+- Hinawa.SndTscm / Hitaki.SndTascam
+
+Some GObject enumerations are also deprecated by the same reason. This is the list:
+
+- Hinawa.SndUnitType / Hitaki.AlsaFirewireType
+- Hinawa.SndUnitError / Hitaki.AlsaFirewireError
+- Hinawa.SndEfwStatus / Hitaki.SndEfwError
+
+Some instance properties are rewritten by GObject Interface. This is the list:
+
+- Hinawa.SndUnit:card / Hitaki.AlsaFirewire:card-id
+- Hinawa.SndUnit:device / Hitaki.AlsaFirewire:node-device
+- Hinawa.SndUnit:guid / Hitaki.AlsaFirewire:guid
+- Hinawa.SndUnit:streaming / Hitaki.AlsaFirewire:is-locked
+- Hinawa.SndUnit:type / Hitaki.AlsaFirewire:unit-type
+
+Some instance signals are rewritten by GObject Interface as well. This is the list:
+
+- Hinawa.SndUnit::disconnected / use property change notify of Hinawa.AlsaFirewire:is-locked
+- Hinawa.SndUnit::lock-status / use property change notify of Hinawa.AlsaFirewire:is-disconnected
+- Hinawa.SndDg00x::message / Hitaki.QuadletNotification::notified
+- Hinawa.SndDice::notified / Hitaki.QuadletNotification::notified
+- Hinawa.SndMotu::notified / Hitaki.QuadletNotification::notified
+- Hinawa.SndEfw::responded / Hitaki.EfwProtocol::responded
+- Hinawa.SndMotu::register-dsp-changed / Hitaki.MotuRegisterDsp::changed
+
+Some instance methods are rewritten by GObject Interface as well:
+
+- Hinawa.SndUnit.create_source() / Hitaki.AlsaFirewire.create_source()
+
+- Hinawa.SndUnit.lock() / Hitaki.AlsaFirewire.lock()
+- Hinawa.SndUnit.unlock() / Hitaki.AlsaFirewire.unlock()
+- Hinawa.SndUnit.open() / Hitaki.AlsaFirewire.open()
+- Hinawa.SndDg00x.open() / Hitaki.AlsaFirewire.open()
+- Hinawa.SndDice.open() / Hitaki.AlsaFirewire.open()
+- Hinawa.SndEfw.open() / Hitaki.AlsaFirewire.open()
+- Hinawa.SndMotu.open() / Hitaki.AlsaFirewire.open()
+- Hinawa.SndTascam.open() / Hitaki.AlsaFirewire.open()
+- Hinawa.SndEfw.transaction_async() / Hitaki.EfwProtocol.transmit_request()
+- Hinawa.SndEfw.transaction_sync() / Hitaki.EfwProtocol.transaction()
+- Hinawa.SndMotu.read_register_dsp_parameter() / Hitaki.MotuRegisterDsp.read_parameter()
+- Hinawa.SndMotu.read_register_dsp_meter() / Hitaki.MotuRegisterDsp.read_byte_meter()
+- Hinawa.SndMotu.read_command_dsp_meter() / Hitaki.MotuCommandDsp.read_float_meter()
+- Hinawa.SndTscm.get_state() /  Hitaki.TascamProtocol.read_state()
+
+Some GObject enumeration and methods are dropped due to some reasons:
+
+- Hinawa.SndDiceError
+
+  - (unused)
+
+- Hinawa.SndUnit.get_node()
+
+  - Please instantiate Hinawa.FwNode according to Hitaki.AlsaFirewire:node-device
+
+- Hinawa.SndDice.transaction()
+
+  - Please wait for Hitaki.SndDice::notified signal after any request transaction which causes
+    the notification.
+
+- Hinawa.SndEfw.transaction()
+
+  - This is already deprecated. Hitaki.SndEfw.transaction() is available instead.
 
 Lose of backward compatibility from v1 release.
 ===============================================
