@@ -150,6 +150,9 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 	/**
 	 * HinawaFwNode:node-id:
 	 *
+	 * Node ID of node associated to instance of object at current generation of bus topology.
+	 * This parameter is effective after the association.
+	 *
 	 * Since: 1.4
 	 */
 	fw_node_props[FW_NODE_PROP_TYPE_NODE_ID] =
@@ -162,6 +165,9 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 
 	/**
 	 * HinawaFwNode:local-node-id:
+	 *
+	 * Node ID of node which application uses to communicate to node associated to instance of
+	 * object at current generation of bus topology. In general, it is for 1394 OHCI controller.
 	 *
 	 * Since: 1.4
 	 */
@@ -176,6 +182,8 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 	/**
 	 * HinawaFwNode:bus-manager-node-id:
 	 *
+	 * Node ID of node which plays role of bus manager at current generation of bus topology.
+	 *
 	 * Since: 1.4
 	 */
 	fw_node_props[FW_NODE_PROP_TYPE_BUS_MANAGER_NODE_ID] =
@@ -187,6 +195,9 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 
 	/**
 	 * HinawaFwNode:ir-manager-node-id:
+	 *
+	 * Node ID of node which plays role of isochronous resource manager at current generation
+	 * of bus topology.
 	 *
 	 * Since: 1.4
 	 */
@@ -200,6 +211,8 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 	/**
 	 * HinawaFwNode:root-node-id:
 	 *
+	 * Node ID of root node in bus topology at current generation of the bus topology.
+	 *
 	 * Since: 1.4
 	 */
 	fw_node_props[FW_NODE_PROP_TYPE_ROOT_NODE_ID] =
@@ -211,6 +224,8 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 
 	/**
 	 * HinawaFwNode:generation:
+	 *
+	 * Current generation of bus topology.
 	 *
 	 * Since: 1.4
 	 */
