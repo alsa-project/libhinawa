@@ -153,7 +153,7 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 				  "by msec unit.",
 				  10, G_MAXUINT,
 				  200,
-				  G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
+				  G_PARAM_READWRITE | G_PARAM_CONSTRUCT | G_PARAM_DEPRECATED);
 
 	/**
 	 * HinawaFwFcp:is-bound:
