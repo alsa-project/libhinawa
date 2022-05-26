@@ -119,7 +119,7 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 				  "An elapse to expire waiting for response by ms unit.",
 				  10, G_MAXUINT,
 				  200,
-				  G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
+				  G_PARAM_READWRITE | G_PARAM_CONSTRUCT | G_PARAM_DEPRECATED);
 
 	g_object_class_install_properties(gobject_class,
 					  FW_REQ_PROP_TYPE_COUNT,
