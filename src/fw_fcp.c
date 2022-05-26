@@ -411,8 +411,8 @@ static HinawaFwRcode handle_requested2_signal(HinawaFwResp *resp, HinawaFwTcode 
 	if (offset == FCP_RESPOND_ADDR && tcode == HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST && src == node_id)
 		g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0, frame, length);
 
-	// MEMO: Linux firewire subsystem already began respond transaction, thus the rcode is just
-	// ignored.
+	// MEMO: Linux firewire subsystem already send response subaction to finish the transaction,
+	// thus the rcode is just ignored.
 
 	return HINAWA_FW_RCODE_COMPLETE;
 }
