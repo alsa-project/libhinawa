@@ -111,6 +111,8 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	/**
 	 * HinawaFwResp:is-reserved:
 	 *
+	 * Whether a range of address is reserved or not in host controller.
+	 *
 	 * Since: 2.0
 	 */
 	fw_resp_props[FW_RESP_PROP_TYPE_IS_RESERVED] =
@@ -123,6 +125,8 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	/**
 	 * HinawaFwResp:offset:
 	 *
+	 * The start offset of reserved address range.
+	 *
 	 * Since: 2.3
 	 */
 	fw_resp_props[FW_RESP_PROP_TYPE_OFFSET] =
@@ -134,6 +138,8 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 
 	/**
 	 * HinawaFwResp:width:
+	 *
+	 * The width of reserved address range.
 	 *
 	 * Since: 2.3
 	 */
