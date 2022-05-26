@@ -1,8 +1,8 @@
 %global with_tests 0
-%global glib2_version 2.34.0
+%global glib2_version 2.44.0
 
 Name: libhinawa
-Version: 2.4.0
+Version: 2.5.0
 Release: 1%{?dist}
 Summary: GObject introspection library for devices connected to IEEE 1394 bus
 
@@ -24,8 +24,7 @@ Requires: glib2%{?_isa} >= %{glib2_version}
 %description
 Hinawa is an gobject introspection library for devices connected to
 IEEE 1394 bus. This library supports any types of transactions over
-IEEE 1394 bus. This library also supports some functionality which
-ALSA firewire stack produces.
+IEEE 1394 bus.
 
 
 %package devel
@@ -71,6 +70,9 @@ developing applications that use %{name}.
 %{_datadir}/doc/libhinawa/*
 
 %changelog
+ * Sun May 26 2022 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 2.5.0
+ - new upstream release.
+
  * Sun Oct 27 2021 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 2.4.0
  - new upstream release.
 

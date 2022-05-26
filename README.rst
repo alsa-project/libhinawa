@@ -2,7 +2,7 @@
 libhinawa
 =========
 
-2022/05/13
+2022/05/26
 Takashi Sakamoto
 
 Instruction
@@ -18,6 +18,8 @@ via ALSA HwDep character device added by drivers in ALSA firewire stack. The obj
 been already obsoleted and deligated the functions to
 `libhitaki <https://github.com/alsa-project/libhitaki>`_, while are still kept for backward
 compatibility. They should not be used for applications written newly.
+
+The latest release is `2.5.0 <https://github.com/alsa-project/libhinawa/tags/2.5.0>`_.
 
 Example of Python3 with PyGobject
 =================================
@@ -141,14 +143,14 @@ How to make RPM package
     $ cd build
     $ meson dist
     ...
-    meson-dist/libhinawa-2.4.0.tar.xz 3bc5833e102f38d3b08de89e6355deb83dffb81fb6cc34fc7f2fc473be5b4c47
+    meson-dist/libhinawa-2.5.0.tar.xz 3bc5833e102f38d3b08de89e6355deb83dffb81fb6cc34fc7f2fc473be5b4c47
     $ cd ..
 
 3. copy the archive
 
 ::
 
-    $ cp build/meson-dist/libhinawa-2.4.0.tar.xz ~/rpmbuild/SOURCES/
+    $ cp build/meson-dist/libhinawa-2.5.0.tar.xz ~/rpmbuild/SOURCES/
 
 4. build package
 
