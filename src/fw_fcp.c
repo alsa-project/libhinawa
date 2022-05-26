@@ -158,6 +158,8 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 	/**
 	 * HinawaFwFcp:is-bound:
 	 *
+	 * Whether this protocol is bound to any instance of HinawaFwNode.
+	 *
 	 * Since: 2.0
 	 */
 	fw_fcp_props[FW_FCP_PROP_TYPE_IS_BOUND] =
