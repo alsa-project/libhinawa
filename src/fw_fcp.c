@@ -20,7 +20,7 @@
 /**
  * hinawa_fw_fcp_error_quark:
  *
- * Return the [alias@GLib.Quark] for [struct@GLib.Error] which has code in [enum@FwFcpError].
+ * Return the [alias@GLib.Quark] for [struct@GLib.Error] which has code in Hinawa.FwFcpError.
  *
  * Since: 2.1
  *
