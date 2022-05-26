@@ -64,7 +64,7 @@ License
 Documentation
 =============
 
-- https://alsa-project.github.io/libhinawa-docs/
+- `<https://alsa-project.github.io/gobject-introspection-docs/hinawa/>`_
 
 Dependencies
 ============

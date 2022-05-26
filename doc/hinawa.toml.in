@@ -1,11 +1,14 @@
 [library]
 version = "@VERSION@"
-description = "libhinawa"
+description = "The library to operate Linux FireWire character device for IEEE 1394 asynchronous transaction"
 authors = "Takashi Sakamoto"
 license = "LGPL-2.1-or-later"
-website_url = "https://alsa-project.github.io/libhinawa-docs/"
-browse_url = "https://github.com/alsa-project/libhinawa"
+website_url = "https://alsa-project.github.io/gobject-introspection-docs/hinawa/"
+docs_url = "https://alsa-project.github.io/gobject-introspection-docs/hinawa/"
+browse_url = "https://github.com/alsa-project/libhinawa/"
 repository_url = "https://github.com/alsa-project/libhinawa.git"
+devhelp=true
+search_index=true
 
 dependencies = [
   "GLib-2.0",
@@ -28,8 +31,8 @@ docs_url = "https://docs.gtk.org/gobject/"
 
 [related."Hitaki-0.0"]
 name = "Hitaki"
-description = "Library to abstract the access to the ALSA firewire hwdep device "
-docs_url = "https://alsa-project.github.io/libhitaki-doc/"
+description = "The library to operate ALSA HwDep character device for Audio and Music unit in IEEE 1394 bus"
+docs_url = "https://alsa-project.github.io/gobject-introspection-docs/hitaki"
 
 [source-location]
 base_url = "https://github.com/alsa-project/libhinawa/blob/master/"
