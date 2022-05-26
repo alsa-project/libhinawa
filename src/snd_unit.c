@@ -155,7 +155,7 @@ static void hinawa_snd_unit_class_init(HinawaSndUnitClass *klass)
 	 * HinawaSndUnit:card:
 	 *
 	 * Since: 2.0
-	 * Deprecated: 2.5. Use [property@Hitaki.AlsaFirewire:card] instead.
+	 * Deprecated: 2.5. Use [property@Hitaki.AlsaFirewire:card_id] instead.
 	 */
 	snd_unit_props[SND_UNIT_PROP_TYPE_CARD_ID] =
 		g_param_spec_uint("card", "card",

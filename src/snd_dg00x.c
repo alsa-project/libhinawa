@@ -32,7 +32,7 @@ static void hinawa_snd_dg00x_class_init(HinawaSndDg00xClass *klass)
 	 * Emitted when Dg00x models transfer notification.
 	 *
 	 * Since: 0.7
-	 * Deprecated: 2.5. Use implementation of [signal@Hitaki.AlsaFirewire::notified] in
+	 * Deprecated: 2.5. Use implementation of [signal@Hitaki.QuadletNotification::notified] in
 	 *	       [class@Hitaki.SndDigi00x] instead.
 	 */
 	dg00x_sigs[DG00X_SIG_TYPE_MESSAGE] =
