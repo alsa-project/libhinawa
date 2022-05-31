@@ -2,6 +2,8 @@
 #ifndef __ALSA_HINAWA_H__
 #define __ALSA_HINAWA_H__
 
+G_BEGIN_DECLS
+
 #include <glib.h>
 #include <glib-object.h>
 
@@ -27,5 +29,7 @@
 #include <snd_dg00x.h>
 #include <snd_motu.h>
 #include <snd_tscm.h>
+
+G_END_DECLS
 
 #endif

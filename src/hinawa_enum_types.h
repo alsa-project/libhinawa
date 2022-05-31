@@ -2,6 +2,8 @@
 #ifndef __ALSA_HINAWA_ENUM_TYPES_H__
 #define __ALSA_HINAWA_ENUM_TYPES_H__
 
+G_BEGIN_DECLS
+
 /**
  * HinawaFwTcode:
  * @HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST:	For request to write quadlet.
@@ -274,5 +276,7 @@ typedef enum {
 	HINAWA_SND_EFW_STATUS_BAD_PARAMETER	= 15,
 	HINAWA_SND_EFW_STATUS_LARGE_RESP,
 } HinawaSndEfwStatus;
+
+G_END_DECLS
 
 #endif
