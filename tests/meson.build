@@ -11,6 +11,7 @@ tests = [
   'snd-tscm',
   'hinawa-enum',
   'snd-motu-register-dsp-parameter',
+  'hinawa-functions',
 ]
 
 envs = environment()
