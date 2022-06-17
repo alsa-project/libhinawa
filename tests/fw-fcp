@@ -9,7 +9,7 @@ import gi
 gi.require_version('Hinawa', '3.0')
 from gi.repository import Hinawa
 
-target = Hinawa.FwFcp()
+target_type = Hinawa.FwFcp
 props = (
     'timeout',
     'is-bound',
@@ -29,5 +29,5 @@ signals = (
     'responded',
 )
 
-if not test_object(target, props, methods, vmethods, signals):
+if not test_object(target_type, props, methods, vmethods, signals):
     exit(ENXIO)

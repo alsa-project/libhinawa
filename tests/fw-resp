@@ -9,7 +9,7 @@ import gi
 gi.require_version('Hinawa', '3.0')
 from gi.repository import Hinawa
 
-target = Hinawa.FwResp()
+target_type = Hinawa.FwResp
 props = (
     'is-reserved',
     'offset',
@@ -32,5 +32,5 @@ signals = (
     'requested2',
 )
 
-if not test_object(target, props, methods, vmethods, signals):
+if not test_object(target_type, props, methods, vmethods, signals):
     exit(ENXIO)
