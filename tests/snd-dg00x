@@ -9,7 +9,7 @@ import gi
 gi.require_version('Hinawa', '3.0')
 from gi.repository import Hinawa
 
-target = Hinawa.SndDg00x()
+target_type = Hinawa.SndDg00x
 props = ()
 methods = (
     'open',
@@ -21,5 +21,5 @@ signals = (
     'message',
 )
 
-if not test_object(target, props, methods, vmethods, signals):
+if not test_object(target_type, props, methods, vmethods, signals):
     exit(ENXIO)
