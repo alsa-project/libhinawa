@@ -2,7 +2,7 @@
 libhinawa
 =========
 
-2022/05/26
+2022/06/19
 Takashi Sakamoto
 
 Instruction
@@ -189,8 +189,8 @@ Some instance properties are rewritten by GObject Interface. This is the list:
 
 Some instance signals are rewritten by GObject Interface as well. This is the list:
 
-- Hinawa.SndUnit::disconnected / use property change notify of Hinawa.AlsaFirewire:is-locked
-- Hinawa.SndUnit::lock-status / use property change notify of Hinawa.AlsaFirewire:is-disconnected
+- Hinawa.SndUnit::disconnected / use property change notify of Hitaki.AlsaFirewire:is-locked
+- Hinawa.SndUnit::lock-status / use property change notify of Hitaki.AlsaFirewire:is-disconnected
 - Hinawa.SndDg00x::message / Hitaki.QuadletNotification::notified
 - Hinawa.SndDice::notified / Hitaki.QuadletNotification::notified
 - Hinawa.SndMotu::notified / Hitaki.QuadletNotification::notified
