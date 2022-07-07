@@ -80,7 +80,7 @@ install_headers(headers,
 
 pkg = import('pkgconfig')
 pkg.generate(myself,
-  description: 'Input/Output library to audio and music units on IEEE 1394 bus',
+  description: 'library to operate asynchronous packet and topology generation in IEEE 1394 bus',
   subdirs: inc_dir,
 )
 
