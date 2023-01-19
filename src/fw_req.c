@@ -418,8 +418,7 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 }
 
 // NOTE: For HinawaFwNode, internal.
-void hinawa_fw_req_handle_response(HinawaFwReq *self,
-				   struct fw_cdev_event_response *event)
+void hinawa_fw_req_handle_response(HinawaFwReq *self, const struct fw_cdev_event_response *event)
 {
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 

@@ -447,7 +447,7 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	FwNodeSource *src = (FwNodeSource *)gsrc;
 	HinawaFwNodePrivate *priv;
 	GIOCondition condition;
-	union fw_cdev_event *event;
+	const union fw_cdev_event *event;
 	gpointer instance;
 	__u32 event_type;
 	ssize_t len;
@@ -471,7 +471,7 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		return G_SOURCE_REMOVE;
 	}
 
-	event = (union fw_cdev_event *)src->buf;
+	event = (const union fw_cdev_event *)src->buf;
 	instance = (gpointer)event->common.closure;
 	event_type = event->common.type;
 
