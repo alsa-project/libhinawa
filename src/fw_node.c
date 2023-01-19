@@ -447,7 +447,9 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 	FwNodeSource *src = (FwNodeSource *)gsrc;
 	HinawaFwNodePrivate *priv;
 	GIOCondition condition;
-	struct fw_cdev_event_common *common;
+	union fw_cdev_event *event;
+	gpointer instance;
+	__u32 event_type;
 	ssize_t len;
 
 	priv = hinawa_fw_node_get_instance_private(src->self);
@@ -469,16 +471,16 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		return G_SOURCE_REMOVE;
 	}
 
-	common = (struct fw_cdev_event_common *)src->buf;
+	event = (union fw_cdev_event *)src->buf;
+	instance = (gpointer)event->common.closure;
+	event_type = event->common.type;
 
-	if (HINAWA_IS_FW_NODE((gpointer)common->closure) && common->type == FW_CDEV_EVENT_BUS_RESET) {
+	if (HINAWA_IS_FW_NODE(instance) && event_type == FW_CDEV_EVENT_BUS_RESET) {
 		handle_update(src->self);
-	} else if (HINAWA_IS_FW_RESP((gpointer)common->closure) && common->type == FW_CDEV_EVENT_REQUEST2) {
-		hinawa_fw_resp_handle_request(HINAWA_FW_RESP((gpointer)common->closure),
-				(struct fw_cdev_event_request2 *)common);
-	} else if (HINAWA_IS_FW_REQ((gpointer)common->closure) && common->type == FW_CDEV_EVENT_RESPONSE) {
-		struct fw_cdev_event_response *ev = (struct fw_cdev_event_response *)common;
-		HinawaFwReq *req = HINAWA_FW_REQ((gpointer)ev->closure);
+	} else if (HINAWA_IS_FW_RESP(instance) && event_type == FW_CDEV_EVENT_REQUEST2) {
+		hinawa_fw_resp_handle_request(HINAWA_FW_RESP(instance), &event->request2);
+	} else if (HINAWA_IS_FW_REQ(instance) && event->common.type == FW_CDEV_EVENT_RESPONSE) {
+		HinawaFwReq *req = HINAWA_FW_REQ(instance);
 		GList *entry;
 
 		// Don't process request invalidated in advance.
@@ -486,7 +488,7 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		entry = g_list_find(priv->transactions, req);
 		if (entry) {
 			priv->transactions = g_list_delete_link(priv->transactions, entry);
-			hinawa_fw_req_handle_response(req, ev);
+			hinawa_fw_req_handle_response(req, &event->response);
 		}
 		g_mutex_unlock(&priv->transactions_mutex);
 	}
