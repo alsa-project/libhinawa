@@ -8,7 +8,7 @@ G_BEGIN_DECLS
 
 #define HINAWA_TYPE_SND_DG00X	(hinawa_snd_dg00x_get_type())
 
-G_DECLARE_DERIVABLE_TYPE(HinawaSndDg00x, hinawa_snd_dg00x, HINAWA, SND_DG00X, HinawaSndUnit);
+G_DECLARE_DERIVABLE_TYPE(HinawaSndDg00x, hinawa_snd_dg00x, HINAWA, SND_DG00X, HinawaSndUnit)
 
 struct _HinawaSndDg00xClass {
 	HinawaSndUnitClass parent_class;

@@ -8,7 +8,7 @@ G_BEGIN_DECLS
 
 #define HINAWA_TYPE_SND_DICE	(hinawa_snd_dice_get_type())
 
-G_DECLARE_DERIVABLE_TYPE(HinawaSndDice, hinawa_snd_dice, HINAWA, SND_DICE, HinawaSndUnit);
+G_DECLARE_DERIVABLE_TYPE(HinawaSndDice, hinawa_snd_dice, HINAWA, SND_DICE, HinawaSndUnit)
 
 #define HINAWA_SND_DICE_ERROR	hinawa_snd_dice_error_quark()
 

@@ -8,7 +8,7 @@ G_BEGIN_DECLS
 
 #define HINAWA_TYPE_FW_FCP	(hinawa_fw_fcp_get_type())
 
-G_DECLARE_DERIVABLE_TYPE(HinawaFwFcp, hinawa_fw_fcp, HINAWA, FW_FCP, HinawaFwResp);
+G_DECLARE_DERIVABLE_TYPE(HinawaFwFcp, hinawa_fw_fcp, HINAWA, FW_FCP, HinawaFwResp)
 
 #define HINAWA_FW_FCP_ERROR	hinawa_fw_fcp_error_quark()
 
