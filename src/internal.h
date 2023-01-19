@@ -7,10 +7,8 @@
 int hinawa_fw_node_ioctl(HinawaFwNode *self, unsigned long req, void *args, GError **exception);
 void hinawa_fw_node_invalidate_transaction(HinawaFwNode *self, HinawaFwReq *req);
 
-void hinawa_fw_resp_handle_request(HinawaFwResp *self,
-				   struct fw_cdev_event_request2 *event);
-void hinawa_fw_req_handle_response(HinawaFwReq *self,
-				   struct fw_cdev_event_response *event);
+void hinawa_fw_resp_handle_request(HinawaFwResp *self, const struct fw_cdev_event_request2 *event);
+void hinawa_fw_req_handle_response(HinawaFwReq *self, const struct fw_cdev_event_response *event);
 
 void hinawa_snd_unit_write(HinawaSndUnit *self, const void *buf, size_t length,
 			   GError **exception);

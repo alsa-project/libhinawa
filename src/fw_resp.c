@@ -413,8 +413,7 @@ void hinawa_fw_resp_set_resp_frame(HinawaFwResp *self, guint8 *frame,
 }
 
 // NOTE: For HinawaFwNodee, internal.
-void hinawa_fw_resp_handle_request(HinawaFwResp *self,
-				   struct fw_cdev_event_request2 *event)
+void hinawa_fw_resp_handle_request(HinawaFwResp *self, const struct fw_cdev_event_request2 *event)
 {
 	HinawaFwRespPrivate *priv;
 	HinawaFwRespClass *klass;
