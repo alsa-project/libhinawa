@@ -8,7 +8,7 @@ G_BEGIN_DECLS
 
 #define HINAWA_TYPE_SND_MOTU	(hinawa_snd_motu_get_type())
 
-G_DECLARE_DERIVABLE_TYPE(HinawaSndMotu, hinawa_snd_motu, HINAWA, SND_MOTU, HinawaSndUnit);
+G_DECLARE_DERIVABLE_TYPE(HinawaSndMotu, hinawa_snd_motu, HINAWA, SND_MOTU, HinawaSndUnit)
 
 struct _HinawaSndMotuClass {
 	HinawaSndUnitClass parent_class;

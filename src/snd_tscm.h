@@ -8,7 +8,7 @@ G_BEGIN_DECLS
 
 #define HINAWA_TYPE_SND_TSCM	(hinawa_snd_tscm_get_type())
 
-G_DECLARE_DERIVABLE_TYPE(HinawaSndTscm, hinawa_snd_tscm, HINAWA, SND_TSCM, HinawaSndUnit);
+G_DECLARE_DERIVABLE_TYPE(HinawaSndTscm, hinawa_snd_tscm, HINAWA, SND_TSCM, HinawaSndUnit)
 
 struct _HinawaSndTscmClass {
 	HinawaSndUnitClass parent_class;

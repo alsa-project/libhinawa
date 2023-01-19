@@ -8,7 +8,7 @@ G_BEGIN_DECLS
 
 #define HINAWA_TYPE_SND_UNIT	(hinawa_snd_unit_get_type())
 
-G_DECLARE_DERIVABLE_TYPE(HinawaSndUnit, hinawa_snd_unit, HINAWA, SND_UNIT, GObject);
+G_DECLARE_DERIVABLE_TYPE(HinawaSndUnit, hinawa_snd_unit, HINAWA, SND_UNIT, GObject)
 
 #define HINAWA_SND_UNIT_ERROR	hinawa_snd_unit_error_quark()
 

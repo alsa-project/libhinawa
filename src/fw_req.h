@@ -8,7 +8,7 @@ G_BEGIN_DECLS
 
 #define HINAWA_TYPE_FW_REQ	(hinawa_fw_req_get_type())
 
-G_DECLARE_DERIVABLE_TYPE(HinawaFwReq, hinawa_fw_req, HINAWA, FW_REQ, GObject);
+G_DECLARE_DERIVABLE_TYPE(HinawaFwReq, hinawa_fw_req, HINAWA, FW_REQ, GObject)
 
 #define HINAWA_FW_REQ_ERROR	hinawa_fw_req_error_quark()
 

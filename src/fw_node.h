@@ -8,7 +8,7 @@ G_BEGIN_DECLS
 
 #define HINAWA_TYPE_FW_NODE	(hinawa_fw_node_get_type())
 
-G_DECLARE_DERIVABLE_TYPE(HinawaFwNode, hinawa_fw_node, HINAWA, FW_NODE, GObject);
+G_DECLARE_DERIVABLE_TYPE(HinawaFwNode, hinawa_fw_node, HINAWA, FW_NODE, GObject)
 
 #define HINAWA_FW_NODE_ERROR	hinawa_fw_node_error_quark()
 

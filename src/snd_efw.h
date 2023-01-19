@@ -8,7 +8,7 @@ G_BEGIN_DECLS
 
 #define HINAWA_TYPE_SND_EFW	(hinawa_snd_efw_get_type())
 
-G_DECLARE_DERIVABLE_TYPE(HinawaSndEfw, hinawa_snd_efw, HINAWA, SND_EFW, HinawaSndUnit);
+G_DECLARE_DERIVABLE_TYPE(HinawaSndEfw, hinawa_snd_efw, HINAWA, SND_EFW, HinawaSndUnit)
 
 #define HINAWA_SND_EFW_ERROR	hinawa_snd_efw_error_quark()
 
