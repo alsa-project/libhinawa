@@ -477,9 +477,20 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 
 	if (HINAWA_IS_FW_NODE(instance) && event_type == FW_CDEV_EVENT_BUS_RESET) {
 		handle_update(src->self);
-	} else if (HINAWA_IS_FW_RESP(instance) && event_type == FW_CDEV_EVENT_REQUEST2) {
-		hinawa_fw_resp_handle_request(HINAWA_FW_RESP(instance), &event->request2);
-	} else if (HINAWA_IS_FW_REQ(instance) && event->common.type == FW_CDEV_EVENT_RESPONSE) {
+	} else if (HINAWA_IS_FW_RESP(instance)) {
+		HinawaFwResp *resp = HINAWA_FW_RESP(instance);
+
+		switch (event_type) {
+		case FW_CDEV_EVENT_REQUEST:
+			hinawa_fw_resp_handle_request(resp, &event->request);
+			break;
+		case FW_CDEV_EVENT_REQUEST2:
+			hinawa_fw_resp_handle_request2(resp, &event->request2);
+			break;
+		default:
+			break;
+		}
+	} else if (HINAWA_IS_FW_REQ(instance)) {
 		HinawaFwReq *req = HINAWA_FW_REQ(instance);
 		GList *entry;
 
