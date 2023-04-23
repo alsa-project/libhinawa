@@ -7,8 +7,8 @@ Release: 1%{?dist}
 Summary: GObject introspection library for devices connected to IEEE 1394 bus
 
 License: LGPLv2
-URL: https://github.com/alsa-project/libhinawa
-Source0: https://github.com/alsa-project/libhinawa/releases/download/%{version}/libhinawa-%{version}.tar.xz
+URL: https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/
+Source0: https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/snapshot/libhinawa-%{version}.tar.gz
 
 BuildRequires: meson >= 0.46.0
 BuildRequires: pkgconfig(glib-2.0) >= %{glib2_version}

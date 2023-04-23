@@ -2,7 +2,7 @@
 The libhinawa project
 =====================
 
-2022/06/30
+2023/04/23
 Takashi Sakamoto
 
 Instruction
@@ -19,7 +19,7 @@ been already obsoleted and deligated the functions to
 `libhitaki <https://github.com/alsa-project/libhitaki>`_, while are still kept for backward
 compatibility. They should not be used for applications written newly.
 
-The latest release is `2.5.1 <https://github.com/alsa-project/libhinawa/tags/2.5.1>`_.
+The latest release is `2.5.1 <https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/tag/?h=2.5.1>`_.
 
 Example of Python3 with PyGobject
 =================================
@@ -67,6 +67,13 @@ Documentation
 =============
 
 - `<https://alsa-project.github.io/gobject-introspection-docs/hinawa/>`_
+
+Repository location
+===================
+
+- Upstream is `<https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/>`_.
+* Mirror at `<https://github.com/alsa-project/libhinawa>`_ for user support and continuous
+  integration.
 
 Dependencies
 ============

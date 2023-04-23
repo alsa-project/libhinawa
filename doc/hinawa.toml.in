@@ -1,12 +1,12 @@
 [library]
 version = "@VERSION@"
-description = "The library to operate Linux FireWire character device for IEEE 1394 asynchronous transaction"
+description = "The library to operate Linux FireWire character device for IEEE 1394 asynchronous communication"
 authors = "Takashi Sakamoto"
 license = "LGPL-2.1-or-later"
 website_url = "https://alsa-project.github.io/gobject-introspection-docs/hinawa/"
 docs_url = "https://alsa-project.github.io/gobject-introspection-docs/hinawa/"
-browse_url = "https://github.com/alsa-project/libhinawa/"
-repository_url = "https://github.com/alsa-project/libhinawa.git"
+browse_url = "https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/"
+repository_url = "https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/"
 devhelp=true
 search_index=true
 
@@ -35,8 +35,8 @@ description = "The library to operate ALSA HwDep character device for Audio and 
 docs_url = "https://alsa-project.github.io/gobject-introspection-docs/hitaki"
 
 [source-location]
-base_url = "https://github.com/alsa-project/libhinawa/blob/master/"
-file_format = "{filename}#L{line}"
+base_url = "https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/tree/"
+file_format = "{filename}?h=@VERSION@#n{line}"
 
 [extra]
 content_files = [
