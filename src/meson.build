@@ -80,7 +80,7 @@ install_headers(headers,
 
 pkg = import('pkgconfig')
 pkg.generate(myself,
-  description: 'library to operate asynchronous packet and topology generation in IEEE 1394 bus',
+  description: 'The library to operate OHCI 1394 hardware for asynchronous communication in IEEE 1394 bus',
   subdirs: inc_dir,
 )
 

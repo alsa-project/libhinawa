@@ -1,6 +1,6 @@
 [library]
 version = "@VERSION@"
-description = "The library to operate Linux FireWire character device for IEEE 1394 asynchronous communication"
+description = "The library to operate OHCI 1394 hardware for asynchronous communication in IEEE 1394 bus"
 authors = "Takashi Sakamoto"
 license = "LGPL-2.1-or-later"
 website_url = "https://alsa-project.github.io/gobject-introspection-docs/hinawa/"
