@@ -30,6 +30,7 @@ vmethods = (
 signals = (
     'requested',
     'requested2',
+    'requested3',
 )
 
 if not test_object(target_type, props, methods, vmethods, signals):

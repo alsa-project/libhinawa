@@ -66,6 +66,7 @@ static GParamSpec *fw_resp_props[FW_RESP_PROP_TYPE_COUNT] = { NULL, };
 enum fw_resp_sig_type {
 	FW_RESP_SIG_TYPE_REQ = 0,
 	FW_RESP_SIG_TYPE_REQ2,
+	FW_RESP_SIG_TYPE_REQ3,
 	FW_RESP_SIG_TYPE_COUNT,
 };
 static guint fw_resp_sigs[FW_RESP_SIG_TYPE_COUNT] = { 0 };
@@ -159,9 +160,10 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	 * @self: A [class@FwResp]
 	 * @tcode: One of [enum@FwTcode] enumerations.
 	 *
-	 * Emitted when any node transfers requests to the range of address to which this object
-	 * listening, the [signal@FwResp::requested] signal handler is called with [enum@FwTcode],
-	 * without the case that [signal@FwResp::requested2] signal handler is already assigned.
+	 * Emitted when any node transfers requests to the range of address in 1394 OHCI controller
+	 * to which this object listening, except for the case that either
+	 * [signal@FwResp::requested2] signal handler or [signal@FwResp::requested3] signal handler
+	 * is already assigned.
 	 *
 	 * The handler can get data frame by a call of [method@FwResp.get_req_frame] and set data
 	 * frame by a call of [method@FwResp.set_resp_frame], then returns [enum@FwRcode] for
@@ -171,7 +173,7 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	 *	    specification.
 	 *
 	 * Since: 0.3
-	 * Deprecated: 2.2: Use [signal@FwResp::requested2], instead.
+	 * Deprecated: 2.2: Use [signal@FwResp::requested3], instead.
 	 */
 	fw_resp_sigs[FW_RESP_SIG_TYPE_REQ] =
 		g_signal_new("requested",
@@ -195,14 +197,20 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	 *	   data.
 	 * @length: The length of bytes for the frame.
 	 *
-	 * Emitted when any node transfers request subaction to the range of address to which this
-	 * object listening, the [signal@FwResp::requested] signal handler is called with arrived
-	 * frame for the subaction. The handler is expected to call [method@FwResp.set_resp_frame]
-	 * with frame and return [enum@FwRcode] for response subaction.
+	 * Emitted when any node transfers request subaction to the range of address in 1394 OHCI
+	 * controller to which this object listening, except for the case that
+	 * [signal@FwResp::requested3] signal handler is already assigned.
+	 *
+	 * The handler is expected to call [method@FwResp.set_resp_frame] with frame and return
+	 * [enum@FwRcode] for response subaction.
+	 *
+	 * If the version is less than 4, the src, dst, card, generation arguments have invalid
+	 * value (=G_MAXUINT).
 	 *
 	 * Returns: One of [enum@FwRcode] enumerations corresponding to rcodes defined in IEEE 1394
 	 *	    specification.
 	 * Since: 2.2
+	 * Deprecated: 2.6: Use [signal@FwResp::requested3], instead.
 	 */
 	fw_resp_sigs[FW_RESP_SIG_TYPE_REQ2] =
 		g_signal_new("requested2",
@@ -214,6 +222,49 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 			     HINAWA_TYPE_FW_RCODE, 8, HINAWA_TYPE_FW_TCODE, G_TYPE_UINT64,
 			     G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT,
 			     G_TYPE_POINTER, G_TYPE_UINT);
+
+	/**
+	 * HinawaFwResp::requested3:
+	 * @self: A [class@FwResp]
+	 * @tcode: One of [enum@FwTcode] enumerations
+	 * @offset: The address offset at which the transaction arrives.
+	 * @src: The node ID of source for the transaction.
+	 * @dst: The node ID of destination for the transaction.
+	 * @card: The index of card corresponding to 1394 OHCI controller.
+	 * @generation: The generation of bus when the transaction is transferred.
+	 * @tstamp: The isochronous cycle at which the request arrived.
+	 * @frame: (element-type guint8)(array length=length): The array with elements for byte
+	 *	   data.
+	 * @length: The length of bytes for the frame.
+	 *
+	 * Emitted when any node transfers request subaction to the range of address in 1394 OHCI
+	 * controller to which this object listening.
+	 *
+	 * The handler is expected to call [method@FwResp.set_resp_frame] with frame and return
+	 * [enum@FwRcode] for response subaction.
+	 *
+	 * The value of @tstamp is unsigned 16 bit integer including higher 3 bits for three low
+	 * order bits of second field and the rest 13 bits for cycle field in the format of IEEE
+	 * 1394 CYCLE_TIMER register.
+	 *
+	 * If the version of kernel ABI for Linux FireWire subsystem is less than 6, the value of
+	 * tstamp argument has invalid value (=G_MAXUINT). Furthermore, if the version is less than
+	 * 4, the src, dst, card, generation arguments have invalid value (=G_MAXUINT).
+	 *
+	 * Returns: One of [enum@FwRcode] enumerations corresponding to rcodes defined in IEEE 1394
+	 *	    specification.
+	 * Since: 2.6
+	 */
+	fw_resp_sigs[FW_RESP_SIG_TYPE_REQ3] =
+		g_signal_new("requested3",
+			     G_OBJECT_CLASS_TYPE(klass),
+			     G_SIGNAL_RUN_LAST,
+			     0,
+			     NULL, NULL,
+			     hinawa_sigs_marshal_ENUM__ENUM_UINT64_UINT_UINT_UINT_UINT_UINT_POINTER_UINT,
+			     HINAWA_TYPE_FW_RCODE, 9, HINAWA_TYPE_FW_TCODE, G_TYPE_UINT64,
+			     G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT,
+			     G_TYPE_UINT, G_TYPE_POINTER, G_TYPE_UINT);
 }
 
 static void hinawa_fw_resp_init(HinawaFwResp *self)
