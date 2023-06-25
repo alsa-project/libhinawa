@@ -417,6 +417,35 @@ void hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
 	g_mutex_unlock(&priv->mutex);
 }
 
+/**
+ * hinawa_fw_node_read_cycle_time:
+ * @self: A [class@FwNode]
+ * @clock_id: The numeric ID of clock source for the reference timestamp. One of CLOCK_REALTIME(0),
+ *	      CLOCK_MONOTONIC(1), and CLOCK_MONOTONIC_RAW(4) is available in UAPI of Linux kernel.
+ * @cycle_time: (inout): A [struct@CycleTime].
+ * @error: A [struct@GLib.Error].
+ *
+ * Read current value of CYCLE_TIME register in 1394 OHCI controller.
+ *
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
+ *
+ * Since: 2.6.
+ */
+gboolean hinawa_fw_node_read_cycle_time(HinawaFwNode *self, gint clock_id,
+					HinawaCycleTime *const *cycle_time, GError **error)
+{
+	int err;
+
+	g_return_val_if_fail(cycle_time != NULL, FALSE);
+
+	(*cycle_time)->clk_id = clock_id;
+	err = hinawa_fw_node_ioctl(self, FW_CDEV_IOC_GET_CYCLE_TIMER2, *cycle_time, error);
+	if (err < 0 && *error == NULL)
+		generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_GET_CYCLE_TIMER2");
+
+	return err == 0;
+}
+
 static void handle_update(HinawaFwNode *self)
 {
 	HinawaFwNodePrivate *priv;

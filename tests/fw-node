@@ -22,6 +22,7 @@ methods = (
     'new',
     'open',
     'get_config_rom',
+    'read_cycle_time',
     'create_source',
 )
 vmethods = (
