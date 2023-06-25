@@ -158,3 +158,13 @@ HINAWA_2_5_0 {
   global:
     "hinawa_fw_req_error_get_type";
 } HINAWA_2_3_0;
+
+HINAWA_2_6_0 {
+  global:
+    "hinawa_cycle_time_get_type";
+    "hinawa_cycle_time_new";
+    "hinawa_cycle_time_get_system_time";
+    "hinawa_cycle_time_get_clock_id";
+    "hinawa_cycle_time_get_fields";
+    "hinawa_cycle_time_get_raw";
+} HINAWA_2_5_0;
