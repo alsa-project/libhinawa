@@ -47,6 +47,9 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
 void hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
 				   gsize *length, GError **error);
 
+gboolean hinawa_fw_node_read_cycle_time(HinawaFwNode *self, gint clock_id,
+					HinawaCycleTime *const *cycle_time, GError **error);
+
 void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
 				  GError **error);
 
