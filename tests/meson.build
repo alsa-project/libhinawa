@@ -3,6 +3,7 @@ tests = [
   'fw-req',
   'fw-resp',
   'fw-fcp',
+  'cycle-time',
   'snd-unit',
   'snd-dice',
   'snd-efw',

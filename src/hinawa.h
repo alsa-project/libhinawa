@@ -14,6 +14,7 @@
 #include <hinawa_enum_types.h>
 #include <hinawa_enums.h>
 
+#include <cycle_time.h>
 #include <snd_motu_register_dsp_parameter.h>
 
 #include <fw_node.h>
