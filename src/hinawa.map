@@ -167,6 +167,8 @@ HINAWA_2_6_0 {
     "hinawa_cycle_time_get_clock_id";
     "hinawa_cycle_time_get_fields";
     "hinawa_cycle_time_get_raw";
+    "hinawa_cycle_time_compute_tstamp";
+    "hinawa_cycle_time_parse_tstamp";
 
     "hinawa_fw_node_read_cycle_time";
 } HINAWA_2_5_0;

@@ -16,6 +16,8 @@ methods = (
     'get_clock_id',
     'get_fields',
     'get_raw',
+    'compute_tstamp',
+    'parse_tstamp',
 )
 
 if not test_struct(target_type, methods):
