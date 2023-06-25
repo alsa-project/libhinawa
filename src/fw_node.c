@@ -519,6 +519,9 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		case FW_CDEV_EVENT_REQUEST2:
 			hinawa_fw_resp_handle_request2(resp, &event->request2);
 			break;
+		case FW_CDEV_EVENT_REQUEST3:
+			hinawa_fw_resp_handle_request3(resp, &event->request3);
+			break;
 		default:
 			break;
 		}
