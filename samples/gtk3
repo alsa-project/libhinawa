@@ -34,7 +34,7 @@ def main() -> int:
         common.print_help_with_msg(cmd, msg)
         return 1
 
-    with common.listen_node_event(node):
+    with common.listen_node_event(node, path):
         sample = Sample(node)
         sample.show_all()
         node.connect('disconnected', lambda n, s: Gtk.main_quit(), sample)

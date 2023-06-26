@@ -38,7 +38,7 @@ def main() -> int:
         common.print_help_with_msg(cmd, msg)
         return 1
 
-    with common.listen_node_event(node):
+    with common.listen_node_event(node, path):
         app = QApplication(argv)
         sample = Sample(app, node)
         node.connect('disconnected', lambda n, a: a.quit(), app)

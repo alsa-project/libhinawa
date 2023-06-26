@@ -145,9 +145,24 @@ def listen_fcp(node: Hinawa.FwNode):
 
 
 @contextmanager
-def listen_node_event(node: Hinawa.FwNode):
-    with run_dispatcher(node), listen_bus_update(node), listen_region(node), listen_fcp(node):
-        yield
+def listen_node_event(node: Hinawa.FwNode, path: Path):
+    root = Path.cwd().parents[-1]
+    sysfs_path = root.joinpath('sys', 'bus', 'firewire', 'devices', path.name, 'units')
+
+    # Linux FireWire subsystem exports all of pairs of specifier_id and version in unit directory
+    # via sysfs, thus not need to parse the content of configuration ROM.
+    with sysfs_path.open('r') as f:
+        content = f.read()
+
+    # The specifier_id for 1394TA is expected to express the device implements FCP.
+    has_fcp = content.find('0x00a02d') >= 0
+
+    if has_fcp:
+        with run_dispatcher(node), listen_bus_update(node), listen_region(node), listen_fcp(node):
+            yield
+    else:
+        with run_dispatcher(node), listen_bus_update(node):
+            yield
 
 
 __all__ = ['print_help_with_msg', 'detect_fw_cdev', 'dump_fw_node_information', 'listen_node_event']
