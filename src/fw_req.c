@@ -460,9 +460,9 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
  *	   transaction.
  * @frame_size: The size of array in byte unit. The value of this argument should point to the
  *		numeric number and mutable for read and lock transaction.
- * @tstamp: (array fixed-size=2)(inout): The array with two elements for time stamps. The first
- *	    element is for the isochronous cycle at which the request was sent. The second element
- *	    is for the isochronous cycle at which the response arrived.
+ * @tstamp: (array fixed-size=2)(out caller-allocates): The array with two elements for time stamps.
+ *	    The first element is for the isochronous cycle at which the request was sent. The second
+ *	    element is for the isochronous cycle at which the response arrived.
  * @timeout_ms: The timeout to wait for response subaction of the transaction since request
  *		subaction is initiated, in milliseconds.
  * @error: A [struct@GLib.Error]. Error can be generated with two domains; Hinawa.FwNodeError and
@@ -483,17 +483,19 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
  */
 gboolean hinawa_fw_req_transaction_with_tstamp_sync(HinawaFwReq *self, HinawaFwNode *node,
 				HinawaFwTcode tcode, guint64 addr, gsize length,
-				guint8 **frame, gsize *frame_size, guint **tstamp,
+				guint8 **frame, gsize *frame_size, guint tstamp[2],
 				guint timeout_ms, GError **error)
 {
 	struct waiter w;
 	gboolean result;
 
+	g_return_val_if_fail(tstamp != NULL, FALSE);
+
 	result = complete_transaction(self, node, tcode, addr, length, frame, frame_size,
 				      timeout_ms, &w, error);
 	if (*error == NULL) {
-		(*tstamp)[0] = w.request_tstamp;
-		(*tstamp)[1] = w.response_tstamp;
+		tstamp[0] = w.request_tstamp;
+		tstamp[1] = w.response_tstamp;
 	}
 
 	return result;

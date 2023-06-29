@@ -65,7 +65,7 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
 
 gboolean hinawa_fw_req_transaction_with_tstamp_sync(HinawaFwReq *self, HinawaFwNode *node,
 				HinawaFwTcode tcode, guint64 addr, gsize length,
-				guint8 **frame, gsize *frame_size, guint **tstamp,
+				guint8 **frame, gsize *frame_size, guint tstamp[2],
 				guint timeout_ms, GError **error);
 
 void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,

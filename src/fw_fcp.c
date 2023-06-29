@@ -249,7 +249,7 @@ HinawaFwFcp *hinawa_fw_fcp_new(void)
 }
 
 static gboolean complete_command_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
-					     guint **tstamp, guint timeout_ms, GError **error)
+					     guint tstamp[2], guint timeout_ms, GError **error)
 {
 	HinawaFwFcpPrivate *priv;
 	HinawaFwReq *req;
@@ -258,7 +258,7 @@ static gboolean complete_command_transaction(HinawaFwFcp *self, const guint8 *cm
 	g_return_val_if_fail(HINAWA_IS_FW_FCP(self), FALSE);
 	g_return_val_if_fail(cmd != NULL, FALSE);
 	g_return_val_if_fail(cmd_size > 0 && cmd_size < FCP_MAXIMUM_FRAME_BYTES, FALSE);
-	g_return_val_if_fail(tstamp != NULL && *tstamp != NULL, FALSE);
+	g_return_val_if_fail(tstamp != NULL, FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	priv = hinawa_fw_fcp_get_instance_private(self);
@@ -295,12 +295,10 @@ static gboolean complete_command_transaction(HinawaFwFcp *self, const guint8 *cm
 void hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
 			   guint timeout_ms, GError **error)
 {
-	guint tstamp;
-	guint *tstamp_ptr;
+	guint tstamp[2];
 
 	// Finish transaction for command frame.
-	tstamp_ptr = &tstamp;
-	(void)complete_command_transaction(self, cmd, cmd_size, &tstamp_ptr, timeout_ms, error);
+	(void)complete_command_transaction(self, cmd, cmd_size, tstamp, timeout_ms, error);
 }
 
 /**
@@ -331,8 +329,19 @@ void hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
 gboolean hinawa_fw_fcp_command_with_tstamp(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
 					   guint **tstamp, guint timeout_ms, GError **error)
 {
+	guint time_stamp[2];
+	gboolean result;
+
+	g_return_val_if_fail(tstamp != NULL && *tstamp != NULL, FALSE);
+
 	// Finish transaction for command frame.
-	return complete_command_transaction(self, cmd, cmd_size, tstamp, timeout_ms, error);
+	result = complete_command_transaction(self, cmd, cmd_size, time_stamp, timeout_ms, error);
+	if (result) {
+		(*tstamp)[0] = time_stamp[0];
+		(*tstamp)[1] = time_stamp[1];
+	}
+
+	return result;
 }
 
 struct waiter {
@@ -369,6 +378,7 @@ static gboolean complete_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, g
 {
 	gulong handler_id;
 	gint64 expiration;
+	guint time_stamp[2];
 	gboolean result;
 
 	g_return_val_if_fail(HINAWA_IS_FW_FCP(self), FALSE);
@@ -397,9 +407,11 @@ static gboolean complete_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, g
 	g_mutex_lock(&w->mutex);
 
 	// Finish transaction for command frame.
-	result = complete_command_transaction(self, cmd, cmd_size, tstamp, timeout_ms, error);
+	result = complete_command_transaction(self, cmd, cmd_size, time_stamp, timeout_ms, error);
 	if (*error)
 		goto end;
+	(*tstamp)[0] = time_stamp[0];
+	(*tstamp)[1] = time_stamp[1];
 deferred:
 	while (w->frame[0] == 0xff) {
 		// NOTE: Timeout at bus-reset, illegally.
