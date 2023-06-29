@@ -200,10 +200,8 @@ def listen_fcp(node: Hinawa.FwNode):
         _, cycle_time = node.read_cycle_time(CLOCK_MONOTONIC_RAW, cycle_time)
         initiate_cycle = cycle_time.get_fields()[:2]
 
-        tstamp = [0] * 3
         request = bytes([0x01, 0xff, 0x19, 0x00, 0xff, 0xff, 0xff, 0xff])
-        _, response, tstamp = fcp.avc_transaction_with_tstamp(request, [0] * len(request), tstamp,
-                                                              100)
+        _, response, tstamp = fcp.avc_transaction_with_tstamp(request, [0] * len(request), 100)
 
         req_sent_cycle = cycle_time.compute_tstamp(tstamp[0])
         req_responded_cycle = cycle_time.compute_tstamp(tstamp[1])

@@ -307,9 +307,9 @@ void hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
  * @cmd: (array length=cmd_size): An array with elements for request byte data. The value of this
  *	 argument should point to the array and immutable.
  * @cmd_size: The size of array for request in byte unit.
- * @tstamp: (array fixed-size=2)(inout): The array with two elements for time stamps. The first
- *	    element is for the isochronous cycle at which the request arrived. The second element
- *	    is for the isochronous cycle at which the response was sent.
+ * @tstamp: (array fixed-size=2)(out caller-allocates): The array with two elements for time stamps.
+ *	    The first element is for the isochronous cycle at which the request arrived. The second
+ *	    element is for the isochronous cycle at which the response was sent.
  * @timeout_ms: The timeout to wait for response subaction of transaction for command frame.
  * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinoko.FwNodeError and
  *	   Hinoko.FwReqError.
@@ -327,21 +327,10 @@ void hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
  * Since: 2.6.
  */
 gboolean hinawa_fw_fcp_command_with_tstamp(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
-					   guint **tstamp, guint timeout_ms, GError **error)
+					   guint tstamp[2], guint timeout_ms, GError **error)
 {
-	guint time_stamp[2];
-	gboolean result;
-
-	g_return_val_if_fail(tstamp != NULL && *tstamp != NULL, FALSE);
-
 	// Finish transaction for command frame.
-	result = complete_command_transaction(self, cmd, cmd_size, time_stamp, timeout_ms, error);
-	if (result) {
-		(*tstamp)[0] = time_stamp[0];
-		(*tstamp)[1] = time_stamp[1];
-	}
-
-	return result;
+	return complete_command_transaction(self, cmd, cmd_size, tstamp, timeout_ms, error);
 }
 
 struct waiter {
@@ -374,11 +363,10 @@ static void handle_responded2_signal(HinawaFwFcp *self, const guint8 *frame, gui
 
 static gboolean complete_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
 					 guint8 *const *resp, gsize *resp_size, guint timeout_ms,
-					 struct waiter *w, guint **tstamp, GError **error)
+					 struct waiter *w, guint tstamp[3], GError **error)
 {
 	gulong handler_id;
 	gint64 expiration;
-	guint time_stamp[2];
 	gboolean result;
 
 	g_return_val_if_fail(HINAWA_IS_FW_FCP(self), FALSE);
@@ -387,7 +375,7 @@ static gboolean complete_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, g
 	g_return_val_if_fail(resp != NULL, FALSE);
 	g_return_val_if_fail(resp_size != NULL && *resp_size > 0, FALSE);
 	g_return_val_if_fail(w != NULL, FALSE);
-	g_return_val_if_fail(tstamp != NULL && *tstamp != NULL, FALSE);
+	g_return_val_if_fail(tstamp != NULL, FALSE);
 	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	w->frame = *resp;
@@ -407,11 +395,9 @@ static gboolean complete_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, g
 	g_mutex_lock(&w->mutex);
 
 	// Finish transaction for command frame.
-	result = complete_command_transaction(self, cmd, cmd_size, time_stamp, timeout_ms, error);
+	result = complete_command_transaction(self, cmd, cmd_size, tstamp, timeout_ms, error);
 	if (*error)
 		goto end;
-	(*tstamp)[0] = time_stamp[0];
-	(*tstamp)[1] = time_stamp[1];
 deferred:
 	while (w->frame[0] == 0xff) {
 		// NOTE: Timeout at bus-reset, illegally.
@@ -436,6 +422,8 @@ deferred:
 
 	if (*error != NULL)
 		result = FALSE;
+	else
+		tstamp[2] = w->tstamp;
 end:
 	g_signal_handler_disconnect(self, handler_id);
 
@@ -477,12 +465,10 @@ void hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize c
 				   GError **error)
 {
 	struct waiter w;
-	guint tstamp;
-	guint *tstamp_ptr;
+	guint tstamp[3];
 
-	tstamp_ptr = &tstamp;
 	(void)complete_avc_transaction(self, cmd, cmd_size, resp, resp_size, timeout_ms, &w,
-				       &tstamp_ptr, error);
+				       tstamp, error);
 }
 
 /**
@@ -495,13 +481,13 @@ void hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize c
  *	  should give it for buffer with enough space against the request since this library
  *	  performs no reallocation. Due to the reason, the value of this argument should point to
  *	  the pointer to the array and immutable. The content of array is mutable.
- * @resp_size: The size of array for response in byte unit. The value of this argument should point to
- *	       the numerical number and mutable.
- * @tstamp: (array fixed-size=3)(inout): The array with three elements for time stamps. The first
- *	    element is for the isochronous cycle at which the request was sent for the command of
- *	    FCP transaction. The second element is for the isochronous cycle at which the response
- *	    arrived for the command of FCP transaction. The third element is for the isochronous
- *	    cycle at which the request was sent for the response of FCP transaction.
+ * @resp_size: The size of array for response in byte unit. The value of this argument should point
+ *	       to the numerical number and mutable.
+ * @tstamp: (array fixed-size=3)(out caller-allocates): The array with three elements for time
+ *	    stamps. The first element is for the isochronous cycle at which the request was sent
+ *	    for the command of FCP transaction. The second element is for the isochronous cycle at
+ *	    which the response arrived for the command of FCP transaction. The third element is for
+ *	    the isochronous cycle at which the request was sent for the response of FCP transaction.
  * @timeout_ms: The timeout to wait for response transaction since command transactions finishes.
  * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinawa.FwNodeError,
  *	   Hinawa.FwReqError, and Hinawa.FwFcpError.
@@ -517,23 +503,12 @@ void hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize c
  */
 gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 				const guint8 *cmd, gsize cmd_size, guint8 **resp, gsize *resp_size,
-				guint **tstamp, guint timeout_ms, GError **error)
+				guint tstamp[3], guint timeout_ms, GError **error)
 {
 	struct waiter w;
-	gboolean result;
 
-	g_return_val_if_fail(tstamp != NULL && *tstamp != NULL, FALSE);
-
-	(*tstamp)[0] = G_MAXUINT;
-	(*tstamp)[1] = G_MAXUINT;
-
-	result = complete_avc_transaction(self, cmd, cmd_size, resp, resp_size, timeout_ms, &w,
-					  tstamp, error);
-
-	if (result)
-		(*tstamp)[2] = w.tstamp;
-
-	return result;
+	return complete_avc_transaction(self, cmd, cmd_size, resp, resp_size, timeout_ms, &w,
+					tstamp, error);
 }
 
 /**
@@ -566,16 +541,14 @@ void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
 {
 	guint timeout_ms;
 	struct waiter w;
-	guint tstamp;
-	guint *tstamp_ptr;
+	guint tstamp[3];
 
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
 
 	g_object_get(G_OBJECT(self), "timeout", &timeout_ms, NULL);
 
-	tstamp_ptr = &tstamp;
 	(void)complete_avc_transaction(self, req_frame, req_frame_size, resp_frame, resp_frame_size,
-				       timeout_ms, &w, &tstamp_ptr, error);
+				       timeout_ms, &w, tstamp, error);
 }
 
 static HinawaFwRcode handle_requested3_signal(HinawaFwResp *resp, HinawaFwTcode tcode, guint64 offset,
