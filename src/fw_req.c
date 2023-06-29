@@ -97,6 +97,7 @@ static void fw_req_set_property(GObject *obj, guint id, const GValue *val,
 
 enum fw_req_sig_type {
 	FW_REQ_SIG_TYPE_RESPONDED = 1,
+	FW_REQ_SIG_TYPE_RESPONDED2,
 	FW_REQ_SIG_TYPE_COUNT,
 };
 static guint fw_req_sigs[FW_REQ_SIG_TYPE_COUNT] = { 0 };
@@ -135,9 +136,11 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 	 *
 	 * Emitted when the unit transfers asynchronous packet as response subaction for the
 	 * transaction and the process successfully reads the content of packet from Linux firewire
-	 * subsystem.
+	 * subsystem, except for the case that [signal@FwReq::responded2] signal handler is already
+	 * assigned.
 	 *
 	 * Since: 2.1
+	 * Deprecated: 2.6: Use [signal@FwReq::responded2], instead.
 	 */
 	fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED] =
 		g_signal_new("responded",
@@ -148,6 +151,40 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 			     hinawa_sigs_marshal_VOID__ENUM_POINTER_UINT,
 			     G_TYPE_NONE,
 			     3, HINAWA_TYPE_FW_RCODE, G_TYPE_POINTER, G_TYPE_UINT);
+
+	/**
+	 * HinawaFwReq::responded2:
+	 * @self: A [class@FwReq].
+	 * @rcode: One of [enum@FwRcode].
+	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for
+	 *	   byte data of response subaction for transaction.
+	 * @frame_size: The number of elements of the array.
+	 * @request_tstamp: The isochronous cycle at which the request was sent.
+	 * @response_tstamp: The isochronous cycle at which the response arrived.
+	 *
+	 * Emitted when the unit transfers asynchronous packet as response subaction for the
+	 * transaction and the process successfully reads the content of packet from Linux firewire
+	 * subsystem.
+	 *
+	 * The values of @request_tstamp and @response_tstamp are unsigned 16 bit integer including
+	 * higher 3 bits for three low order bits of second field and the rest 13 bits for cycle
+	 * field in the format of IEEE 1394 CYCLE_TIMER register.
+	 *
+	 * If the version of kernel ABI for Linux FireWire subsystem is less than 6, the
+	 * @request_tstamp and @response_tstamp argument has invalid value (=G_MAXUINT).
+	 *
+	 * Since: 2.6
+	 */
+	fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED2] =
+		g_signal_new("responded2",
+			     G_OBJECT_CLASS_TYPE(klass),
+			     G_SIGNAL_RUN_LAST,
+			     0,
+			     NULL, NULL,
+			     hinawa_sigs_marshal_VOID__ENUM_POINTER_UINT_UINT_UINT,
+			     G_TYPE_NONE,
+			     5, HINAWA_TYPE_FW_RCODE, G_TYPE_POINTER, G_TYPE_UINT, G_TYPE_UINT,
+			     G_TYPE_UINT);
 }
 
 static void hinawa_fw_req_init(HinawaFwReq *self)
