@@ -128,15 +128,15 @@ enum fw_fcp_sig_type {
 static guint fw_fcp_sigs[FW_FCP_SIG_TYPE_COUNT] = { 0 };
 
 // Define later.
-static HinawaFwRcode handle_requested2_signal(HinawaFwResp *resp, HinawaFwTcode tcode, guint64 offset,
-					      guint32 src, guint32 dst, guint32 card, guint32 generation,
-					      const guint8 *frame, guint length);
+static HinawaFwRcode handle_requested3_signal(HinawaFwResp *resp, HinawaFwTcode tcode, guint64 offset,
+					      guint src, guint dst, guint card, guint generation,
+					      guint tstamp, const guint8 *frame, guint length);
 
 static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
-	HINAWA_FW_RESP_CLASS(klass)->requested2 = handle_requested2_signal;
+	HINAWA_FW_RESP_CLASS(klass)->requested3 = handle_requested3_signal;
 
 	gobject_class->get_property = fw_fcp_get_property;
 	gobject_class->set_property = fw_fcp_set_property;
@@ -248,6 +248,34 @@ HinawaFwFcp *hinawa_fw_fcp_new(void)
 	return g_object_new(HINAWA_TYPE_FW_FCP, NULL);
 }
 
+static gboolean complete_command_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
+					     guint **tstamp, guint timeout_ms, GError **error)
+{
+	HinawaFwFcpPrivate *priv;
+	HinawaFwReq *req;
+	gboolean result;
+
+	g_return_val_if_fail(HINAWA_IS_FW_FCP(self), FALSE);
+	g_return_val_if_fail(cmd != NULL, FALSE);
+	g_return_val_if_fail(cmd_size > 0 && cmd_size < FCP_MAXIMUM_FRAME_BYTES, FALSE);
+	g_return_val_if_fail(tstamp != NULL && *tstamp != NULL, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
+
+	priv = hinawa_fw_fcp_get_instance_private(self);
+
+	req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
+
+	// Finish transaction for command frame.
+	result = hinawa_fw_req_transaction_with_tstamp_sync(req, priv->node,
+							    HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST,
+							    FCP_REQUEST_ADDR, cmd_size,
+							    (guint8 **)&cmd, &cmd_size,
+							    tstamp, timeout_ms, error);
+	g_object_unref(req);
+
+	return result;
+}
+
 /**
  * hinawa_fw_fcp_command:
  * @self: A [class@FwFcp].
@@ -266,40 +294,32 @@ HinawaFwFcp *hinawa_fw_fcp_new(void)
 void hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
 			   guint timeout_ms, GError **error)
 {
-	HinawaFwFcpPrivate *priv;
-	HinawaFwReq *req;
-
-	g_return_if_fail(HINAWA_IS_FW_FCP(self));
-	g_return_if_fail(cmd != NULL);
-	g_return_if_fail(cmd_size > 0 && cmd_size < FCP_MAXIMUM_FRAME_BYTES);
-	g_return_if_fail(error == NULL || *error == NULL);
-
-	priv = hinawa_fw_fcp_get_instance_private(self);
-
-	req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
+	guint tstamp;
+	guint *tstamp_ptr;
 
 	// Finish transaction for command frame.
-	hinawa_fw_req_transaction_sync(req, priv->node, HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST,
-				       FCP_REQUEST_ADDR, cmd_size, (guint8 *const *)&cmd, &cmd_size,
-				       timeout_ms, error);
-	g_object_unref(req);
+	tstamp_ptr = &tstamp;
+	(void)complete_command_transaction(self, cmd, cmd_size, &tstamp_ptr, timeout_ms, error);
 }
 
 struct waiter {
 	guint8 *frame;
 	guint frame_size;
+	guint tstamp;
 	GCond cond;
 	GMutex mutex;
 };
 
-static void handle_responded_signal(HinawaFwFcp *self, const guint8 *frame, guint frame_size,
-				    gpointer user_data)
+static void handle_responded2_signal(HinawaFwFcp *self, const guint8 *frame, guint frame_size,
+				     guint tstamp, gpointer user_data)
 {
 	struct waiter *w = (struct waiter *)user_data;
 
 	g_mutex_lock(&w->mutex);
 
 	if (w->frame[1] == frame[1] && w->frame[2] == frame[2]) {
+		w->tstamp = tstamp;
+
 		if (frame_size <= w->frame_size)
 			memcpy(w->frame, frame, frame_size);
 		w->frame_size = frame_size;
@@ -308,6 +328,78 @@ static void handle_responded_signal(HinawaFwFcp *self, const guint8 *frame, guin
 	}
 
 	g_mutex_unlock(&w->mutex);
+}
+
+static gboolean complete_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
+					 guint8 *const *resp, gsize *resp_size, guint timeout_ms,
+					 struct waiter *w, guint **tstamp, GError **error)
+{
+	gulong handler_id;
+	gint64 expiration;
+	gboolean result;
+
+	g_return_val_if_fail(HINAWA_IS_FW_FCP(self), FALSE);
+	g_return_val_if_fail(cmd != NULL, FALSE);
+	g_return_val_if_fail(cmd_size > 2 && cmd_size < FCP_MAXIMUM_FRAME_BYTES, FALSE);
+	g_return_val_if_fail(resp != NULL, FALSE);
+	g_return_val_if_fail(resp_size != NULL && *resp_size > 0, FALSE);
+	g_return_val_if_fail(w != NULL, FALSE);
+	g_return_val_if_fail(tstamp != NULL && *tstamp != NULL, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
+
+	w->frame = *resp;
+	w->frame_size = *resp_size;
+	w->tstamp = G_MAXUINT;
+	g_cond_init(&w->cond);
+	g_mutex_init(&w->mutex);
+
+	// This predicates against suprious wakeup.
+	w->frame[0] = 0xff;
+	// The two bytes are used to match response and request.
+	w->frame[1] = cmd[1];
+	w->frame[2] = cmd[2];
+	handler_id = g_signal_connect(self, "responded2", (GCallback)handle_responded2_signal, w);
+	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
+
+	g_mutex_lock(&w->mutex);
+
+	// Finish transaction for command frame.
+	result = complete_command_transaction(self, cmd, cmd_size, tstamp, timeout_ms, error);
+	if (*error)
+		goto end;
+deferred:
+	while (w->frame[0] == 0xff) {
+		// NOTE: Timeout at bus-reset, illegally.
+		if (!g_cond_wait_until(&w->cond, &w->mutex, expiration))
+			break;
+	}
+
+	if (w->frame[0] == 0xff) {
+		generate_local_error(error, HINAWA_FW_FCP_ERROR_TIMEOUT);
+	} else if (w->frame[0] == AVC_STATUS_INTERIM) {
+		// It's a deffered transaction, wait again.
+		w->frame[0] = 0x00;
+		w->frame_size = *resp_size;
+		// Although the timeout is infinite in 1394 TA specification,
+		// use the finite value for safe.
+		goto deferred;
+	} else if (w->frame_size > *resp_size) {
+		generate_local_error(error, HINAWA_FW_FCP_ERROR_LARGE_RESP);
+	} else {
+		*resp_size = w->frame_size;
+	}
+
+	if (*error != NULL)
+		result = FALSE;
+end:
+	g_signal_handler_disconnect(self, handler_id);
+
+	g_mutex_unlock(&w->mutex);
+
+	g_cond_clear(&w->cond);
+	g_mutex_clear(&w->mutex);
+
+	return result;
 }
 
 /**
@@ -338,64 +430,13 @@ void hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize c
 				   guint8 *const *resp, gsize *resp_size, guint timeout_ms,
 				   GError **error)
 {
-	gulong handler_id;
-	struct waiter w = {0};
-	gint64 expiration;
+	struct waiter w;
+	guint tstamp;
+	guint *tstamp_ptr;
 
-	g_return_if_fail(HINAWA_IS_FW_FCP(self));
-	g_return_if_fail(cmd != NULL);
-	g_return_if_fail(cmd_size > 2 && cmd_size < FCP_MAXIMUM_FRAME_BYTES);
-	g_return_if_fail(resp != NULL);
-	g_return_if_fail(resp_size != NULL && *resp_size > 0);
-	g_return_if_fail(error == NULL || *error == NULL);
-
-	w.frame = *resp;
-	w.frame_size = *resp_size;
-	g_cond_init(&w.cond);
-	g_mutex_init(&w.mutex);
-
-	// This predicates against suprious wakeup.
-	w.frame[0] = 0xff;
-	// The two bytes are used to match response and request.
-	w.frame[1] = cmd[1];
-	w.frame[2] = cmd[2];
-	handler_id = g_signal_connect(self, "responded", (GCallback)handle_responded_signal, &w);
-	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
-
-	g_mutex_lock(&w.mutex);
-
-	// Finish transaction for command frame.
-	hinawa_fw_fcp_command(self, cmd, cmd_size, timeout_ms, error);
-	if (*error)
-		goto end;
-deferred:
-	while (w.frame[0] == 0xff) {
-		// NOTE: Timeout at bus-reset, illegally.
-		if (!g_cond_wait_until(&w.cond, &w.mutex, expiration))
-			break;
-	}
-
-	if (w.frame[0] == 0xff) {
-		generate_local_error(error, HINAWA_FW_FCP_ERROR_TIMEOUT);
-	} else if (w.frame[0] == AVC_STATUS_INTERIM) {
-		// It's a deffered transaction, wait again.
-		w.frame[0] = 0x00;
-		w.frame_size = *resp_size;
-		// Although the timeout is infinite in 1394 TA specification,
-		// use the finite value for safe.
-		goto deferred;
-	} else if (w.frame_size > *resp_size) {
-		generate_local_error(error, HINAWA_FW_FCP_ERROR_LARGE_RESP);
-	} else {
-		*resp_size = w.frame_size;
-	}
-end:
-	g_signal_handler_disconnect(self, handler_id);
-
-	g_mutex_unlock(&w.mutex);
-
-	g_cond_clear(&w.cond);
-	g_mutex_clear(&w.mutex);
+	tstamp_ptr = &tstamp;
+	(void)complete_avc_transaction(self, cmd, cmd_size, resp, resp_size, timeout_ms, &w,
+				       &tstamp_ptr, error);
 }
 
 /**
@@ -427,24 +468,39 @@ void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
 			       GError **error)
 {
 	guint timeout_ms;
+	struct waiter w;
+	guint tstamp;
+	guint *tstamp_ptr;
+
+	g_return_if_fail(HINAWA_IS_FW_FCP(self));
 
 	g_object_get(G_OBJECT(self), "timeout", &timeout_ms, NULL);
 
-	hinawa_fw_fcp_avc_transaction(self, req_frame, req_frame_size, resp_frame, resp_frame_size,
-				      timeout_ms, error);
+	tstamp_ptr = &tstamp;
+	(void)complete_avc_transaction(self, req_frame, req_frame_size, resp_frame, resp_frame_size,
+				       timeout_ms, &w, &tstamp_ptr, error);
 }
 
-static HinawaFwRcode handle_requested2_signal(HinawaFwResp *resp, HinawaFwTcode tcode, guint64 offset,
-					      guint32 src, guint32 dst, guint32 card, guint32 generation,
-					      const guint8 *frame, guint length)
+static HinawaFwRcode handle_requested3_signal(HinawaFwResp *resp, HinawaFwTcode tcode, guint64 offset,
+					      guint src, guint dst, guint card, guint generation,
+					      guint tstamp, const guint8 *frame, guint length)
 {
 	HinawaFwFcp *self = HINAWA_FW_FCP(resp);
 	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
-	guint32 node_id;
+	HinawaFwFcpClass *klass = HINAWA_FW_FCP_GET_CLASS(self);
+	guint node_id;
 
 	g_object_get(priv->node, "node-id", &node_id, NULL);
-	if (offset == FCP_RESPOND_ADDR && tcode == HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST && src == node_id)
-		g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0, frame, length);
+	if (offset == FCP_RESPOND_ADDR && tcode == HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST &&
+	    src == node_id) {
+		if (klass->responded2 != NULL ||
+		    g_signal_has_handler_pending(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED2], 0, TRUE)) {
+			g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED2], 0, frame, length, tstamp);
+		} else if (klass->responded != NULL ||
+		    g_signal_has_handler_pending(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0, TRUE)) {
+			g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0, frame, length);
+		}
+	}
 
 	// MEMO: Linux firewire subsystem already send response subaction to finish the transaction,
 	// thus the rcode is just ignored.
