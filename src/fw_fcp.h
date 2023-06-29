@@ -29,6 +29,21 @@ struct _HinawaFwFcpClass {
 	 * Since: 2.1
 	 */
 	void (*responded)(HinawaFwFcp *self, const guint8 *frame, guint frame_size);
+
+	/**
+	 * HinawaFwFcpClass::responded2:
+	 * @self: A [class@FwFcp].
+	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for byte
+	 *	   data of response for Function Control Protocol.
+	 * @frame_size: The number of elements of the array.
+	 * @tstamp: The time stamp at which the request arrived for the response for FCP
+	 *	    transaction.
+	 *
+	 * Class closure for the [signal@FwFcp::responded2] signal.
+	 *
+	 * Since: 2.6
+	 */
+	void (*responded2)(HinawaFwFcp *self, const guint8 *frame, guint frame_size, guint tstamp);
 };
 
 HinawaFwFcp *hinawa_fw_fcp_new(void);
