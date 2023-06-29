@@ -27,6 +27,7 @@ vmethods = (
 )
 signals = (
     'responded',
+    'responded2',
 )
 
 if not test_object(target_type, props, methods, vmethods, signals):
