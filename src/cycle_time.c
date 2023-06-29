@@ -48,7 +48,7 @@ HinawaCycleTime *hinawa_cycle_time_new()
  *
  * Since: 2.6.
  */
-void hinawa_cycle_time_get_system_time(HinawaCycleTime *self, gint64 *tv_sec, gint32 *tv_nsec)
+void hinawa_cycle_time_get_system_time(const HinawaCycleTime *self, gint64 *tv_sec, gint32 *tv_nsec)
 {
 	*tv_sec = self->tv_sec;
 	*tv_nsec = self->tv_nsec;
@@ -65,7 +65,7 @@ void hinawa_cycle_time_get_system_time(HinawaCycleTime *self, gint64 *tv_sec, gi
  *
  * Since: 2.6.
  */
-void hinawa_cycle_time_get_clock_id(HinawaCycleTime *self, gint *clock_id)
+void hinawa_cycle_time_get_clock_id(const HinawaCycleTime *self, gint *clock_id)
 {
 	*clock_id = self->clk_id;
 }
@@ -103,7 +103,7 @@ static guint ieee1394_cycle_time_to_offset(guint32 cycle_time)
  *
  * Since: 2.6.
  */
-void hinawa_cycle_time_get_fields(HinawaCycleTime *self, guint16 cycle_time[3])
+void hinawa_cycle_time_get_fields(const HinawaCycleTime *self, guint16 cycle_time[3])
 {
 	cycle_time[0] = ieee1394_cycle_time_to_sec(self->cycle_timer);
 	cycle_time[1] = ieee1394_cycle_time_to_cycle(self->cycle_timer);
@@ -119,7 +119,7 @@ void hinawa_cycle_time_get_fields(HinawaCycleTime *self, guint16 cycle_time[3])
  *
  * Since: 2.6.
  */
-void hinawa_cycle_time_get_raw(HinawaCycleTime *self, guint32 *raw)
+void hinawa_cycle_time_get_raw(const HinawaCycleTime *self, guint32 *raw)
 {
 	*raw = self->cycle_timer;
 }
@@ -149,7 +149,7 @@ void hinawa_cycle_time_get_raw(HinawaCycleTime *self, guint32 *raw)
  *
  * Since: 2.6
  */
-void hinawa_cycle_time_compute_tstamp(HinawaCycleTime *self, guint tstamp, guint **isoc_cycle)
+void hinawa_cycle_time_compute_tstamp(const HinawaCycleTime *self, guint tstamp, guint **isoc_cycle)
 {
 	guint tstamp_sec_low = (tstamp & OHCI1394_TSTAMP_SEC_MASK) >> OHCI1394_TSTAMP_SEC_SHIFT;
 	guint curr_sec_low = ieee1394_cycle_time_to_sec(self->cycle_timer) & 0x7;
