@@ -20,7 +20,9 @@ methods = (
     'bind',
     'unbind',
     'command',
+    'command_with_tstamp',
     'avc_transaction',
+    'avc_transaction_with_tstamp',
 )
 vmethods = (
     'do_responded',

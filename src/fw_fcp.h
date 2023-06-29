@@ -58,10 +58,15 @@ void hinawa_fw_fcp_unbind(HinawaFwFcp *self);
 
 void hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
 			   guint timeout_ms, GError **error);
+gboolean hinawa_fw_fcp_command_with_tstamp(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
+					   guint **tstamp, guint timeout_ms, GError **error);
 
 void hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
 				   guint8 *const *resp, gsize *resp_size, guint timeout_ms,
 				   GError **error);
+gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self, const guint8 *cmd,
+					gsize cmd_size, guint8 **resp, gsize *resp_size,
+					guint **tstamp, guint timeout_ms, GError **error);
 
 G_END_DECLS
 

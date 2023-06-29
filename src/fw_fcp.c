@@ -290,6 +290,7 @@ static gboolean complete_command_transaction(HinawaFwFcp *self, const guint8 *cm
  * signal is emitted.
  *
  * Since: 2.1.
+ * Deprecated: 2.6: Use [method@FwFcp.command_with_tstamp], instead.
  */
 void hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
 			   guint timeout_ms, GError **error)
@@ -300,6 +301,38 @@ void hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
 	// Finish transaction for command frame.
 	tstamp_ptr = &tstamp;
 	(void)complete_command_transaction(self, cmd, cmd_size, &tstamp_ptr, timeout_ms, error);
+}
+
+/**
+ * hinawa_fw_fcp_command_with_tstamp:
+ * @self: A [class@FwFcp].
+ * @cmd: (array length=cmd_size): An array with elements for request byte data. The value of this
+ *	 argument should point to the array and immutable.
+ * @cmd_size: The size of array for request in byte unit.
+ * @tstamp: (array fixed-size=2)(inout): The array with two elements for time stamps. The first
+ *	    element is for the isochronous cycle at which the request arrived. The second element
+ *	    is for the isochronous cycle at which the response was sent.
+ * @timeout_ms: The timeout to wait for response subaction of transaction for command frame.
+ * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinoko.FwNodeError and
+ *	   Hinoko.FwReqError.
+ *
+ * Transfer command frame for FCP. When receiving response frame for FCP, [signal@FwFcp::responded]
+ * signal is emitted.
+ *
+ * Each value of @tstamp is unsigned 16 bit integer including higher 3 bits for three low order bits
+ * of second field and the rest 13 bits for cycle field in the format of IEEE 1394 CYCLE_TIMER register.
+ *
+ * If the version of kernel ABI for Linux FireWire subsystem is less than 6, each element of @tstamp
+ * has invalid value (=G_MAXUINT16).
+ *
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
+ * Since: 2.6.
+ */
+gboolean hinawa_fw_fcp_command_with_tstamp(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
+					   guint **tstamp, guint timeout_ms, GError **error)
+{
+	// Finish transaction for command frame.
+	return complete_command_transaction(self, cmd, cmd_size, tstamp, timeout_ms, error);
 }
 
 struct waiter {
@@ -425,6 +458,7 @@ end:
  * advance for the case.
  *
  * Since: 2.1.
+ * Deprecated: 2.6: Use [method@FwFcp.avc_transaction_with_tstamp], instead.
  */
 void hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
 				   guint8 *const *resp, gsize *resp_size, guint timeout_ms,
@@ -437,6 +471,57 @@ void hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize c
 	tstamp_ptr = &tstamp;
 	(void)complete_avc_transaction(self, cmd, cmd_size, resp, resp_size, timeout_ms, &w,
 				       &tstamp_ptr, error);
+}
+
+/**
+ * hinawa_fw_fcp_avc_transaction_with_tstamp:
+ * @self: A [class@FwFcp].
+ * @cmd: (array length=cmd_size)(in): An array with elements for request byte data. The value of
+ *	 this argument should point to the array and immutable.
+ * @cmd_size: The size of array for request in byte unit.
+ * @resp: (array length=resp_size)(inout): An array with elements for response byte data. Callers
+ *	  should give it for buffer with enough space against the request since this library
+ *	  performs no reallocation. Due to the reason, the value of this argument should point to
+ *	  the pointer to the array and immutable. The content of array is mutable.
+ * @resp_size: The size of array for response in byte unit. The value of this argument should point to
+ *	       the numerical number and mutable.
+ * @tstamp: (array fixed-size=3)(inout): The array with three elements for time stamps. The first
+ *	    element is for the isochronous cycle at which the request was sent for the command of
+ *	    FCP transaction. The second element is for the isochronous cycle at which the response
+ *	    arrived for the command of FCP transaction. The third element is for the isochronous
+ *	    cycle at which the request was sent for the response of FCP transaction.
+ * @timeout_ms: The timeout to wait for response transaction since command transactions finishes.
+ * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinawa.FwNodeError,
+ *	   Hinawa.FwReqError, and Hinawa.FwFcpError.
+ *
+ * Finish the pair of asynchronous transaction for AV/C command and response transactions. The
+ * timeout_ms parameter is used to wait for response transaction since the command transaction is
+ * initiated, ignoring [property@FwFcp:timeout] property of instance. The timeout is not expanded in
+ * the case that AV/C INTERIM status is arrived, thus the caller should expand the timeout in
+ * advance for the case.
+ *
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
+ * Since: 2.1.
+ */
+gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
+				const guint8 *cmd, gsize cmd_size, guint8 **resp, gsize *resp_size,
+				guint **tstamp, guint timeout_ms, GError **error)
+{
+	struct waiter w;
+	gboolean result;
+
+	g_return_val_if_fail(tstamp != NULL && *tstamp != NULL, FALSE);
+
+	(*tstamp)[0] = G_MAXUINT;
+	(*tstamp)[1] = G_MAXUINT;
+
+	result = complete_avc_transaction(self, cmd, cmd_size, resp, resp_size, timeout_ms, &w,
+					  tstamp, error);
+
+	if (result)
+		(*tstamp)[2] = w.tstamp;
+
+	return result;
 }
 
 /**
