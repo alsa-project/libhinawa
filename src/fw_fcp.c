@@ -173,28 +173,27 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 					  FW_FCP_PROP_TYPE_COUNT,
 					  fw_fcp_props);
 
-        /**
-         * HinawaFwFcp::responded:
-         * @self: A [class@FwFcp].
-         * @frame: (array length=frame_size)(element-type guint8): The array with elements for byte
-         *         data of response for FCP.
-         * @frame_size: The number of elements of the array.
-         *
+	/**
+	 * HinawaFwFcp::responded:
+	 * @self: A [class@FwFcp].
+	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for byte
+	 *	   data of response for FCP.
+	 * @frame_size: The number of elements of the array.
+	 *
 	 * Emitted when the node transfers asynchronous packet as response for FCP and the process
 	 * successfully read the content of packet.
 	 *
 	 * Since: 2.1
-         */
-        fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED] =
-                g_signal_new("responded",
-                             G_OBJECT_CLASS_TYPE(klass),
-                             G_SIGNAL_RUN_LAST,
-                             G_STRUCT_OFFSET(HinawaFwFcpClass, responded),
-                             NULL, NULL,
-                             hinawa_sigs_marshal_VOID__POINTER_UINT,
-                             G_TYPE_NONE,
-                             2, G_TYPE_POINTER, G_TYPE_UINT);
-
+	 */
+	fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED] =
+		g_signal_new("responded",
+			     G_OBJECT_CLASS_TYPE(klass),
+			     G_SIGNAL_RUN_LAST,
+			     G_STRUCT_OFFSET(HinawaFwFcpClass, responded),
+			     NULL, NULL,
+			     hinawa_sigs_marshal_VOID__POINTER_UINT,
+			     G_TYPE_NONE,
+			     2, G_TYPE_POINTER, G_TYPE_UINT);
 }
 
 static void hinawa_fw_fcp_init(HinawaFwFcp *self)
