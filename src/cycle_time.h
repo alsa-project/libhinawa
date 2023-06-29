@@ -23,9 +23,9 @@ void hinawa_cycle_time_get_fields(const HinawaCycleTime *self, guint16 fields[3]
 
 void hinawa_cycle_time_get_raw(const HinawaCycleTime *self, guint32 *raw);
 
-void hinawa_cycle_time_compute_tstamp(const HinawaCycleTime *self, guint tstamp, guint **isoc_cycle);
+void hinawa_cycle_time_compute_tstamp(const HinawaCycleTime *self, guint tstamp, guint isoc_cycle[2]);
 
-void hinawa_cycle_time_parse_tstamp(guint tstamp, guint **isoc_cycle);
+void hinawa_cycle_time_parse_tstamp(guint tstamp, guint isoc_cycle[2]);
 
 G_END_DECLS
 

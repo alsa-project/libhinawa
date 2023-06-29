@@ -88,8 +88,8 @@ def read_quadlet(node: Hinawa.FwNode, req: Hinawa.FwReq, addr: int) -> int:
     except Exception as e:
         print(e)
 
-    sent_cycle = cycle_time.compute_tstamp(tstamp[0], [0] * 2)
-    recv_cycle = cycle_time.compute_tstamp(tstamp[1], [0] * 2)
+    sent_cycle = cycle_time.compute_tstamp(tstamp[0])
+    recv_cycle = cycle_time.compute_tstamp(tstamp[1])
 
     try:
         _, cycle_time = node.read_cycle_time(CLOCK_MONOTONIC_RAW, cycle_time)
@@ -150,7 +150,7 @@ def handle_requested3(resp: Hinawa.FwResp, tcode: Hinawa.FwRcode, offset: int,
     print('Event requested3: {0}'.format(tcode.value_nick))
     try:
         _, cycle_time = node.read_cycle_time(CLOCK_MONOTONIC_RAW, cycle_time)
-        isoc_cycle = cycle_time.compute_tstamp(tstamp, [0] * 2)
+        isoc_cycle = cycle_time.compute_tstamp(tstamp)
     except Exception as e:
         print(e)
         isoc_cycle = [0] * 2
@@ -181,7 +181,7 @@ def handle_responded2(fcp: Hinawa.FwFcp, frame: list, length: int, tstamp: int,
     print('Event responded2: length {}'.format(length))
     try:
         _, cycle_time = node.read_cycle_time(CLOCK_MONOTONIC_RAW, cycle_time)
-        isoc_cycle = cycle_time.compute_tstamp(tstamp, [0] * 2)
+        isoc_cycle = cycle_time.compute_tstamp(tstamp)
     except Exception as e:
         print(e)
         isoc_cycle = [0] * 2
@@ -207,9 +207,9 @@ def listen_fcp(node: Hinawa.FwNode):
         _, response, tstamp = fcp.avc_transaction_with_tstamp(request, [0] * len(request), tstamp,
                                                               100)
 
-        req_sent_cycle = cycle_time.compute_tstamp(tstamp[0], [0] * 2)
-        req_responded_cycle = cycle_time.compute_tstamp(tstamp[1], [0] * 2)
-        resp_sent_cycle = cycle_time.compute_tstamp(tstamp[2], [0] * 2)
+        req_sent_cycle = cycle_time.compute_tstamp(tstamp[0])
+        req_responded_cycle = cycle_time.compute_tstamp(tstamp[1])
+        resp_sent_cycle = cycle_time.compute_tstamp(tstamp[2])
 
         _, cycle_time = node.read_cycle_time(CLOCK_MONOTONIC_RAW, cycle_time)
         finish_cycle = cycle_time.get_fields()[:2]
