@@ -21,6 +21,7 @@ methods = (
 )
 vmethods = (
     'do_responded',
+    'do_responded2',
 )
 signals = (
     'responded',

@@ -179,7 +179,7 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 		g_signal_new("responded2",
 			     G_OBJECT_CLASS_TYPE(klass),
 			     G_SIGNAL_RUN_LAST,
-			     0,
+			     G_STRUCT_OFFSET(HinawaFwReqClass, responded2),
 			     NULL, NULL,
 			     hinawa_sigs_marshal_VOID__ENUM_POINTER_UINT_UINT_UINT,
 			     G_TYPE_NONE,
