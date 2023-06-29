@@ -76,16 +76,15 @@ class Sample(Gtk.Window):
         GLib.unix_signal_add(GLib.PRIORITY_HIGH, SIGINT, lambda s: Gtk.main_quit(), self)
 
     def run_transaction(self, button):
+        addr = int(self.entry.get_text(), 16)
+        frames = [0] * 4
         try:
-            addr = int(self.entry.get_text(), 16)
-            frames = [0] * 4
-            frames = self.req.transaction_sync(self.node, Hinawa.FwTcode.READ_QUADLET_REQUEST,
-                                               addr, len(frames), frames, 100)
-            label = '0x{:08x}'.format(unpack('>I', frames)[0])
-            self.label.set_text(label)
-            print(self.label.get_text())
+            quadlet = common.read_quadlet(self.node, self.req, addr)
         except Exception as e:
             print(e)
+
+        label = '0x{:08x}'.format(quadlet)
+        self.label.set_text(label)
 
 
 if __name__ == '__main__':
