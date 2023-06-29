@@ -337,10 +337,10 @@ static void handle_responded2_signal(HinawaFwReq *self, HinawaFwRcode rcode, con
 	g_mutex_unlock(&w->mutex);
 }
 
-static gboolean transaction_sync(HinawaFwReq *self, HinawaFwNode *node, HinawaFwTcode tcode,
-				 guint64 addr, gsize length, guint8 *const *frame,
-				 gsize *frame_size, guint timeout_ms, struct waiter *w,
-				 GError **error)
+static gboolean complete_transaction(HinawaFwReq *self, HinawaFwNode *node, HinawaFwTcode tcode,
+				     guint64 addr, gsize length, guint8 *const *frame,
+				     gsize *frame_size, guint timeout_ms, struct waiter *w,
+				     GError **error)
 {
 	gulong handler_id;
 	guint64 expiration;
@@ -442,8 +442,8 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
 {
 	struct waiter w;
 
-	(void)transaction_sync(self, node, tcode, addr, length, frame, frame_size, timeout_ms, &w,
-			       error);
+	(void)complete_transaction(self, node, tcode, addr, length, frame, frame_size, timeout_ms,
+				   &w, error);
 }
 
 /**
@@ -489,8 +489,8 @@ gboolean hinawa_fw_req_transaction_with_tstamp_sync(HinawaFwReq *self, HinawaFwN
 	struct waiter w;
 	gboolean result;
 
-	result = transaction_sync(self, node, tcode, addr, length, frame, frame_size, timeout_ms,
-				  &w, error);
+	result = complete_transaction(self, node, tcode, addr, length, frame, frame_size,
+				      timeout_ms, &w, error);
 	if (*error == NULL) {
 		(*tstamp)[0] = w.request_tstamp;
 		(*tstamp)[1] = w.response_tstamp;
@@ -533,8 +533,8 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 	priv = hinawa_fw_req_get_instance_private(self);
 
-	(void)transaction_sync(self, node, tcode, addr, length, frame, frame_size, priv->timeout,
-			       &w, error);
+	(void)complete_transaction(self, node, tcode, addr, length, frame, frame_size,
+				   priv->timeout, &w, error);
 }
 
 // NOTE: For HinawaFwNode, internal.
