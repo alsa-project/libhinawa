@@ -171,4 +171,6 @@ HINAWA_2_6_0 {
     "hinawa_cycle_time_parse_tstamp";
 
     "hinawa_fw_node_read_cycle_time";
+
+    "hinawa_fw_req_transaction_with_tstamp_sync";
 } HINAWA_2_5_0;

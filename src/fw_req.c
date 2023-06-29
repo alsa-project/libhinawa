@@ -447,6 +447,59 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
 }
 
 /**
+ * hinawa_fw_req_transaction_with_tstamp_sync:
+ * @self: A [class@FwReq].
+ * @node: A [class@FwNode].
+ * @tcode: A transaction code of [enum@FwTcode].
+ * @addr: A destination address of target device
+ * @length: The range of address in byte unit.
+ * @frame: (array length=frame_size)(inout): An array with elements for byte data. Callers should
+ *	   give it for buffer with enough space against the request since this library performs no
+ *	   reallocation. Due to the reason, the value of this argument should point to the pointer
+ *	   to the array and immutable. The content of array is mutable for read and lock
+ *	   transaction.
+ * @frame_size: The size of array in byte unit. The value of this argument should point to the
+ *		numeric number and mutable for read and lock transaction.
+ * @tstamp: (array fixed-size=2)(inout): The array with two elements for time stamps. The first
+ *	    element is for the isochronous cycle at which the request was sent. The second element
+ *	    is for the isochronous cycle at which the response arrived.
+ * @timeout_ms: The timeout to wait for response subaction of the transaction since request
+ *		subaction is initiated, in milliseconds.
+ * @error: A [struct@GLib.Error]. Error can be generated with two domains; Hinawa.FwNodeError and
+ *	   Hinawa.FwReqError.
+ *
+ * Execute request subaction of transaction to the given node according to given code, then wait
+ * for response subaction within the given timeout. The [property@FwReq:timeout] property of
+ * instance is ignored.
+ *
+ * Each value of @tstamp is unsigned 16 bit integer including higher 3 bits for three low order bits
+ * of second field and the rest 13 bits for cycle field in the format of IEEE 1394 CYCLE_TIMER register.
+ *
+ * If the version of kernel ABI for Linux FireWire subsystem is less than 6, each element of @tstamp
+ * has invalid value (=G_MAXUINT).
+ *
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
+ * Since: 2.6
+ */
+gboolean hinawa_fw_req_transaction_with_tstamp_sync(HinawaFwReq *self, HinawaFwNode *node,
+				HinawaFwTcode tcode, guint64 addr, gsize length,
+				guint8 **frame, gsize *frame_size, guint **tstamp,
+				guint timeout_ms, GError **error)
+{
+	struct waiter w;
+	gboolean result;
+
+	result = transaction_sync(self, node, tcode, addr, length, frame, frame_size, timeout_ms,
+				  &w, error);
+	if (*error == NULL) {
+		(*tstamp)[0] = w.request_tstamp;
+		(*tstamp)[1] = w.response_tstamp;
+	}
+
+	return result;
+}
+
+/**
  * hinawa_fw_req_transaction:
  * @self: A [class@FwReq].
  * @node: A [class@FwNode].
