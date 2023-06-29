@@ -74,7 +74,6 @@ def read_quadlet(node: Hinawa.FwNode, req: Hinawa.FwReq, addr: int) -> int:
     initiate_cycle = cycle_time.get_fields()[:2]
 
     frame = [0] * 4
-    tstamp = [0] * 2
     try:
         _, frame, tstamp = req.transaction_with_tstamp_sync(
             node,
@@ -82,7 +81,6 @@ def read_quadlet(node: Hinawa.FwNode, req: Hinawa.FwReq, addr: int) -> int:
             addr,
             len(frame),
             frame,
-            tstamp,
             100
         )
     except Exception as e:
