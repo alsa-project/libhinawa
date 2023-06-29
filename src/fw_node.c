@@ -534,7 +534,17 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		entry = g_list_find(priv->transactions, req);
 		if (entry) {
 			priv->transactions = g_list_delete_link(priv->transactions, entry);
-			hinawa_fw_req_handle_response(req, &event->response);
+
+			switch (event_type) {
+			case FW_CDEV_EVENT_RESPONSE:
+				hinawa_fw_req_handle_response(req, &event->response);
+				break;
+			case FW_CDEV_EVENT_RESPONSE2:
+				hinawa_fw_req_handle_response2(req, &event->response2);
+				break;
+			default:
+				break;
+			}
 		}
 		g_mutex_unlock(&priv->transactions_mutex);
 	}

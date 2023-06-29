@@ -205,6 +205,75 @@ HinawaFwReq *hinawa_fw_req_new(void)
 	return g_object_new(HINAWA_TYPE_FW_REQ, NULL);
 }
 
+static gboolean initiate_transaction(HinawaFwReq *self, HinawaFwNode *node, HinawaFwTcode tcode,
+				     guint64 addr, gsize length, guint8 *const *frame,
+				     gsize *frame_size, GError **error)
+{
+	struct fw_cdev_send_request req = {0};
+	guint64 generation;
+	int err;
+
+	g_return_val_if_fail(HINAWA_IS_FW_REQ(self), FALSE);
+	g_return_val_if_fail(HINAWA_IS_FW_NODE(node), FALSE);
+	g_return_val_if_fail(length > 0, FALSE);
+	g_return_val_if_fail(frame != NULL, FALSE);
+	g_return_val_if_fail(frame_size != NULL && *frame_size > 0, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
+
+	// Should be aligned to quadlet.
+	if (tcode == HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST ||
+	    tcode == HINAWA_FW_TCODE_READ_QUADLET_REQUEST ||
+	    tcode == HINAWA_FW_TCODE_LOCK_MASK_SWAP ||
+	    tcode == HINAWA_FW_TCODE_LOCK_COMPARE_SWAP ||
+	    tcode == HINAWA_FW_TCODE_LOCK_FETCH_ADD ||
+	    tcode == HINAWA_FW_TCODE_LOCK_LITTLE_ADD ||
+	    tcode == HINAWA_FW_TCODE_LOCK_BOUNDED_ADD ||
+	    tcode == HINAWA_FW_TCODE_LOCK_WRAP_ADD ||
+	    tcode == HINAWA_FW_TCODE_LOCK_VENDOR_DEPENDENT)
+		g_return_val_if_fail(!(addr & 0x3) && !(length & 0x3), FALSE);
+
+	// Should have enough space for read/written data.
+	if (tcode == HINAWA_FW_TCODE_READ_QUADLET_REQUEST ||
+	    tcode == HINAWA_FW_TCODE_READ_BLOCK_REQUEST ||
+	    tcode == HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST ||
+	    tcode == HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST) {
+		g_return_val_if_fail(*frame_size >= length, FALSE);
+	} else if (tcode == HINAWA_FW_TCODE_LOCK_MASK_SWAP ||
+		   tcode == HINAWA_FW_TCODE_LOCK_COMPARE_SWAP ||
+		   tcode == HINAWA_FW_TCODE_LOCK_FETCH_ADD ||
+		   tcode == HINAWA_FW_TCODE_LOCK_LITTLE_ADD ||
+		   tcode == HINAWA_FW_TCODE_LOCK_BOUNDED_ADD ||
+		   tcode == HINAWA_FW_TCODE_LOCK_WRAP_ADD ||
+		   tcode == HINAWA_FW_TCODE_LOCK_VENDOR_DEPENDENT) {
+		g_return_val_if_fail(*frame_size >= length * 2, FALSE);
+		length *= 2;
+	} else {
+		// Not supported due to no test.
+		g_return_val_if_reached(FALSE);
+	}
+
+	// Get unit properties.
+	g_object_get(G_OBJECT(node), "generation", &generation, NULL);
+
+	// Setup a transaction structure.
+	req.tcode = tcode;
+	req.length = length;
+	req.offset = addr;
+	req.closure = (guint64)self;
+	req.generation = generation;
+
+	if (tcode != TCODE_READ_QUADLET_REQUEST && tcode != TCODE_READ_BLOCK_REQUEST)
+		req.data = (guint64)(*frame);
+
+	// Send this transaction.
+	err = hinawa_fw_node_ioctl(node, FW_CDEV_IOC_SEND_REQUEST, &req, error);
+	if (*error == NULL && err > 0)
+		generate_fw_req_error_with_errno(error, HINAWA_FW_REQ_ERROR_SEND_ERROR, err);
+
+	return err >= 0;
+}
+
+
 /**
  * hinawa_fw_req_transaction_async:
  * @self: A [class@FwReq].
@@ -233,83 +302,31 @@ void hinawa_fw_req_transaction_async(HinawaFwReq *self, HinawaFwNode *node,
 				     guint8 *const *frame, gsize *frame_size,
 				     GError **error)
 {
-	struct fw_cdev_send_request req = {0};
-	guint64 generation;
-	int err;
-
-	g_return_if_fail(HINAWA_IS_FW_REQ(self));
-	g_return_if_fail(length > 0);
-	g_return_if_fail(frame != NULL);
-	g_return_if_fail(frame_size != NULL && *frame_size > 0);
-	g_return_if_fail(error == NULL || *error == NULL);
-
-	// Should be aligned to quadlet.
-	if (tcode == HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST ||
-	    tcode == HINAWA_FW_TCODE_READ_QUADLET_REQUEST ||
-	    tcode == HINAWA_FW_TCODE_LOCK_MASK_SWAP ||
-	    tcode == HINAWA_FW_TCODE_LOCK_COMPARE_SWAP ||
-	    tcode == HINAWA_FW_TCODE_LOCK_FETCH_ADD ||
-	    tcode == HINAWA_FW_TCODE_LOCK_LITTLE_ADD ||
-	    tcode == HINAWA_FW_TCODE_LOCK_BOUNDED_ADD ||
-	    tcode == HINAWA_FW_TCODE_LOCK_WRAP_ADD ||
-	    tcode == HINAWA_FW_TCODE_LOCK_VENDOR_DEPENDENT)
-		g_return_if_fail(!(addr & 0x3) && !(length & 0x3));
-
-	// Should have enough space for read/written data.
-	if (tcode == HINAWA_FW_TCODE_READ_QUADLET_REQUEST ||
-	    tcode == HINAWA_FW_TCODE_READ_BLOCK_REQUEST ||
-	    tcode == HINAWA_FW_TCODE_WRITE_QUADLET_REQUEST ||
-	    tcode == HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST) {
-		g_return_if_fail(*frame_size >= length);
-	} else if (tcode == HINAWA_FW_TCODE_LOCK_MASK_SWAP ||
-		   tcode == HINAWA_FW_TCODE_LOCK_COMPARE_SWAP ||
-		   tcode == HINAWA_FW_TCODE_LOCK_FETCH_ADD ||
-		   tcode == HINAWA_FW_TCODE_LOCK_LITTLE_ADD ||
-		   tcode == HINAWA_FW_TCODE_LOCK_BOUNDED_ADD ||
-		   tcode == HINAWA_FW_TCODE_LOCK_WRAP_ADD ||
-		   tcode == HINAWA_FW_TCODE_LOCK_VENDOR_DEPENDENT) {
-		g_return_if_fail(*frame_size >= length * 2);
-		length *= 2;
-	} else {
-		// Not supported due to no test.
-		g_return_if_reached();
-	}
-
-	// Get unit properties.
-	g_object_get(G_OBJECT(node), "generation", &generation, NULL);
-
-	// Setup a transaction structure.
-	req.tcode = tcode;
-	req.length = length;
-	req.offset = addr;
-	req.closure = (guint64)self;
-	req.generation = generation;
-
-	if (tcode != TCODE_READ_QUADLET_REQUEST && tcode != TCODE_READ_BLOCK_REQUEST)
-		req.data = (guint64)(*frame);
-
-	// Send this transaction.
-	err = hinawa_fw_node_ioctl(node, FW_CDEV_IOC_SEND_REQUEST, &req, error);
-	if (*error == NULL && err > 0)
-		generate_fw_req_error_with_errno(error, HINAWA_FW_REQ_ERROR_SEND_ERROR, err);
+	(void)initiate_transaction(self, node, tcode, addr, length, frame, frame_size, error);
 }
 
 struct waiter {
 	guint rcode;
+	guint request_tstamp;
+	guint response_tstamp;
 	guint8 *frame;
 	gsize length;
 	GCond cond;
 	GMutex mutex;
 };
 
-static void handle_responded_signal(HinawaFwReq *self, HinawaFwRcode rcode, const guint8 *frame,
-				    guint frame_size, gpointer user_data)
+static void handle_responded2_signal(HinawaFwReq *self, HinawaFwRcode rcode, const guint8 *frame,
+				     guint frame_size, guint request_tstamp, guint response_tstamp,
+				     gpointer user_data)
 {
 	struct waiter *w = (struct waiter *)user_data;
 
 	g_mutex_lock(&w->mutex);
 
 	w->rcode = rcode;
+
+	w->request_tstamp = request_tstamp;
+	w->response_tstamp = response_tstamp;
 
 	w->length = MIN(w->length, frame_size);
 	memcpy(w->frame, frame, w->length);
@@ -318,6 +335,79 @@ static void handle_responded_signal(HinawaFwReq *self, HinawaFwRcode rcode, cons
 	g_cond_signal(&w->cond);
 
 	g_mutex_unlock(&w->mutex);
+}
+
+static gboolean transaction_sync(HinawaFwReq *self, HinawaFwNode *node, HinawaFwTcode tcode,
+				 guint64 addr, gsize length, guint8 *const *frame,
+				 gsize *frame_size, guint timeout_ms, struct waiter *w,
+				 GError **error)
+{
+	gulong handler_id;
+	guint64 expiration;
+
+	g_return_val_if_fail(HINAWA_IS_FW_REQ(self), FALSE);
+	g_return_val_if_fail(HINAWA_IS_FW_NODE(node), FALSE);
+	g_return_val_if_fail(w != NULL, FALSE);
+
+	// This predicates against suprious wakeup.
+	w->rcode = G_MAXUINT;
+	w->request_tstamp = G_MAXUINT;
+	w->response_tstamp = G_MAXUINT;
+	w->frame = *frame;
+	w->length = *frame_size;
+	g_cond_init(&w->cond);
+	g_mutex_init(&w->mutex);
+
+        handler_id = g_signal_connect(self, "responded2", G_CALLBACK(handle_responded2_signal), w);
+
+	// Timeout is set in advance as a parameter of this object.
+	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
+
+	g_object_ref(node);
+	if (!initiate_transaction(self, node, tcode, addr, length, frame, frame_size, error)) {
+		g_signal_handler_disconnect(self, handler_id);
+		g_object_unref(node);
+		return FALSE;
+	}
+
+	g_mutex_lock(&w->mutex);
+	while (w->rcode == G_MAXUINT) {
+		// Wait for a response with timeout, waken by the response handler.
+		if (!g_cond_wait_until(&w->cond, &w->mutex, expiration))
+			break;
+	}
+	g_signal_handler_disconnect(self, handler_id);
+	g_cond_clear(&w->cond);
+	g_mutex_unlock(&w->mutex);
+
+	// Always for safe.
+	hinawa_fw_node_invalidate_transaction(node, self);
+	g_object_unref(node);
+
+	if (w->rcode == G_MAXUINT) {
+		generate_fw_req_error_literal(error, HINAWA_FW_REQ_ERROR_CANCELLED);
+		return FALSE;
+	}
+
+	switch (w->rcode) {
+	case RCODE_COMPLETE:
+		*frame_size = w->length;
+		return TRUE;
+	case RCODE_CONFLICT_ERROR:
+	case RCODE_DATA_ERROR:
+	case RCODE_TYPE_ERROR:
+	case RCODE_ADDRESS_ERROR:
+	case RCODE_SEND_ERROR:
+	case RCODE_CANCELLED:
+	case RCODE_BUSY:
+	case RCODE_GENERATION:
+	case RCODE_NO_ACK:
+		generate_fw_req_error_literal(error, (HinawaFwReqError)w->rcode);
+		return FALSE;
+	default:
+		generate_fw_req_error_literal(error, HINAWA_FW_REQ_ERROR_INVALID);
+		return FALSE;
+	}
 }
 
 /**
@@ -350,71 +440,10 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
 			       guint8 *const *frame, gsize *frame_size, guint timeout_ms,
 			       GError **error)
 {
-	gulong handler_id;
 	struct waiter w;
-	guint64 expiration;
 
-	g_return_if_fail(HINAWA_IS_FW_REQ(self));
-
-	// This predicates against suprious wakeup.
-	w.rcode = G_MAXUINT;
-	w.frame = *frame;
-	w.length = *frame_size;
-	g_cond_init(&w.cond);
-	g_mutex_init(&w.mutex);
-
-        handler_id = g_signal_connect(self, "responded", (GCallback)handle_responded_signal, &w);
-
-	// Timeout is set in advance as a parameter of this object.
-	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
-
-	g_object_ref(node);
-	hinawa_fw_req_transaction_async(self, node, tcode, addr, length, frame, frame_size,
-					error);
-	if (*error != NULL) {
-		g_signal_handler_disconnect(self, handler_id);
-		g_object_unref(node);
-		return;
-	}
-
-	g_mutex_lock(&w.mutex);
-	while (w.rcode == G_MAXUINT) {
-		// Wait for a response with timeout, waken by the response handler.
-		if (!g_cond_wait_until(&w.cond, &w.mutex, expiration))
-			break;
-	}
-	g_signal_handler_disconnect(self, handler_id);
-	g_cond_clear(&w.cond);
-	g_mutex_unlock(&w.mutex);
-
-	// Always for safe.
-	hinawa_fw_node_invalidate_transaction(node, self);
-	g_object_unref(node);
-
-	if (w.rcode == G_MAXUINT) {
-		generate_fw_req_error_literal(error, HINAWA_FW_REQ_ERROR_CANCELLED);
-		return;
-	}
-
-	switch (w.rcode) {
-	case RCODE_COMPLETE:
-		*frame_size = w.length;
-		break;
-	case RCODE_CONFLICT_ERROR:
-	case RCODE_DATA_ERROR:
-	case RCODE_TYPE_ERROR:
-	case RCODE_ADDRESS_ERROR:
-	case RCODE_SEND_ERROR:
-	case RCODE_CANCELLED:
-	case RCODE_BUSY:
-	case RCODE_GENERATION:
-	case RCODE_NO_ACK:
-		generate_fw_req_error_literal(error, (HinawaFwReqError)w.rcode);
-		break;
-	default:
-		generate_fw_req_error_literal(error, HINAWA_FW_REQ_ERROR_INVALID);
-		break;
-	}
+	(void)transaction_sync(self, node, tcode, addr, length, frame, frame_size, timeout_ms, &w,
+			       error);
 }
 
 /**
@@ -446,19 +475,52 @@ void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 			       GError **error)
 {
 	HinawaFwReqPrivate *priv;
+	struct waiter w;
 
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 	priv = hinawa_fw_req_get_instance_private(self);
 
-	hinawa_fw_req_transaction_sync(self, node, tcode, addr, length, frame, frame_size,
-				       priv->timeout, error);
+	(void)transaction_sync(self, node, tcode, addr, length, frame, frame_size, priv->timeout,
+			       &w, error);
 }
 
 // NOTE: For HinawaFwNode, internal.
 void hinawa_fw_req_handle_response(HinawaFwReq *self, const struct fw_cdev_event_response *event)
 {
+	HinawaFwReqClass *klass;
+
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
-	g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED], 0,
-		      event->rcode, event->data, event->length);
+	klass = HINAWA_FW_REQ_GET_CLASS(self);
+
+	if (klass->responded2 != NULL ||
+	    g_signal_has_handler_pending(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED2], 0, TRUE)) {
+		g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED2], 0, event->rcode,
+			      event->data, event->length, G_MAXUINT, G_MAXUINT);
+	} else if (klass->responded != NULL ||
+		   g_signal_has_handler_pending(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED], 0, TRUE)) {
+		g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED], 0, event->rcode,
+			      event->data, event->length);
+	}
+}
+
+// NOTE: For HinawaFwNode, internal.
+void hinawa_fw_req_handle_response2(HinawaFwReq *self, const struct fw_cdev_event_response2 *event)
+{
+	HinawaFwReqClass *klass;
+
+	g_return_if_fail(HINAWA_IS_FW_REQ(self));
+
+	klass = HINAWA_FW_REQ_GET_CLASS(self);
+
+	if (klass->responded2 != NULL ||
+	    g_signal_has_handler_pending(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED2], 0, TRUE)) {
+		g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED2], 0, event->rcode,
+			      event->data, event->length, event->request_tstamp,
+			      event->response_tstamp);
+	} else if (klass->responded != NULL ||
+		   g_signal_has_handler_pending(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED], 0, TRUE)) {
+		g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED], 0, event->rcode,
+			      event->data, event->length);
+	}
 }

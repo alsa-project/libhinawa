@@ -11,6 +11,7 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self, const struct fw_cdev_even
 void hinawa_fw_resp_handle_request2(HinawaFwResp *self, const struct fw_cdev_event_request2 *event);
 void hinawa_fw_resp_handle_request3(HinawaFwResp *self, const struct fw_cdev_event_request3 *event);
 void hinawa_fw_req_handle_response(HinawaFwReq *self, const struct fw_cdev_event_response *event);
+void hinawa_fw_req_handle_response2(HinawaFwReq *self, const struct fw_cdev_event_response2 *event);
 
 void hinawa_snd_unit_write(HinawaSndUnit *self, const void *buf, size_t length,
 			   GError **exception);
