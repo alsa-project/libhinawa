@@ -71,7 +71,7 @@ def read_quadlet(node: Hinawa.FwNode, req: Hinawa.FwReq, addr: int) -> int:
     except Exception as e:
         print(e)
         return 0
-    initiate_cycle = cycle_time.get_fields()
+    initiate_cycle = cycle_time.get_fields()[:2]
 
     frame = [0] * 4
     tstamp = [0] * 2
@@ -96,7 +96,7 @@ def read_quadlet(node: Hinawa.FwNode, req: Hinawa.FwReq, addr: int) -> int:
     except Exception as e:
         print(e)
         return 0
-    finish_cycle = cycle_time.get_fields()
+    finish_cycle = cycle_time.get_fields()[:2]
 
     quadlet = unpack('>I', frame)[0]
 
@@ -200,7 +200,7 @@ def listen_fcp(node: Hinawa.FwNode):
         fcp.bind(node)
 
         _, cycle_time = node.read_cycle_time(CLOCK_MONOTONIC_RAW, cycle_time)
-        initiate_cycle = cycle_time.get_fields()
+        initiate_cycle = cycle_time.get_fields()[:2]
 
         tstamp = [0] * 3
         request = bytes([0x01, 0xff, 0x19, 0x00, 0xff, 0xff, 0xff, 0xff])
@@ -212,7 +212,7 @@ def listen_fcp(node: Hinawa.FwNode):
         resp_sent_cycle = cycle_time.compute_tstamp(tstamp[2], [0] * 2)
 
         _, cycle_time = node.read_cycle_time(CLOCK_MONOTONIC_RAW, cycle_time)
-        finish_cycle = cycle_time.get_fields()
+        finish_cycle = cycle_time.get_fields()[:2]
 
         print('FCP request:')
         print_frame(request)

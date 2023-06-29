@@ -19,7 +19,7 @@ void hinawa_cycle_time_get_system_time(const HinawaCycleTime *self, gint64 *tv_s
 
 void hinawa_cycle_time_get_clock_id(const HinawaCycleTime *self, gint *clock_id);
 
-void hinawa_cycle_time_get_fields(const HinawaCycleTime *self, guint16 cycle_time[3]);
+void hinawa_cycle_time_get_fields(const HinawaCycleTime *self, guint16 fields[3]);
 
 void hinawa_cycle_time_get_raw(const HinawaCycleTime *self, guint32 *raw);
 
