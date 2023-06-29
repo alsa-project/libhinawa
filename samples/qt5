@@ -11,8 +11,16 @@ gi.require_versions({'GLib': '2.0', 'Hinawa': '3.0'})
 from gi.repository import GLib, Hinawa
 
 # Qt5 python binding
-from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout
-from PyQt5.QtWidgets import QToolButton, QGroupBox, QLineEdit, QLabel
+from PyQt5.QtWidgets import (
+    QApplication,
+    QWidget,
+    QHBoxLayout,
+    QVBoxLayout,
+    QToolButton,
+    QGroupBox,
+    QLineEdit,
+    QLabel,
+)
 
 
 def main() -> int:
@@ -93,17 +101,16 @@ class Sample(QWidget):
         GLib.unix_signal_add(GLib.PRIORITY_HIGH, SIGINT, lambda a: a.quit(), app)
 
     def run_transaction(self, val):
+        addr = int(self.addr.text(), 16)
+        frames = [0] * 4
+
         try:
-            addr = int(self.addr.text(), 16)
-            frames = [0] * 4
-            frames = self.req.transaction_sync(self.node, Hinawa.FwTcode.READ_QUADLET_REQUEST,
-                                               addr, 4, frames, 100)
-            label = '0x{:08x}'.format(unpack('>I', frames)[0])
-            self.value.setText(label)
-            print(self.value.text())
+            quadlet = common.read_quadlet(self.node, self.req, addr)
         except Exception as e:
             print(e)
 
+        label = '0x{:08x}'.format(quadlet)
+        self.value.setText(label)
 
 if __name__ == '__main__':
     exit(main())
