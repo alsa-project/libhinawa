@@ -37,18 +37,18 @@ struct _HinawaFwReqClass {
 	 * HinawaFwReqClass::responded2:
 	 * @self: A [class@FwReq].
 	 * @rcode: One of [enum@FwRcode].
+	 * @request_tstamp: The isochronous cycle at which the request was sent.
+	 * @response_tstamp: The isochronous cycle at which the response arrived.
 	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for
 	 *	   byte data of response subaction for transaction.
 	 * @frame_size: The number of elements of the array.
-	 * @request_tstamp: The isochronous cycle at which the request was sent.
-	 * @response_tstamp: The isochronous cycle at which the response arrived.
 	 *
 	 * Class closure for the [signal@FwReq::responded2] signal.
 	 *
 	 * Since: 2.6
 	 */
-	void (*responded2)(HinawaFwReq *self, HinawaFwRcode rcode, const guint8 *frame,
-			   guint frame_size, guint request_tstamp, guint response_tstamp);
+	void (*responded2)(HinawaFwReq *self, HinawaFwRcode rcode, guint request_tstamp,
+			   guint response_tstamp, const guint8 *frame, guint frame_size);
 };
 
 HinawaFwReq *hinawa_fw_req_new(void);
