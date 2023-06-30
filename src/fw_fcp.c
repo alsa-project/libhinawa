@@ -201,11 +201,11 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 	/**
 	 * HinawaFwFcp::responded2:
 	 * @self: A [class@FwFcp].
+	 * @tstamp: The time stamp at which the request arrived for the response of FCP
+	 *	    transaction.
 	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for byte
 	 *	   data of response for FCP.
 	 * @frame_size: The number of elements of the array.
-	 * @tstamp: The time stamp at which the request arrived for the response of FCP
-	 *	    transaction.
 	 *
 	 * Emitted when the node transfers asynchronous packet as response for FCP and the process
 	 * successfully read the content of packet.
@@ -225,9 +225,9 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 			     G_SIGNAL_RUN_LAST,
 			     G_STRUCT_OFFSET(HinawaFwFcpClass, responded2),
 			     NULL, NULL,
-			     hinawa_sigs_marshal_VOID__POINTER_UINT_UINT,
+			     hinawa_sigs_marshal_VOID__UINT_POINTER_UINT,
 			     G_TYPE_NONE,
-			     3, G_TYPE_POINTER, G_TYPE_UINT, G_TYPE_UINT);
+			     3, G_TYPE_UINT, G_TYPE_POINTER, G_TYPE_UINT);
 }
 
 static void hinawa_fw_fcp_init(HinawaFwFcp *self)
@@ -341,8 +341,8 @@ struct waiter {
 	GMutex mutex;
 };
 
-static void handle_responded2_signal(HinawaFwFcp *self, const guint8 *frame, guint frame_size,
-				     guint tstamp, gpointer user_data)
+static void handle_responded2_signal(HinawaFwFcp *self, guint tstamp, const guint8 *frame,
+				     guint frame_size, gpointer user_data)
 {
 	struct waiter *w = (struct waiter *)user_data;
 
@@ -565,7 +565,7 @@ static HinawaFwRcode handle_requested3_signal(HinawaFwResp *resp, HinawaFwTcode 
 	    src == node_id) {
 		if (klass->responded2 != NULL ||
 		    g_signal_has_handler_pending(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED2], 0, TRUE)) {
-			g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED2], 0, frame, length, tstamp);
+			g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED2], 0, tstamp, frame, length);
 		} else if (klass->responded != NULL ||
 		    g_signal_has_handler_pending(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0, TRUE)) {
 			g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0, frame, length);

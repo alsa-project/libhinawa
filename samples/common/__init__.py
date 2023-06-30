@@ -173,7 +173,7 @@ def listen_region(node: Hinawa.FwNode):
     resp.release()
 
 
-def handle_responded2(fcp: Hinawa.FwFcp, frame: list, length: int, tstamp: int,
+def handle_responded2(fcp: Hinawa.FwFcp, tstamp: int, frame: list, length: int,
                       args: tuple[Hinawa.FwNode, Hinawa.CycleTime]):
     node, cycle_time = args
     print('Event responded2: length {}'.format(length))
