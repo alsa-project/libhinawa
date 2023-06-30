@@ -156,11 +156,11 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 	 * HinawaFwReq::responded2:
 	 * @self: A [class@FwReq].
 	 * @rcode: One of [enum@FwRcode].
+	 * @request_tstamp: The isochronous cycle at which the request was sent.
+	 * @response_tstamp: The isochronous cycle at which the response arrived.
 	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for
 	 *	   byte data of response subaction for transaction.
 	 * @frame_size: The number of elements of the array.
-	 * @request_tstamp: The isochronous cycle at which the request was sent.
-	 * @response_tstamp: The isochronous cycle at which the response arrived.
 	 *
 	 * Emitted when the unit transfers asynchronous packet as response subaction for the
 	 * transaction and the process successfully reads the content of packet from Linux firewire
@@ -181,9 +181,9 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 			     G_SIGNAL_RUN_LAST,
 			     G_STRUCT_OFFSET(HinawaFwReqClass, responded2),
 			     NULL, NULL,
-			     hinawa_sigs_marshal_VOID__ENUM_POINTER_UINT_UINT_UINT,
+			     hinawa_sigs_marshal_VOID__ENUM_UINT_UINT_POINTER_UINT,
 			     G_TYPE_NONE,
-			     5, HINAWA_TYPE_FW_RCODE, G_TYPE_POINTER, G_TYPE_UINT, G_TYPE_UINT,
+			     5, HINAWA_TYPE_FW_RCODE, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_POINTER,
 			     G_TYPE_UINT);
 }
 
@@ -315,8 +315,8 @@ struct waiter {
 	GMutex mutex;
 };
 
-static void handle_responded2_signal(HinawaFwReq *self, HinawaFwRcode rcode, const guint8 *frame,
-				     guint frame_size, guint request_tstamp, guint response_tstamp,
+static void handle_responded2_signal(HinawaFwReq *self, HinawaFwRcode rcode, guint request_tstamp,
+				     guint response_tstamp, const guint8 *frame, guint frame_size,
 				     gpointer user_data)
 {
 	struct waiter *w = (struct waiter *)user_data;
@@ -551,7 +551,7 @@ void hinawa_fw_req_handle_response(HinawaFwReq *self, const struct fw_cdev_event
 	if (klass->responded2 != NULL ||
 	    g_signal_has_handler_pending(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED2], 0, TRUE)) {
 		g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED2], 0, event->rcode,
-			      event->data, event->length, G_MAXUINT, G_MAXUINT);
+			      G_MAXUINT, G_MAXUINT, event->data, event->length);
 	} else if (klass->responded != NULL ||
 		   g_signal_has_handler_pending(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED], 0, TRUE)) {
 		g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED], 0, event->rcode,
@@ -571,8 +571,8 @@ void hinawa_fw_req_handle_response2(HinawaFwReq *self, const struct fw_cdev_even
 	if (klass->responded2 != NULL ||
 	    g_signal_has_handler_pending(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED2], 0, TRUE)) {
 		g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED2], 0, event->rcode,
-			      event->data, event->length, event->request_tstamp,
-			      event->response_tstamp);
+			      event->request_tstamp, event->response_tstamp, event->data,
+			      event->length);
 	} else if (klass->responded != NULL ||
 		   g_signal_has_handler_pending(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED], 0, TRUE)) {
 		g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED], 0, event->rcode,
