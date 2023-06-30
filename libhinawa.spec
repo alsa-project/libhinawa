@@ -2,7 +2,7 @@
 %global glib2_version 2.44.0
 
 Name: libhinawa
-Version: 2.5.1
+Version: 2.6.0
 Release: 1%{?dist}
 Summary: GObject introspection library for devices connected to IEEE 1394 bus
 
@@ -70,6 +70,9 @@ developing applications that use %{name}.
 %{_datadir}/doc/libhinawa/*
 
 %changelog
+ * Thu Jul 16 2023 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 2.6.0
+ - new upstream release.
+
  * Thu Jun 30 2022 Takashi Sakamoto <o-takashi@sakamocchi.jp> - 2.5.1
  - new upstream release.
 

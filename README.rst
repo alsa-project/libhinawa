@@ -2,7 +2,7 @@
 The libhinawa project
 =====================
 
-2023/04/23
+2023/07/16
 Takashi Sakamoto
 
 Instruction
@@ -19,7 +19,9 @@ been already obsoleted and deligated the functions to
 `libhitaki <https://github.com/alsa-project/libhitaki>`_, while are still kept for backward
 compatibility. They should not be used for applications written newly.
 
-The latest release is `2.5.1 <https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/tag/?h=2.5.1>`_.
+The latest release is `2.6.0 <https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/tag/?h=2.6.0>`_.
+The package archive is available in `<https://kernel.org/pub/linux/libs/ieee1394/>`_ with detached
+signature created by `my GnuPG key <https://git.kernel.org/pub/scm/docs/kernel/pgpkeys.git/tree/keys/B5A586C7D66FD341.asc>`_.
 
 Example of Python3 with PyGobject
 =================================
@@ -137,7 +139,7 @@ Some sample scripts are available under ``samples`` directory:
 How to make DEB package
 =======================
 
-- Please refer to https://salsa.debian.org/debian/libhinawa.
+- Please refer to `<https://salsa.debian.org/debian/libhinawa>`_.
 
 How to make RPM package
 =======================
@@ -156,20 +158,95 @@ How to make RPM package
     $ cd build
     $ meson dist
     ...
-    meson-dist/libhinawa-2.5.1.tar.xz 3bc5833e102f38d3b08de89e6355deb83dffb81fb6cc34fc7f2fc473be5b4c47
+    Distribution package /.../libhinawa/build/meson-dist/libhinawa-2.6.0.tar.xz tested
+    Created /.../libhinawa/build/meson-dist/libhinawa-2.6.0.tar.xz
     $ cd ..
 
 3. copy the archive
 
 ::
 
-    $ cp build/meson-dist/libhinawa-2.5.1.tar.xz ~/rpmbuild/SOURCES/
+    $ cp build/meson-dist/libhinawa-2.6.0.tar.xz ~/rpmbuild/SOURCES/
 
 4. build package
 
 ::
 
     $ rpmbuild -bb libhinawa.spec
+
+Plan for version 3.0 stable release
+============================
+
+Some changes are scheduled to lose backward compatibility.
+
+Some object classes related to sound unit will be dropped since
+`libhitaki <https://github.com/alsa-project/libhitaki>`_ provides better support for them. This is
+the list of object classes.
+
+* ``Hinawa.SndUnit``
+* ``Hinawa.SndDice``
+* ``Hinawa.SndEfw``
+* ``Hinawa.SndDg00x``
+* ``Hinawa.SndMotu``
+* ``Hinawa.SndMotuRegisterDspparameter``
+* ``Hinawa.SndTscm``
+
+For the rest of object classes, some deprecated features will be dropped as well. This is the list
+of features.
+
+* ``Hinawa.FwReq.transaction_async()``
+* ``Hinawa.FwReq.transaction_sync()``
+* ``Hinawa.FwReq::responded``
+* ``Hinawa.FwReqClass::responded``
+* ``Hinawa.FwResp.get_req_frame()``
+* ``Hinawa.FwResp::requested``
+* ``Hinawa.FwResp::requested2``
+* ``Hinawa.FwRespClass::requested``
+* ``Hinawa.FwRespClass::requested2``
+* ``Hinawa.FwFcp::responded``
+* ``Hinawa.FwFcpClass::responded``
+
+The prototypes for some functions will be changed to return gboolean value for error reporting
+according to GNOME convention. This is the list of functions.
+
+* ``Hinawa.FwNode.open()``
+* ``Hinawa.FwNode.get_config_rom()``
+* ``Hinawa.FwNode.create_source()``
+* ``Hinawa.FwReq.transaction()``
+* ``Hinawa.FwResp.reserve()``
+* ``Hinawa.FwResp.reserve_within_region()``
+* ``Hinawa.FwFcp.bind()``
+* ``Hinawa.FwFcp.unbind()``
+* ``Hinawa.FwFcp.command()``
+* ``Hinawa.FwFcp.avc_transaction()``
+
+The other features will be kept as is.
+
+Deprecated signals and methods since v2.6 release
+=================================================
+
+Some signal and method are obsoleted by alternative ones.
+
+* ``Hinawa.FwReq::transaction_async``.
+    * Use ``Hinawa.FwReq.request`` instead.
+* ``Hinawa.FwReq::transaction_sync``.
+    * Use ``Hinawa.FwReq.transaction_with_tstamp`` instead.
+* ``Hinawa.FwReq::responded``
+    * Use ``Hinawa.FwReq::responded2`` instead.
+* ``Hinawa.FwReqClass.responded``.
+    * Use ``Hinawa.FwReqClass.responded2`` instead.
+* ``Hinawa.FwResp.requested``
+    * Use ``Hinawa.FwResp.requested2`` instead.
+* ``Hinawa.FwRespClass.requested``
+    * Use ``Hinawa.FwRespClass.requested2`` instead.
+* ``Hinawa.FwFcp.responded``
+    * Use ``Hinawa.FwFcp.responded2`` instead.
+* ``Hinawa.FwFcpClass.responded``
+    * Use ``Hinawa.FwFcpClass.responded2`` instead.
+* ``Hinawa.FwFcp.command()``
+    * Use ``Hinawa.FwFcp.command_with_tstamp()`` instead.
+* ``Hinawa.FwFcp.avc_transaction()``
+    * Use ``Hinawa.FwFcp.avc_transaction_with_tstamp()`` instead.
 
 Deprecated object classes since v2.5 release
 ============================================
@@ -281,5 +358,3 @@ Lose of backward compatibility from v1 release.
     implement another thread for your notifier by your own and delegate any
     transaction into it. This is required to prevent I/O thread to be stalled
     because of waiting for an additional event of the transaction.
-
-end
