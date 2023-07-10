@@ -292,7 +292,7 @@ static gboolean initiate_transaction(HinawaFwReq *self, HinawaFwNode *node, Hina
  *	   Hinawa.FwReqError.
  *
  * Execute request subaction of transactions to the given node according to given code. When the
- * response subaction arrives and read the contents, [signal@FwReq::responded] signal handler is called
+ * response subaction arrives and read the contents, [signal@FwReq::responded2] signal handler is called
  * as long as event dispatcher runs.
  *
  * Since: 2.1.
