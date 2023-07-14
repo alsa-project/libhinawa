@@ -53,6 +53,10 @@ struct _HinawaFwReqClass {
 
 HinawaFwReq *hinawa_fw_req_new(void);
 
+gboolean hinawa_fw_req_request(HinawaFwReq *self, HinawaFwNode *node, HinawaFwTcode tcode,
+			       guint64 addr, gsize length, guint8 *const *frame, gsize *frame_size,
+			       GError **error);
+
 void hinawa_fw_req_transaction_async(HinawaFwReq *self, HinawaFwNode *node,
 				     HinawaFwTcode tcode, guint64 addr, gsize length,
 				     guint8 *const *frame, gsize *frame_size,
