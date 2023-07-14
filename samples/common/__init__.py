@@ -75,7 +75,7 @@ def read_quadlet(node: Hinawa.FwNode, req: Hinawa.FwReq, addr: int) -> int:
 
     frame = [0] * 4
     try:
-        _, frame, tstamp = req.transaction_with_tstamp_sync(
+        _, frame, tstamp = req.transaction_with_tstamp(
             node,
             Hinawa.FwTcode.READ_QUADLET_REQUEST,
             addr,

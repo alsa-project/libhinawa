@@ -18,7 +18,7 @@ methods = (
     'transaction',
     'transaction_async',
     'transaction_sync',
-    'transaction_with_tstamp_sync',
+    'transaction_with_tstamp',
 )
 vmethods = (
     'do_responded',

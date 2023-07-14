@@ -50,8 +50,14 @@ Example of Python3 with PyGobject
     addr = 0xfffff0000404
     req = Hinawa.FwReq.new()
     frame = [0] * 4
-    frame = req.transaction_sync(node, Hinawa.FwTcode.READ_QUADLET_REQUEST, addr,
-                                 len(frame), frame, 50)
+    _, frame, tstamp = req.transaction_with_tstamp(
+        node,
+        Hinawa.FwTcode.READ_QUADLET_REQUEST,
+        addr,
+        len(frame),
+        frame,
+        50
+    )
     quad = unpack('>I', frame)[0]
     print('0x{:012x}: 0x{:02x}'.format(addr, quad))
 

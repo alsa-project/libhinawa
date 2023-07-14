@@ -266,11 +266,11 @@ static gboolean complete_command_transaction(HinawaFwFcp *self, const guint8 *cm
 	req = g_object_new(HINAWA_TYPE_FW_REQ, NULL);
 
 	// Finish transaction for command frame.
-	result = hinawa_fw_req_transaction_with_tstamp_sync(req, priv->node,
-							    HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST,
-							    FCP_REQUEST_ADDR, cmd_size,
-							    (guint8 **)&cmd, &cmd_size,
-							    tstamp, timeout_ms, error);
+	result = hinawa_fw_req_transaction_with_tstamp(req, priv->node,
+						       HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST,
+						       FCP_REQUEST_ADDR, cmd_size,
+						       (guint8 **)&cmd, &cmd_size,
+						       tstamp, timeout_ms, error);
 	g_object_unref(req);
 
 	return result;
