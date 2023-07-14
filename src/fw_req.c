@@ -273,6 +273,35 @@ static gboolean initiate_transaction(HinawaFwReq *self, HinawaFwNode *node, Hina
 	return err >= 0;
 }
 
+/**
+ * hinawa_fw_req_request:
+ * @self: A [class@FwReq].
+ * @node: A [class@FwNode].
+ * @tcode: A transaction code of [enum@FwTcode].
+ * @addr: A destination address of target device
+ * @length: The range of address in byte unit.
+ * @frame: (array length=frame_size)(inout): An array with elements for byte data. Callers should
+ *	   give it for buffer with enough space against the request since this library performs no
+ *	   reallocation. Due to the reason, the value of this argument should point to the pointer
+ *	   to the array and immutable. The content of array is mutable for read and lock
+ *	   transaction.
+ * @frame_size: The size of array in byte unit. The value of this argument should point to the
+ *		numerical number and mutable for read and lock transaction.
+ * @error: A [struct@GLib.Error]. Error can be generated with two domains; Hinawa.FwNodeError and
+ *	   Hinawa.FwReqError.
+ *
+ * Execute request subaction of transactions to the given node according to given code. When the
+ * response subaction arrives and running event dispatcher reads the contents,
+ * [signal@FwReq::responded2] signal handler is called.
+ *
+ * Since: 2.6.
+ */
+gboolean hinawa_fw_req_request(HinawaFwReq *self, HinawaFwNode *node, HinawaFwTcode tcode,
+			       guint64 addr, gsize length, guint8 *const *frame, gsize *frame_size,
+			       GError **error)
+{
+	return initiate_transaction(self, node, tcode, addr, length, frame, frame_size, error);
+}
 
 /**
  * hinawa_fw_req_transaction_async:
@@ -296,6 +325,7 @@ static gboolean initiate_transaction(HinawaFwReq *self, HinawaFwNode *node, Hina
  * as long as event dispatcher runs.
  *
  * Since: 2.1.
+ * Deprecated: 2.6: Use [method@FwReq.request] instead.
  */
 void hinawa_fw_req_transaction_async(HinawaFwReq *self, HinawaFwNode *node,
 				     HinawaFwTcode tcode, guint64 addr, gsize length,

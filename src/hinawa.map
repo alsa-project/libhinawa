@@ -172,6 +172,7 @@ HINAWA_2_6_0 {
 
     "hinawa_fw_node_read_cycle_time";
 
+    "hinawa_fw_req_request";
     "hinawa_fw_req_transaction_with_tstamp";
 
     "hinawa_fw_fcp_command_with_tstamp";
