@@ -113,7 +113,7 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 	 * HinawaFwReq:timeout:
 	 *
 	 * Since: 1.4
-	 * Deprecated: 2.1: Use timeout_ms parameter of [method@FwReq.transaction_sync].
+	 * Deprecated: 2.1: Use timeout_ms parameter of [method@FwReq.transaction_with_tstamp].
 	 */
 	fw_req_props[FW_REQ_PROP_TYPE_TIMEOUT] =
 		g_param_spec_uint("timeout", "timeout",
@@ -434,6 +434,7 @@ static gboolean complete_transaction(HinawaFwReq *self, HinawaFwNode *node, Hina
  * instance is ignored.
  *
  * Since: 2.1.
+ * Deprecated: 2.6. Use [method@FwReq.transaction_with_tstamp] instead.
  */
 void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
 			       HinawaFwTcode tcode, guint64 addr, gsize length,
@@ -447,7 +448,7 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
 }
 
 /**
- * hinawa_fw_req_transaction_with_tstamp_sync:
+ * hinawa_fw_req_transaction_with_tstamp:
  * @self: A [class@FwReq].
  * @node: A [class@FwNode].
  * @tcode: A transaction code of [enum@FwTcode].
@@ -481,10 +482,10 @@ void hinawa_fw_req_transaction_sync(HinawaFwReq *self, HinawaFwNode *node,
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  * Since: 2.6
  */
-gboolean hinawa_fw_req_transaction_with_tstamp_sync(HinawaFwReq *self, HinawaFwNode *node,
-				HinawaFwTcode tcode, guint64 addr, gsize length,
-				guint8 **frame, gsize *frame_size, guint tstamp[2],
-				guint timeout_ms, GError **error)
+gboolean hinawa_fw_req_transaction_with_tstamp(HinawaFwReq *self, HinawaFwNode *node,
+					       HinawaFwTcode tcode, guint64 addr, gsize length,
+					       guint8 **frame, gsize *frame_size, guint tstamp[2],
+					       guint timeout_ms, GError **error)
 {
 	struct waiter w;
 	gboolean result;
@@ -522,7 +523,7 @@ gboolean hinawa_fw_req_transaction_with_tstamp_sync(HinawaFwReq *self, HinawaFwN
  * for response subaction within the value of timeout argument.
  *
  * Since: 1.4
- * Deprecated: 2.1: Use [method@FwReq.transaction_sync] instead.
+ * Deprecated: 2.1: Use [method@FwReq.transaction_with_tstamp()] instead.
  */
 void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 			       HinawaFwTcode tcode, guint64 addr, gsize length,
