@@ -95,10 +95,6 @@ snd_unit_error_enumerators = (
     'FAILED',
 )
 
-snd_dice_error_enumerators = (
-    'TIMEOUT',
-)
-
 types = {
     Hinawa.FwTcode: fw_tcode_enumerators,
     Hinawa.FwRcode: fw_rcode_enumerators,
@@ -108,7 +104,6 @@ types = {
     Hinawa.FwRespError: fw_resp_error_enumerations,
     Hinawa.FwFcpError: fw_fcp_error_enumerators,
     Hinawa.SndUnitError: snd_unit_error_enumerators,
-    Hinawa.SndDiceError: snd_dice_error_enumerators,
 }
 
 for target_type, enumerations in types.items():

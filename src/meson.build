@@ -13,7 +13,6 @@ sources = [
   'fw_fcp.c',
   'cycle_time.c',
   'snd_unit.c',
-  'snd_dice.c',
 ]
 
 headers = [
@@ -24,7 +23,6 @@ headers = [
   'fw_fcp.h',
   'cycle_time.h',
   'snd_unit.h',
-  'snd_dice.h',
   'hinawa_enum_types.h',
 ]
 
