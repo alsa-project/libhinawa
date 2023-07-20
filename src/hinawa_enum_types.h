@@ -219,19 +219,6 @@ typedef enum {
 	HINAWA_SND_UNIT_ERROR_FAILED,
 } HinawaSndUnitError;
 
-/**
- * HinawaSndDiceError:
- * @HINAWA_SND_DICE_ERROR_TIMEOUT:	The transaction is canceled due to response timeout.
- *
- * A set of error code for [structGLib.Error] with domain which equals to Hinawa.SndDiceError.
- *
- * Since: 2.1
- * Deprecated: 2.5. Use Hitaki.AlsaFirewireError in libhitaki library instead.
- */
-typedef enum {
-	HINAWA_SND_DICE_ERROR_TIMEOUT,
-} HinawaSndDiceError;
-
 G_END_DECLS
 
 #endif

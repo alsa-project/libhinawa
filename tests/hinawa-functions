@@ -25,9 +25,6 @@ types = {
     Hinawa.SndUnitError: (
         'quark',
     ),
-    Hinawa.SndDiceError: (
-        'quark',
-    ),
 }
 
 for target_type, functions in types.items():

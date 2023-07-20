@@ -19,7 +19,4 @@ void hinawa_snd_unit_write(HinawaSndUnit *self, const void *buf, size_t length,
 void hinawa_snd_unit_ioctl(HinawaSndUnit *self, unsigned long request,
 			   void *arg, GError **exception);
 
-void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
-					 const void *buf, ssize_t len);
-
 #endif
