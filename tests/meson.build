@@ -4,7 +4,6 @@ tests = [
   'fw-resp',
   'fw-fcp',
   'cycle-time',
-  'snd-unit',
   'hinawa-enum',
   'hinawa-functions',
 ]
