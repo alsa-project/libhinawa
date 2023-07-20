@@ -27,9 +27,6 @@ HINAWA_0_7_0 {
 } HINAWA_0_6_0;
 
 HINAWA_0_8_0 {
-  global:
-    "hinawa_snd_motu_get_type";
-    "hinawa_snd_motu_open";
 } HINAWA_0_7_0;
 
 HINAWA_1_0_0 {
@@ -52,7 +49,6 @@ HINAWA_1_3_0 {
     "hinawa_snd_dice_new";
     "hinawa_snd_efw_new";
     "hinawa_snd_dg00x_new";
-    "hinawa_snd_motu_new";
 } HINAWA_1_1_0;
 
 HINAWA_1_4_0 {
@@ -126,27 +122,6 @@ HINAWA_2_3_0 {
 } HINAWA_2_2_0;
 
 HINAWA_2_4_0 {
-  global:
-    "hinawa_snd_motu_read_register_dsp_parameter";
-    "hinawa_snd_motu_read_register_dsp_meter";
-    "hinawa_snd_motu_read_command_dsp_meter";
-
-    "hinawa_snd_motu_register_dsp_parameter_get_type";
-    "hinawa_snd_motu_register_dsp_parameter_new";
-    "hinawa_snd_motu_register_dsp_parameter_get_mixer_source_gain";
-    "hinawa_snd_motu_register_dsp_parameter_get_mixer_source_pan";
-    "hinawa_snd_motu_register_dsp_parameter_get_mixer_source_flag";
-    "hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_balance";
-    "hinawa_snd_motu_register_dsp_parameter_get_mixer_source_paired_width";
-    "hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_volume";
-    "hinawa_snd_motu_register_dsp_parameter_get_mixer_output_paired_flag";
-    "hinawa_snd_motu_register_dsp_parameter_get_main_output_paired_volume";
-    "hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_volume";
-    "hinawa_snd_motu_register_dsp_parameter_get_headphone_output_paired_assignment";
-    "hinawa_snd_motu_register_dsp_parameter_get_line_input_boost_flag";
-    "hinawa_snd_motu_register_dsp_parameter_get_line_input_nominal_level_flag";
-    "hinawa_snd_motu_register_dsp_parameter_get_input_gain_and_invert";
-    "hinawa_snd_motu_register_dsp_parameter_get_input_flag";
 } HINAWA_2_3_0;
 
 HINAWA_2_5_0 {

@@ -16,8 +16,6 @@ sources = [
   'snd_dice.c',
   'snd_efw.c',
   'snd_dg00x.c',
-  'snd_motu.c',
-  'snd_motu_register_dsp_parameter.c',
 ]
 
 headers = [
@@ -31,8 +29,6 @@ headers = [
   'snd_dice.h',
   'snd_efw.h',
   'snd_dg00x.h',
-  'snd_motu.h',
-  'snd_motu_register_dsp_parameter.h',
   'hinawa_enum_types.h',
 ]
 

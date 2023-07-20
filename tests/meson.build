@@ -8,9 +8,7 @@ tests = [
   'snd-dice',
   'snd-efw',
   'snd-dg00x',
-  'snd-motu',
   'hinawa-enum',
-  'snd-motu-register-dsp-parameter',
   'hinawa-functions',
 ]
 

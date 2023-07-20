@@ -337,10 +337,6 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **error)
 		generate_local_error(error, HINAWA_SND_UNIT_ERROR_WRONG_CLASS);
 		goto end;
 	}
-	if (HINAWA_IS_SND_MOTU(self) && priv->info.type != SNDRV_FIREWIRE_TYPE_MOTU) {
-		generate_local_error(error, HINAWA_SND_UNIT_ERROR_WRONG_CLASS);
-		goto end;
-	}
 	snprintf(fw_cdev, sizeof(fw_cdev), "/dev/%s", priv->info.device_name);
 	hinawa_fw_node_open(priv->node, fw_cdev, error);
 end:
@@ -576,15 +572,6 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		 common->type == SNDRV_FIREWIRE_EVENT_DIGI00X_MESSAGE)
 		hinawa_snd_dg00x_handle_msg(HINAWA_SND_DG00X(unit),
 					    src->buf, len);
-	else if (HINAWA_IS_SND_MOTU(unit)) {
-		HinawaSndMotu *motu = HINAWA_SND_MOTU(unit);
-
-		if (common->type == SNDRV_FIREWIRE_EVENT_MOTU_NOTIFICATION) {
-			hinawa_snd_motu_handle_notification(motu, src->buf, len);
-		} else if (common->type == SNDRV_FIREWIRE_EVENT_MOTU_REGISTER_DSP_CHANGE) {
-			hinawa_snd_motu_handle_register_dsp_change(motu, src->buf, len);
-		}
-	}
 end:
 	/* Just be sure to continue to process this source. */
 	return G_SOURCE_CONTINUE;
