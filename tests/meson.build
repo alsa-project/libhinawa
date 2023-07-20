@@ -9,7 +9,6 @@ tests = [
   'snd-efw',
   'snd-dg00x',
   'snd-motu',
-  'snd-tscm',
   'hinawa-enum',
   'snd-motu-register-dsp-parameter',
   'hinawa-functions',
