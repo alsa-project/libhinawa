@@ -14,7 +14,6 @@ sources = [
   'cycle_time.c',
   'snd_unit.c',
   'snd_dice.c',
-  'snd_efw.c',
 ]
 
 headers = [
@@ -26,7 +25,6 @@ headers = [
   'cycle_time.h',
   'snd_unit.h',
   'snd_dice.h',
-  'snd_efw.h',
   'hinawa_enum_types.h',
 ]
 
