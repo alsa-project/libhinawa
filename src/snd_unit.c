@@ -341,10 +341,6 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **error)
 		generate_local_error(error, HINAWA_SND_UNIT_ERROR_WRONG_CLASS);
 		goto end;
 	}
-	if (HINAWA_IS_SND_TSCM(self) && priv->info.type != SNDRV_FIREWIRE_TYPE_TASCAM) {
-		generate_local_error(error, HINAWA_SND_UNIT_ERROR_WRONG_CLASS);
-		goto end;
-	}
 	snprintf(fw_cdev, sizeof(fw_cdev), "/dev/%s", priv->info.device_name);
 	hinawa_fw_node_open(priv->node, fw_cdev, error);
 end:
@@ -589,10 +585,6 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 			hinawa_snd_motu_handle_register_dsp_change(motu, src->buf, len);
 		}
 	}
-	else if (HINAWA_IS_SND_TSCM(unit) &&
-		 common->type == SNDRV_FIREWIRE_EVENT_TASCAM_CONTROL)
-		hinawa_snd_tscm_handle_control(HINAWA_SND_TSCM(unit),
-						    src->buf, len);
 end:
 	/* Just be sure to continue to process this source. */
 	return G_SOURCE_CONTINUE;

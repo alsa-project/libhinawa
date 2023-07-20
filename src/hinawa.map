@@ -42,10 +42,6 @@ HINAWA_1_0_0 {
 } HINAWA_0_8_0;
 
 HINAWA_1_1_0 {
-    "hinawa_snd_tscm_get_type";
-    "hinawa_snd_tscm_open";
-    "hinawa_sigs_marshal_VOID__UINT_UINT_UINT";
-    "hinawa_snd_tscm_get_state";
 } HINAWA_1_0_0;
 
 HINAWA_1_3_0 {
@@ -57,7 +53,6 @@ HINAWA_1_3_0 {
     "hinawa_snd_efw_new";
     "hinawa_snd_dg00x_new";
     "hinawa_snd_motu_new";
-    "hinawa_snd_tscm_new";
 } HINAWA_1_1_0;
 
 HINAWA_1_4_0 {

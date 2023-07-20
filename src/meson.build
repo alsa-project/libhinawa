@@ -18,7 +18,6 @@ sources = [
   'snd_dg00x.c',
   'snd_motu.c',
   'snd_motu_register_dsp_parameter.c',
-  'snd_tscm.c',
 ]
 
 headers = [
@@ -34,7 +33,6 @@ headers = [
   'snd_dg00x.h',
   'snd_motu.h',
   'snd_motu_register_dsp_parameter.h',
-  'snd_tscm.h',
   'hinawa_enum_types.h',
 ]
 
