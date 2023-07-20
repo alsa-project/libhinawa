@@ -21,9 +21,6 @@ HINAWA_0_6_0 {
 };
 
 HINAWA_0_7_0 {
-  global:
-    "hinawa_snd_dg00x_get_type";
-    "hinawa_snd_dg00x_open";
 } HINAWA_0_6_0;
 
 HINAWA_0_8_0 {
@@ -48,7 +45,6 @@ HINAWA_1_3_0 {
     "hinawa_snd_unit_new";
     "hinawa_snd_dice_new";
     "hinawa_snd_efw_new";
-    "hinawa_snd_dg00x_new";
 } HINAWA_1_1_0;
 
 HINAWA_1_4_0 {

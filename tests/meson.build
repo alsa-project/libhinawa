@@ -7,7 +7,6 @@ tests = [
   'snd-unit',
   'snd-dice',
   'snd-efw',
-  'snd-dg00x',
   'hinawa-enum',
   'hinawa-functions',
 ]

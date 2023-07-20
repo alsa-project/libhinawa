@@ -24,6 +24,5 @@
 #include <snd_unit.h>
 #include <snd_dice.h>
 #include <snd_efw.h>
-#include <snd_dg00x.h>
 
 #endif
