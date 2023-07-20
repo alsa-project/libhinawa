@@ -15,7 +15,6 @@
 #include <hinawa_enums.h>
 
 #include <cycle_time.h>
-#include <snd_motu_register_dsp_parameter.h>
 
 #include <fw_node.h>
 #include <fw_resp.h>
@@ -26,6 +25,5 @@
 #include <snd_dice.h>
 #include <snd_efw.h>
 #include <snd_dg00x.h>
-#include <snd_motu.h>
 
 #endif
