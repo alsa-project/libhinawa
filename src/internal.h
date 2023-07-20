@@ -23,7 +23,5 @@ void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 					 const void *buf, ssize_t len);
 void hinawa_snd_efw_handle_response(HinawaSndEfw *self,
 				    const void *buf, ssize_t len);
-void hinawa_snd_dg00x_handle_msg(HinawaSndDg00x *self, const void *buf,
-				 ssize_t len);
 
 #endif

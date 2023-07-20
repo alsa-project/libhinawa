@@ -15,7 +15,6 @@ sources = [
   'snd_unit.c',
   'snd_dice.c',
   'snd_efw.c',
-  'snd_dg00x.c',
 ]
 
 headers = [
@@ -28,7 +27,6 @@ headers = [
   'snd_unit.h',
   'snd_dice.h',
   'snd_efw.h',
-  'snd_dg00x.h',
   'hinawa_enum_types.h',
 ]
 
