@@ -22,6 +22,5 @@
 #include <fw_fcp.h>
 
 #include <snd_unit.h>
-#include <snd_dice.h>
 
 #endif
