@@ -114,33 +114,6 @@ typedef enum {
 } HinawaFwReqError;
 
 /**
- * HinawaSndUnitType:
- * @HINAWA_SND_UNIT_TYPE_DICE:		The type of DICE ASIC.
- * @HINAWA_SND_UNIT_TYPE_FIREWORKS:	The type of Fireworks board module.
- * @HINAWA_SND_UNIT_TYPE_BEBOB:		The type of BeBoB ASIC.
- * @HINAWA_SND_UNIT_TYPE_OXFW:		The type of OXFW ASIC
- * @HINAWA_SND_UNIT_TYPE_DIGI00X:	The type of Digi00x series.
- * @HINAWA_SND_UNIT_TYPE_TASCAM:	The type of Tascam FireWire series.
- * @HINAWA_SND_UNIT_TYPE_MOTU:		The type of MOTU FireWire series.
- * @HINAWA_SND_UNIT_TYPE_FIREFACE:	The type of RME Fireface series.
- *
- * A representation of type for sound unit defined by Linux sound subsystem.
- *
- * Since: 1.0
- * Deprecated: 2.5. Use [enum@Hitaki.AlsaFirewireType] in libhitaki library instead.
- */
-typedef enum {
-	HINAWA_SND_UNIT_TYPE_DICE = 1,
-	HINAWA_SND_UNIT_TYPE_FIREWORKS,
-	HINAWA_SND_UNIT_TYPE_BEBOB,
-	HINAWA_SND_UNIT_TYPE_OXFW,
-	HINAWA_SND_UNIT_TYPE_DIGI00X,
-	HINAWA_SND_UNIT_TYPE_TASCAM,
-	HINAWA_SND_UNIT_TYPE_MOTU,
-	HINAWA_SND_UNIT_TYPE_FIREFACE,
-} HinawaSndUnitType;
-
-/**
  * HinawaFwNodeError:
  * @HINAWA_FW_NODE_ERROR_DISCONNECTED:	The node associated to the instance is disconnected.
  * @HINAWA_FW_NODE_ERROR_OPENED:	The instance is already associated to node by opening
@@ -189,35 +162,6 @@ typedef enum {
 	HINAWA_FW_FCP_ERROR_TIMEOUT,
 	HINAWA_FW_FCP_ERROR_LARGE_RESP,
 } HinawaFwFcpError;
-
-/**
- * HinawaSndUnitError:
- * @HINAWA_SND_UNIT_ERROR_DISCONNECTED:	The hwdep device associated to the instance is disconnected.
- * @HINAWA_SND_UNIT_ERROR_USED:		The hedep device is already in use.
- * @HINAWA_SND_UNIT_ERROR_OPENED:	The instance is already associated to unit by opening hwdep
- *					character device.
- * @HINAWA_SND_UNIT_ERROR_NOT_OPENED:	The instance is not associated to unit yet by opening hwdep
- *					character device.
- * @HINAWA_SND_UNIT_ERROR_LOCKED:	The hwdep device is already locked for kernel packet streaming.
- * @HINAWA_SND_UNIT_ERROR_UNLOCKED:	The hwdep device is not locked for kernel packet streaming yet.
- * @HINAWA_SND_UNIT_ERROR_WRONG_CLASS:	The hwdep device is not for the unit expected by the class.
- * @HINAWA_SND_UNIT_ERROR_FAILED:	The system call fails.
- *
- * A set of error code for [struct@GLib.Error] with domain which equals to Hinawa.SndUnitError.
- *
- * Since: 2.1
- * Deprecated: 2.5. Use Hitaki.AlsaFirewireError in libhitaki library instead.
- */
-typedef enum {
-	HINAWA_SND_UNIT_ERROR_DISCONNECTED,
-	HINAWA_SND_UNIT_ERROR_USED,
-	HINAWA_SND_UNIT_ERROR_OPENED,
-	HINAWA_SND_UNIT_ERROR_NOT_OPENED,
-	HINAWA_SND_UNIT_ERROR_LOCKED,
-	HINAWA_SND_UNIT_ERROR_UNLOCKED,
-	HINAWA_SND_UNIT_ERROR_WRONG_CLASS,
-	HINAWA_SND_UNIT_ERROR_FAILED,
-} HinawaSndUnitError;
 
 G_END_DECLS
 
