@@ -329,10 +329,6 @@ void hinawa_snd_unit_open(HinawaSndUnit *self, gchar *path, GError **error)
 		generate_local_error(error, HINAWA_SND_UNIT_ERROR_WRONG_CLASS);
 		goto end;
 	}
-	if (HINAWA_IS_SND_EFW(self) && priv->info.type != SNDRV_FIREWIRE_TYPE_FIREWORKS) {
-		generate_local_error(error, HINAWA_SND_UNIT_ERROR_WRONG_CLASS);
-		goto end;
-	}
 	snprintf(fw_cdev, sizeof(fw_cdev), "/dev/%s", priv->info.device_name);
 	hinawa_fw_node_open(priv->node, fw_cdev, error);
 end:
@@ -560,10 +556,6 @@ static gboolean dispatch_src(GSource *gsrc, GSourceFunc cb, gpointer user_data)
 		 common->type == SNDRV_FIREWIRE_EVENT_DICE_NOTIFICATION)
 		hinawa_snd_dice_handle_notification(HINAWA_SND_DICE(unit),
 						    src->buf, len);
-	else if (HINAWA_IS_SND_EFW(unit) &&
-		 common->type == SNDRV_FIREWIRE_EVENT_EFW_RESPONSE)
-		hinawa_snd_efw_handle_response(HINAWA_SND_EFW(unit),
-					       src->buf, len);
 end:
 	/* Just be sure to continue to process this source. */
 	return G_SOURCE_CONTINUE;

@@ -21,7 +21,5 @@ void hinawa_snd_unit_ioctl(HinawaSndUnit *self, unsigned long request,
 
 void hinawa_snd_dice_handle_notification(HinawaSndDice *self,
 					 const void *buf, ssize_t len);
-void hinawa_snd_efw_handle_response(HinawaSndEfw *self,
-				    const void *buf, ssize_t len);
 
 #endif

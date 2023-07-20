@@ -23,6 +23,5 @@
 
 #include <snd_unit.h>
 #include <snd_dice.h>
-#include <snd_efw.h>
 
 #endif
