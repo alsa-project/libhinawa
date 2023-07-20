@@ -13,9 +13,6 @@ HINAWA_0_6_0 {
 
     "hinawa_snd_dice_get_type";
     "hinawa_snd_dice_open";
-
-    "hinawa_snd_efw_get_type";
-    "hinawa_snd_efw_open";
   local:
     *;
 };
@@ -44,7 +41,6 @@ HINAWA_1_3_0 {
     "hinawa_fw_fcp_new";
     "hinawa_snd_unit_new";
     "hinawa_snd_dice_new";
-    "hinawa_snd_efw_new";
 } HINAWA_1_1_0;
 
 HINAWA_1_4_0 {
@@ -61,7 +57,6 @@ HINAWA_1_4_0 {
     "hinawa_fw_fcp_bind";
     "hinawa_fw_fcp_unbind";
 
-    "hinawa_snd_efw_transaction";
     "hinawa_snd_dice_transaction";
 } HINAWA_1_3_0;
 
@@ -93,14 +88,8 @@ HINAWA_2_1_0 {
     "hinawa_snd_dice_error_get_type";
     "hinawa_snd_dice_error_quark";
 
-    "hinawa_snd_efw_status_get_type";
-    "hinawa_snd_efw_error_quark";
-
     "hinawa_fw_req_transaction_async";
     "hinawa_fw_req_transaction_sync";
-
-    "hinawa_snd_efw_transaction_async";
-    "hinawa_snd_efw_transaction_sync";
 
     "hinawa_fw_fcp_command";
     "hinawa_fw_fcp_avc_transaction";

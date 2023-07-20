@@ -6,7 +6,6 @@ tests = [
   'cycle-time',
   'snd-unit',
   'snd-dice',
-  'snd-efw',
   'hinawa-enum',
   'hinawa-functions',
 ]
