@@ -27,6 +27,5 @@
 #include <snd_efw.h>
 #include <snd_dg00x.h>
 #include <snd_motu.h>
-#include <snd_tscm.h>
 
 #endif
