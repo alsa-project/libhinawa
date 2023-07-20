@@ -21,6 +21,4 @@
 #include <fw_req.h>
 #include <fw_fcp.h>
 
-#include <snd_unit.h>
-
 #endif
