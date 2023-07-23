@@ -173,10 +173,10 @@ def listen_region(node: Hinawa.FwNode):
     resp.release()
 
 
-def handle_responded2(fcp: Hinawa.FwFcp, tstamp: int, frame: list, length: int,
-                      args: tuple[Hinawa.FwNode, Hinawa.CycleTime]):
+def handle_responded(fcp: Hinawa.FwFcp, tstamp: int, frame: list, length: int,
+                     args: tuple[Hinawa.FwNode, Hinawa.CycleTime]):
     node, cycle_time = args
-    print('Event responded2: length {}'.format(length))
+    print('Event responded: length {}'.format(length))
     try:
         _, cycle_time = node.read_cycle_time(CLOCK_MONOTONIC_RAW, cycle_time)
         isoc_cycle = cycle_time.compute_tstamp(tstamp)
@@ -193,7 +193,7 @@ def listen_fcp(node: Hinawa.FwNode):
     cycle_time = Hinawa.CycleTime.new()
 
     fcp = Hinawa.FwFcp()
-    handler = fcp.connect('responded2', handle_responded2, (node, cycle_time))
+    handler = fcp.connect('responded', handle_responded, (node, cycle_time))
     try:
         _ = fcp.bind(node)
 
