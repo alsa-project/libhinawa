@@ -18,7 +18,7 @@ struct _HinawaFwReqClass {
 	GObjectClass parent_class;
 
 	/**
-	 * HinawaFwReqClass::responded2:
+	 * HinawaFwReqClass::responded:
 	 * @self: A [class@FwReq].
 	 * @rcode: One of [enum@FwRcode].
 	 * @request_tstamp: The isochronous cycle at which the request was sent.
@@ -27,12 +27,12 @@ struct _HinawaFwReqClass {
 	 *	   byte data of response subaction for transaction.
 	 * @frame_size: The number of elements of the array.
 	 *
-	 * Class closure for the [signal@FwReq::responded2] signal.
+	 * Class closure for the [signal@FwReq::responded] signal.
 	 *
-	 * Since: 2.6
+	 * Since: 3.0
 	 */
-	void (*responded2)(HinawaFwReq *self, HinawaFwRcode rcode, guint request_tstamp,
-			   guint response_tstamp, const guint8 *frame, guint frame_size);
+	void (*responded)(HinawaFwReq *self, HinawaFwRcode rcode, guint request_tstamp,
+			  guint response_tstamp, const guint8 *frame, guint frame_size);
 };
 
 HinawaFwReq *hinawa_fw_req_new(void);
