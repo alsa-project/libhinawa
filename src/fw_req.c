@@ -107,7 +107,7 @@ static void hinawa_fw_req_init(HinawaFwReq *self)
  * Instantiate [class@FwReq] object and return the instance.
  *
  * Returns: an instance of [class@FwReq].
- * Since: 1.3.
+ * Since: 1.3
  */
 HinawaFwReq *hinawa_fw_req_new(void)
 {
@@ -203,7 +203,7 @@ static gboolean initiate_transaction(HinawaFwReq *self, HinawaFwNode *node, Hina
  * response subaction arrives and running event dispatcher reads the contents,
  * [signal@FwReq::responded2] signal handler is called.
  *
- * Since: 2.6.
+ * Since: 2.6
  */
 gboolean hinawa_fw_req_request(HinawaFwReq *self, HinawaFwNode *node, HinawaFwTcode tcode,
 			       guint64 addr, gsize length, guint8 *const *frame, gsize *frame_size,
