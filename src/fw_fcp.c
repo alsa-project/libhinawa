@@ -295,116 +295,6 @@ static void handle_responded2_signal(HinawaFwFcp *self, guint tstamp, const guin
 	g_mutex_unlock(&w->mutex);
 }
 
-static gboolean complete_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
-					 guint8 *const *resp, gsize *resp_size, guint timeout_ms,
-					 struct waiter *w, guint tstamp[3], GError **error)
-{
-	gulong handler_id;
-	gint64 expiration;
-	gboolean result;
-
-	g_return_val_if_fail(HINAWA_IS_FW_FCP(self), FALSE);
-	g_return_val_if_fail(cmd != NULL, FALSE);
-	g_return_val_if_fail(cmd_size > 2 && cmd_size < FCP_MAXIMUM_FRAME_BYTES, FALSE);
-	g_return_val_if_fail(resp != NULL, FALSE);
-	g_return_val_if_fail(resp_size != NULL && *resp_size > 0, FALSE);
-	g_return_val_if_fail(w != NULL, FALSE);
-	g_return_val_if_fail(tstamp != NULL, FALSE);
-	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
-
-	w->frame = *resp;
-	w->frame_size = *resp_size;
-	w->tstamp = G_MAXUINT;
-	g_cond_init(&w->cond);
-	g_mutex_init(&w->mutex);
-
-	// This predicates against suprious wakeup.
-	w->frame[0] = 0xff;
-	// The two bytes are used to match response and request.
-	w->frame[1] = cmd[1];
-	w->frame[2] = cmd[2];
-	handler_id = g_signal_connect(self, "responded2", (GCallback)handle_responded2_signal, w);
-	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
-
-	g_mutex_lock(&w->mutex);
-
-	// Finish transaction for command frame.
-	result = hinawa_fw_fcp_command_with_tstamp(self, cmd, cmd_size, tstamp, timeout_ms, error);
-	if (*error)
-		goto end;
-deferred:
-	while (w->frame[0] == 0xff) {
-		// NOTE: Timeout at bus-reset, illegally.
-		if (!g_cond_wait_until(&w->cond, &w->mutex, expiration))
-			break;
-	}
-
-	if (w->frame[0] == 0xff) {
-		generate_local_error(error, HINAWA_FW_FCP_ERROR_TIMEOUT);
-	} else if (w->frame[0] == AVC_STATUS_INTERIM) {
-		// It's a deffered transaction, wait again.
-		w->frame[0] = 0x00;
-		w->frame_size = *resp_size;
-		// Although the timeout is infinite in 1394 TA specification,
-		// use the finite value for safe.
-		goto deferred;
-	} else if (w->frame_size > *resp_size) {
-		generate_local_error(error, HINAWA_FW_FCP_ERROR_LARGE_RESP);
-	} else {
-		*resp_size = w->frame_size;
-	}
-
-	if (*error != NULL)
-		result = FALSE;
-	else
-		tstamp[2] = w->tstamp;
-end:
-	g_signal_handler_disconnect(self, handler_id);
-
-	g_mutex_unlock(&w->mutex);
-
-	g_cond_clear(&w->cond);
-	g_mutex_clear(&w->mutex);
-
-	return result;
-}
-
-/**
- * hinawa_fw_fcp_avc_transaction:
- * @self: A [class@FwFcp].
- * @cmd: (array length=cmd_size)(in): An array with elements for request byte data. The value of
- *	 this argument should point to the array and immutable.
- * @cmd_size: The size of array for request in byte unit.
- * @resp: (array length=resp_size)(inout): An array with elements for response byte data. Callers
- *	  should give it for buffer with enough space against the request since this library
- *	  performs no reallocation. Due to the reason, the value of this argument should point to
- *	  the pointer to the array and immutable. The content of array is mutable.
- * @resp_size: The size of array for response in byte unit. The value of this argument should point to
- *	       the numerical number and mutable.
- * @timeout_ms: The timeout to wait for response transaction since command transactions finishes.
- * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinawa.FwNodeError,
- *	   Hinawa.FwReqError, and Hinawa.FwFcpError.
- *
- * Finish the pair of asynchronous transaction for AV/C command and response transactions. The
- * timeout_ms parameter is used to wait for response transaction since the command transaction is
- * initiated The timeout is not expanded in the case that AV/C INTERIM status is arrived, thus the
- * caller should expand the timeout in advance for the case.
- *
- * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
- *
- * Since: 3.0
- */
-gboolean hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
-				       guint8 **resp, gsize *resp_size, guint timeout_ms,
-				       GError **error)
-{
-	struct waiter w;
-	guint tstamp[3];
-
-	return complete_avc_transaction(self, cmd, cmd_size, resp, resp_size, timeout_ms, &w,
-					tstamp, error);
-}
-
 /**
  * hinawa_fw_fcp_avc_transaction_with_tstamp:
  * @self: A [class@FwFcp].
@@ -428,7 +318,7 @@ gboolean hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsi
  *
  * Finish the pair of asynchronous transaction for AV/C command and response transactions. The
  * timeout_ms parameter is used to wait for response transaction since the command transaction is
- * initiated. The timeout is not expanded in the case that AV/C INTERIM status is arrived, thus the
+ * initiated. The timeout is not expanded in the case that AV/C INTERIM status arrived, thus the
  * caller should expand the timeout in advance for the case.
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
@@ -439,9 +329,108 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 				guint tstamp[3], guint timeout_ms, GError **error)
 {
 	struct waiter w;
+	gulong handler_id;
+	gint64 expiration;
+	gboolean result;
 
-	return complete_avc_transaction(self, cmd, cmd_size, resp, resp_size, timeout_ms, &w,
-					tstamp, error);
+	g_return_val_if_fail(HINAWA_IS_FW_FCP(self), FALSE);
+	g_return_val_if_fail(cmd != NULL, FALSE);
+	g_return_val_if_fail(cmd_size > 2 && cmd_size < FCP_MAXIMUM_FRAME_BYTES, FALSE);
+	g_return_val_if_fail(resp != NULL, FALSE);
+	g_return_val_if_fail(resp_size != NULL && *resp_size > 0, FALSE);
+	g_return_val_if_fail(tstamp != NULL, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
+
+	w.frame = *resp;
+	w.frame_size = *resp_size;
+	w.tstamp = G_MAXUINT;
+	g_cond_init(&w.cond);
+	g_mutex_init(&w.mutex);
+
+	// This predicates against suprious wakeup.
+	w.frame[0] = 0xff;
+	// The two bytes are used to match response and request.
+	w.frame[1] = cmd[1];
+	w.frame[2] = cmd[2];
+	handler_id = g_signal_connect(self, "responded2", (GCallback)handle_responded2_signal, &w);
+	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
+
+	g_mutex_lock(&w.mutex);
+
+	// Finish transaction for command frame.
+	result = hinawa_fw_fcp_command_with_tstamp(self, cmd, cmd_size, tstamp, timeout_ms, error);
+	if (*error)
+		goto end;
+deferred:
+	while (w.frame[0] == 0xff) {
+		// NOTE: Timeout at bus-reset, illegally.
+		if (!g_cond_wait_until(&w.cond, &w.mutex, expiration))
+			break;
+	}
+
+	if (w.frame[0] == 0xff) {
+		generate_local_error(error, HINAWA_FW_FCP_ERROR_TIMEOUT);
+	} else if (w.frame[0] == AVC_STATUS_INTERIM) {
+		// It's a deffered transaction, wait again.
+		w.frame[0] = 0x00;
+		w.frame_size = *resp_size;
+		// Although the timeout is infinite in 1394 TA specification,
+		// use the finite value for safe.
+		goto deferred;
+	} else if (w.frame_size > *resp_size) {
+		generate_local_error(error, HINAWA_FW_FCP_ERROR_LARGE_RESP);
+	} else {
+		*resp_size = w.frame_size;
+	}
+
+	if (*error != NULL)
+		result = FALSE;
+	else
+		tstamp[2] = w.tstamp;
+end:
+	g_signal_handler_disconnect(self, handler_id);
+
+	g_mutex_unlock(&w.mutex);
+
+	g_cond_clear(&w.cond);
+	g_mutex_clear(&w.mutex);
+
+	return result;
+}
+
+/**
+ * hinawa_fw_fcp_avc_transaction:
+ * @self: A [class@FwFcp].
+ * @cmd: (array length=cmd_size)(in): An array with elements for request byte data. The value of
+ *	 this argument should point to the array and immutable.
+ * @cmd_size: The size of array for request in byte unit.
+ * @resp: (array length=resp_size)(inout): An array with elements for response byte data. Callers
+ *	  should give it for buffer with enough space against the request since this library
+ *	  performs no reallocation. Due to the reason, the value of this argument should point to
+ *	  the pointer to the array and immutable. The content of array is mutable.
+ * @resp_size: The size of array for response in byte unit. The value of this argument should point to
+ *	       the numerical number and mutable.
+ * @timeout_ms: The timeout to wait for response transaction since command transactions finishes.
+ * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinawa.FwNodeError,
+ *	   Hinawa.FwReqError, and Hinawa.FwFcpError.
+ *
+ * Finish the pair of asynchronous transaction for AV/C command and response transactions. The
+ * timeout_ms parameter is used to wait for response transaction since the command transaction is
+ * initiated The timeout is not expanded in the case that AV/C INTERIM status arrived, thus the
+ * caller should expand the timeout in advance for the case.
+ *
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
+ *
+ * Since: 3.0
+ */
+gboolean hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
+				       guint8 **resp, gsize *resp_size, guint timeout_ms,
+				       GError **error)
+{
+	guint tstamp[3];
+
+	return hinawa_fw_fcp_avc_transaction_with_tstamp(self, cmd, cmd_size, resp, resp_size,
+							 tstamp, timeout_ms, error);
 }
 
 static HinawaFwRcode handle_requested3_signal(HinawaFwResp *resp, HinawaFwTcode tcode, guint64 offset,
