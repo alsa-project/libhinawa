@@ -579,10 +579,11 @@ static void finalize_src(GSource *gsrc)
  * Create [struct@GLib.Source] for [struct@GLib.MainContext] to dispatch events for the node on
  * IEEE 1394 bus.
  *
- * Since: 1.4.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
+ *
+ * Since: 3.0.
  */
-void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
-				  GError **error)
+gboolean hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc, GError **error)
 {
         static GSourceFuncs funcs = {
                 .check          = check_src,
@@ -592,14 +593,14 @@ void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
 	HinawaFwNodePrivate *priv;
 	FwNodeSource *src;
 
-	g_return_if_fail(HINAWA_IS_FW_NODE(self));
-	g_return_if_fail(gsrc != NULL);
-	g_return_if_fail(error == NULL || *error == NULL);
+	g_return_val_if_fail(HINAWA_IS_FW_NODE(self), FALSE);
+	g_return_val_if_fail(gsrc != NULL, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	priv = hinawa_fw_node_get_instance_private(self);
 	if (priv->fd < 0) {
 		generate_local_error(error, HINAWA_FW_NODE_ERROR_NOT_OPENED);
-		return;
+		return FALSE;
 	}
 
         *gsrc = g_source_new(&funcs, sizeof(FwNodeSource));
@@ -614,6 +615,8 @@ void hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc,
 
 	src->self = self;
 	src->tag = g_source_add_unix_fd(*gsrc, priv->fd, G_IO_IN);
+
+	return TRUE;
 }
 
 // Internal use only.

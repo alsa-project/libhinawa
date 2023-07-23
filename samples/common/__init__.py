@@ -111,7 +111,7 @@ def read_quadlet(node: Hinawa.FwNode, req: Hinawa.FwReq, addr: int) -> int:
 @contextmanager
 def run_dispatcher(node: Hinawa.FwNode):
     ctx = GLib.MainContext.new()
-    src = node.create_source()
+    _, src = node.create_source()
     src.attach(ctx)
 
     dispatcher = GLib.MainLoop.new(ctx, False)
