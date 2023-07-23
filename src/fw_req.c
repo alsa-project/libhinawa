@@ -27,17 +27,7 @@
  */
 G_DEFINE_QUARK(hinawa-fw-req-error-quark, hinawa_fw_req_error)
 
-/* This object has one property. */
-enum fw_req_prop_type {
-	FW_REQ_PROP_TYPE_TIMEOUT = 1,
-	FW_REQ_PROP_TYPE_COUNT,
-};
-static GParamSpec *fw_req_props[FW_REQ_PROP_TYPE_COUNT] = { NULL, };
-
-typedef struct {
-	guint timeout;
-} HinawaFwReqPrivate;
-G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwReq, hinawa_fw_req, G_TYPE_OBJECT)
+G_DEFINE_TYPE(HinawaFwReq, hinawa_fw_req, G_TYPE_OBJECT)
 
 static const char *const err_labels[] = {
 	[HINAWA_FW_REQ_ERROR_CONFLICT_ERROR]	= "conflict error",
@@ -63,38 +53,6 @@ static void generate_fw_req_error_literal(GError **error, HinawaFwReqError code)
 	g_set_error_literal(error, HINAWA_FW_REQ_ERROR, code, err_labels[code]);
 }
 
-static void fw_req_get_property(GObject *obj, guint id, GValue *val,
-				GParamSpec *spec)
-{
-	HinawaFwReq *self = HINAWA_FW_REQ(obj);
-	HinawaFwReqPrivate *priv = hinawa_fw_req_get_instance_private(self);
-
-	switch (id) {
-	case FW_REQ_PROP_TYPE_TIMEOUT:
-		g_value_set_uint(val, priv->timeout);
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
-		break;
-	}
-}
-
-static void fw_req_set_property(GObject *obj, guint id, const GValue *val,
-				GParamSpec *spec)
-{
-	HinawaFwReq *self = HINAWA_FW_REQ(obj);
-	HinawaFwReqPrivate *priv = hinawa_fw_req_get_instance_private(self);
-
-	switch (id) {
-	case FW_REQ_PROP_TYPE_TIMEOUT:
-		priv->timeout = g_value_get_uint(val);
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
-		break;
-	}
-}
-
 enum fw_req_sig_type {
 	FW_REQ_SIG_TYPE_RESPONDED2 = 1,
 	FW_REQ_SIG_TYPE_COUNT,
@@ -103,28 +61,6 @@ static guint fw_req_sigs[FW_REQ_SIG_TYPE_COUNT] = { 0 };
 
 static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-
-	gobject_class->get_property = fw_req_get_property;
-	gobject_class->set_property = fw_req_set_property;
-
-	/**
-	 * HinawaFwReq:timeout:
-	 *
-	 * Since: 1.4
-	 * Deprecated: 2.1: Use timeout_ms parameter of [method@FwReq.transaction_with_tstamp].
-	 */
-	fw_req_props[FW_REQ_PROP_TYPE_TIMEOUT] =
-		g_param_spec_uint("timeout", "timeout",
-				  "An elapse to expire waiting for response by ms unit.",
-				  10, G_MAXUINT,
-				  200,
-				  G_PARAM_READWRITE | G_PARAM_CONSTRUCT | G_PARAM_DEPRECATED);
-
-	g_object_class_install_properties(gobject_class,
-					  FW_REQ_PROP_TYPE_COUNT,
-					  fw_req_props);
-
 	/**
 	 * HinawaFwReq::responded2:
 	 * @self: A [class@FwReq].
@@ -404,8 +340,7 @@ static gboolean complete_transaction(HinawaFwReq *self, HinawaFwNode *node, Hina
  *	   Hinawa.FwReqError.
  *
  * Execute request subaction of transaction to the given node according to given code, then wait
- * for response subaction within the given timeout. The [property@FwReq:timeout] property of
- * instance is ignored.
+ * for response subaction within the given timeout.
  *
  * Each value of @tstamp is unsigned 16 bit integer including higher 3 bits for three low order bits
  * of second field and the rest 13 bits for cycle field in the format of IEEE 1394 CYCLE_TIMER register.

@@ -10,9 +10,7 @@ gi.require_version('Hinawa', '3.0')
 from gi.repository import Hinawa
 
 target_type = Hinawa.FwReq
-props = (
-    'timeout',
-)
+props = ()
 methods = (
     'new',
     'transaction',
