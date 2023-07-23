@@ -96,8 +96,7 @@ static void fw_req_set_property(GObject *obj, guint id, const GValue *val,
 }
 
 enum fw_req_sig_type {
-	FW_REQ_SIG_TYPE_RESPONDED = 1,
-	FW_REQ_SIG_TYPE_RESPONDED2,
+	FW_REQ_SIG_TYPE_RESPONDED2 = 1,
 	FW_REQ_SIG_TYPE_COUNT,
 };
 static guint fw_req_sigs[FW_REQ_SIG_TYPE_COUNT] = { 0 };
@@ -125,32 +124,6 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 	g_object_class_install_properties(gobject_class,
 					  FW_REQ_PROP_TYPE_COUNT,
 					  fw_req_props);
-
-	/**
-	 * HinawaFwReq::responded:
-	 * @self: A [class@FwReq].
-	 * @rcode: One of [enum@FwRcode].
-	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for
-	 *	   byte data of response subaction for transaction.
-	 * @frame_size: The number of elements of the array.
-	 *
-	 * Emitted when the unit transfers asynchronous packet as response subaction for the
-	 * transaction and the process successfully reads the content of packet from Linux firewire
-	 * subsystem, except for the case that [signal@FwReq::responded2] signal handler is already
-	 * assigned.
-	 *
-	 * Since: 2.1
-	 * Deprecated: 2.6: Use [signal@FwReq::responded2], instead.
-	 */
-	fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED] =
-		g_signal_new("responded",
-			     G_OBJECT_CLASS_TYPE(klass),
-			     G_SIGNAL_RUN_LAST,
-			     G_STRUCT_OFFSET(HinawaFwReqClass, responded),
-			     NULL, NULL,
-			     hinawa_sigs_marshal_VOID__ENUM_POINTER_UINT,
-			     G_TYPE_NONE,
-			     3, HINAWA_TYPE_FW_RCODE, G_TYPE_POINTER, G_TYPE_UINT);
 
 	/**
 	 * HinawaFwReq::responded2:
@@ -503,40 +476,17 @@ gboolean hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 // NOTE: For HinawaFwNode, internal.
 void hinawa_fw_req_handle_response(HinawaFwReq *self, const struct fw_cdev_event_response *event)
 {
-	HinawaFwReqClass *klass;
-
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
-	klass = HINAWA_FW_REQ_GET_CLASS(self);
-
-	if (klass->responded2 != NULL ||
-	    g_signal_has_handler_pending(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED2], 0, TRUE)) {
-		g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED2], 0, event->rcode,
-			      G_MAXUINT, G_MAXUINT, event->data, event->length);
-	} else if (klass->responded != NULL ||
-		   g_signal_has_handler_pending(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED], 0, TRUE)) {
-		g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED], 0, event->rcode,
-			      event->data, event->length);
-	}
+	g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED2], 0, event->rcode, G_MAXUINT,
+		      G_MAXUINT, event->data, event->length);
 }
 
 // NOTE: For HinawaFwNode, internal.
 void hinawa_fw_req_handle_response2(HinawaFwReq *self, const struct fw_cdev_event_response2 *event)
 {
-	HinawaFwReqClass *klass;
-
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
-	klass = HINAWA_FW_REQ_GET_CLASS(self);
-
-	if (klass->responded2 != NULL ||
-	    g_signal_has_handler_pending(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED2], 0, TRUE)) {
-		g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED2], 0, event->rcode,
-			      event->request_tstamp, event->response_tstamp, event->data,
-			      event->length);
-	} else if (klass->responded != NULL ||
-		   g_signal_has_handler_pending(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED], 0, TRUE)) {
-		g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED], 0, event->rcode,
-			      event->data, event->length);
-	}
+	g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED2], 0, event->rcode,
+		      event->request_tstamp, event->response_tstamp, event->data, event->length);
 }

@@ -18,22 +18,6 @@ struct _HinawaFwReqClass {
 	GObjectClass parent_class;
 
 	/**
-	 * HinawaFwReqClass::responded:
-	 * @self: A [class@FwReq].
-	 * @rcode: One of [enum@FwRcode].
-	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for
-	 *	   byte data of response subaction for transaction.
-	 * @frame_size: The number of elements of the array.
-	 *
-	 * Class closure for the [signal@FwReq::responded] signal.
-	 *
-	 * Since: 2.1
-	 * Deprecated: 2.6: Use [vfunc@FwReq.responded2], instead.
-	 */
-	void (*responded)(HinawaFwReq *self, HinawaFwRcode rcode,
-			  const guint8 *frame, guint frame_size);
-
-	/**
 	 * HinawaFwReqClass::responded2:
 	 * @self: A [class@FwReq].
 	 * @rcode: One of [enum@FwRcode].
