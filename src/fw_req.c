@@ -237,79 +237,6 @@ static void handle_responded2_signal(HinawaFwReq *self, HinawaFwRcode rcode, gui
 	g_mutex_unlock(&w->mutex);
 }
 
-static gboolean complete_transaction(HinawaFwReq *self, HinawaFwNode *node, HinawaFwTcode tcode,
-				     guint64 addr, gsize length, guint8 *const *frame,
-				     gsize *frame_size, guint timeout_ms, struct waiter *w,
-				     GError **error)
-{
-	gulong handler_id;
-	guint64 expiration;
-
-	g_return_val_if_fail(HINAWA_IS_FW_REQ(self), FALSE);
-	g_return_val_if_fail(HINAWA_IS_FW_NODE(node), FALSE);
-	g_return_val_if_fail(w != NULL, FALSE);
-
-	// This predicates against suprious wakeup.
-	w->rcode = G_MAXUINT;
-	w->request_tstamp = G_MAXUINT;
-	w->response_tstamp = G_MAXUINT;
-	w->frame = *frame;
-	w->length = *frame_size;
-	g_cond_init(&w->cond);
-	g_mutex_init(&w->mutex);
-
-        handler_id = g_signal_connect(self, "responded2", G_CALLBACK(handle_responded2_signal), w);
-
-	// Timeout is set in advance as a parameter of this object.
-	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
-
-	g_object_ref(node);
-	if (!hinawa_fw_req_request(self, node, tcode, addr, length, frame, frame_size, error)) {
-		g_signal_handler_disconnect(self, handler_id);
-		g_object_unref(node);
-		return FALSE;
-	}
-
-	g_mutex_lock(&w->mutex);
-	while (w->rcode == G_MAXUINT) {
-		// Wait for a response with timeout, waken by the response handler.
-		if (!g_cond_wait_until(&w->cond, &w->mutex, expiration))
-			break;
-	}
-	g_signal_handler_disconnect(self, handler_id);
-	g_cond_clear(&w->cond);
-	g_mutex_unlock(&w->mutex);
-
-	// Always for safe.
-	hinawa_fw_node_invalidate_transaction(node, self);
-	g_object_unref(node);
-
-	if (w->rcode == G_MAXUINT) {
-		generate_fw_req_error_literal(error, HINAWA_FW_REQ_ERROR_CANCELLED);
-		return FALSE;
-	}
-
-	switch (w->rcode) {
-	case RCODE_COMPLETE:
-		*frame_size = w->length;
-		return TRUE;
-	case RCODE_CONFLICT_ERROR:
-	case RCODE_DATA_ERROR:
-	case RCODE_TYPE_ERROR:
-	case RCODE_ADDRESS_ERROR:
-	case RCODE_SEND_ERROR:
-	case RCODE_CANCELLED:
-	case RCODE_BUSY:
-	case RCODE_GENERATION:
-	case RCODE_NO_ACK:
-		generate_fw_req_error_literal(error, (HinawaFwReqError)w->rcode);
-		return FALSE;
-	default:
-		generate_fw_req_error_literal(error, HINAWA_FW_REQ_ERROR_INVALID);
-		return FALSE;
-	}
-}
-
 /**
  * hinawa_fw_req_transaction_with_tstamp:
  * @self: A [class@FwReq].
@@ -350,18 +277,75 @@ gboolean hinawa_fw_req_transaction_with_tstamp(HinawaFwReq *self, HinawaFwNode *
 					       guint timeout_ms, GError **error)
 {
 	struct waiter w;
-	gboolean result;
+	gulong handler_id;
+	guint64 expiration;
 
+	g_return_val_if_fail(HINAWA_IS_FW_REQ(self), FALSE);
+	g_return_val_if_fail(HINAWA_IS_FW_NODE(node), FALSE);
 	g_return_val_if_fail(tstamp != NULL, FALSE);
 
-	result = complete_transaction(self, node, tcode, addr, length, frame, frame_size,
-				      timeout_ms, &w, error);
-	if (*error == NULL) {
-		tstamp[0] = w.request_tstamp;
-		tstamp[1] = w.response_tstamp;
+	// This predicates against suprious wakeup.
+	w.rcode = G_MAXUINT;
+	w.request_tstamp = G_MAXUINT;
+	w.response_tstamp = G_MAXUINT;
+	w.frame = *frame;
+	w.length = *frame_size;
+	g_cond_init(&w.cond);
+	g_mutex_init(&w.mutex);
+
+        handler_id = g_signal_connect(self, "responded2", G_CALLBACK(handle_responded2_signal), &w);
+
+	// Timeout is set in advance as a parameter of this object.
+	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
+
+	g_object_ref(node);
+	if (!hinawa_fw_req_request(self, node, tcode, addr, length, frame, frame_size, error)) {
+		g_signal_handler_disconnect(self, handler_id);
+		g_object_unref(node);
+		return FALSE;
 	}
 
-	return result;
+	g_mutex_lock(&w.mutex);
+	while (w.rcode == G_MAXUINT) {
+		// Wait for a response with timeout, waken by the response handler.
+		if (!g_cond_wait_until(&w.cond, &w.mutex, expiration))
+			break;
+	}
+	g_signal_handler_disconnect(self, handler_id);
+	g_cond_clear(&w.cond);
+	g_mutex_unlock(&w.mutex);
+
+	// Always for safe.
+	hinawa_fw_node_invalidate_transaction(node, self);
+	g_object_unref(node);
+
+	if (w.rcode == G_MAXUINT) {
+		generate_fw_req_error_literal(error, HINAWA_FW_REQ_ERROR_CANCELLED);
+		return FALSE;
+	}
+
+	tstamp[0] = w.request_tstamp;
+	tstamp[1] = w.response_tstamp;
+
+	switch (w.rcode) {
+	case RCODE_COMPLETE:
+		*frame_size = w.length;
+		return TRUE;
+	case RCODE_CONFLICT_ERROR:
+	case RCODE_DATA_ERROR:
+	case RCODE_TYPE_ERROR:
+	case RCODE_ADDRESS_ERROR:
+	case RCODE_SEND_ERROR:
+	case RCODE_CANCELLED:
+	case RCODE_BUSY:
+	case RCODE_GENERATION:
+	case RCODE_NO_ACK:
+		generate_fw_req_error_literal(error, (HinawaFwReqError)w.rcode);
+		return FALSE;
+	default:
+		generate_fw_req_error_literal(error, HINAWA_FW_REQ_ERROR_INVALID);
+		return FALSE;
+	}
 }
 
 /**
@@ -384,7 +368,8 @@ gboolean hinawa_fw_req_transaction_with_tstamp(HinawaFwReq *self, HinawaFwNode *
  *	   Hinawa.FwReqError.
  *
  * Execute request subaction of transaction to the given node according to given code, then wait
- * for response subaction within the value of timeout argument.
+ * for response subaction within the value of timeout argument. The function is a thin wrapper to
+ * [method@FwReq.transaction_with_tstamp].
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
@@ -395,10 +380,10 @@ gboolean hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 			       guint8 **frame, gsize *frame_size, guint timeout_ms,
 			       GError **error)
 {
-	struct waiter w;
+	guint tstamp[2];
 
-	return complete_transaction(self, node, tcode, addr, length, frame, frame_size, timeout_ms,
-				    &w, error);
+	return hinawa_fw_req_transaction_with_tstamp(self, node, tcode, addr, length,
+						     frame, frame_size, tstamp, timeout_ms, error);
 }
 
 // NOTE: For HinawaFwNode, internal.
