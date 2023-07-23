@@ -83,8 +83,6 @@ HINAWA_2_6_0 {
     "hinawa_cycle_time_compute_tstamp";
     "hinawa_cycle_time_parse_tstamp";
 
-    "hinawa_fw_node_read_cycle_time";
-
     "hinawa_fw_req_transaction_with_tstamp";
 
     "hinawa_fw_fcp_command_with_tstamp";
@@ -96,6 +94,7 @@ HINAWA_3_0_0 {
     "hinawa_fw_node_open";
     "hinawa_fw_node_get_config_rom";
     "hinawa_fw_node_create_source";
+    "hinawa_fw_node_read_cycle_time";
 
     "hinawa_fw_req_request";
     "hinawa_fw_req_transaction";
