@@ -286,19 +286,20 @@ static gboolean complete_command_transaction(HinawaFwFcp *self, const guint8 *cm
  * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinoko.FwNodeError and
  *	   Hinoko.FwReqError.
  *
- * Transfer command frame for FCP. When receiving response frame for FCP, [signal@FwFcp::responded]
+ * Transfer command frame for FCP. When receiving response frame for FCP, [signal@FwFcp::responded2]
  * signal is emitted.
  *
- * Since: 2.1.
- * Deprecated: 2.6: Use [method@FwFcp.command_with_tstamp], instead.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
+ *
+ * Since: 3.0.
  */
-void hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
-			   guint timeout_ms, GError **error)
+gboolean hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
+			       guint timeout_ms, GError **error)
 {
 	guint tstamp[2];
 
 	// Finish transaction for command frame.
-	(void)complete_command_transaction(self, cmd, cmd_size, tstamp, timeout_ms, error);
+	return complete_command_transaction(self, cmd, cmd_size, tstamp, timeout_ms, error);
 }
 
 /**
@@ -314,7 +315,7 @@ void hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
  * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinoko.FwNodeError and
  *	   Hinoko.FwReqError.
  *
- * Transfer command frame for FCP. When receiving response frame for FCP, [signal@FwFcp::responded]
+ * Transfer command frame for FCP. When receiving response frame for FCP, [signal@FwFcp::responded2]
  * signal is emitted.
  *
  * Each value of @tstamp is unsigned 16 bit integer including higher 3 bits for three low order bits

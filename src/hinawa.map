@@ -60,7 +60,6 @@ HINAWA_2_1_0 {
     "hinawa_fw_req_transaction_async";
     "hinawa_fw_req_transaction_sync";
 
-    "hinawa_fw_fcp_command";
     "hinawa_fw_fcp_avc_transaction";
 } HINAWA_2_0_0;
 
@@ -113,4 +112,5 @@ HINAWA_3_0_0 {
     "hinawa_fw_resp_reserve";
 
     "hinawa_fw_fcp_bind";
+    "hinawa_fw_fcp_command";
 } HINAWA_2_6_0;
