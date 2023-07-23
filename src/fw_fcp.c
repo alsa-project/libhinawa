@@ -513,46 +513,6 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 					tstamp, error);
 }
 
-/**
- * hinawa_fw_fcp_transaction:
- * @self: A [class@FwFcp].
- * @req_frame: (array length=req_frame_size)(in): An array with elements for request byte data. The
- *	       value of this argument should point to the array and immutable.
- * @req_frame_size: The size of array for request in byte unit.
- * @resp_frame: (array length=resp_frame_size)(inout): An array with elements for response byte
- *		data. Callers should give it for buffer with enough space against the request
- *		since this library performs no reallocation. Due to the reason, the value of this
- *		argument should point to the pointer to the array and immutable. The content of
- *		array is mutable.
- * @resp_frame_size: The size of array for response in byte unit. The value of this argument should
- *		     point to the numerical number and mutable.
- * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinawa.FwNodeError,
- *	   Hinawa.FwReqError, and Hinawa.FwFcpError.
- *
- * Finish the pair of command and response transactions for FCP. The value of
- * [property@FwFcp:timeout] property is used to wait for response transaction since the command
- * transaction is initiated.
- *
- * Since: 1.4.
- * Deprecated: 2.1: Use [method@FwFcp.avc_transaction], instead.
- */
-void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
-			       const guint8 *req_frame, gsize req_frame_size,
-			       guint8 *const *resp_frame, gsize *resp_frame_size,
-			       GError **error)
-{
-	guint timeout_ms;
-	struct waiter w;
-	guint tstamp[3];
-
-	g_return_if_fail(HINAWA_IS_FW_FCP(self));
-
-	g_object_get(G_OBJECT(self), "timeout", &timeout_ms, NULL);
-
-	(void)complete_avc_transaction(self, req_frame, req_frame_size, resp_frame, resp_frame_size,
-				       timeout_ms, &w, tstamp, error);
-}
-
 static HinawaFwRcode handle_requested3_signal(HinawaFwResp *resp, HinawaFwTcode tcode, guint64 offset,
 					      guint src, guint dst, guint card, guint generation,
 					      guint tstamp, const guint8 *frame, guint length)
