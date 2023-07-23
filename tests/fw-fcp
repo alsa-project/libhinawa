@@ -24,11 +24,9 @@ methods = (
     'avc_transaction_with_tstamp',
 )
 vmethods = (
-    'do_responded',
     'do_responded2',
 )
 signals = (
-    'responded',
     'responded2',
 )
 
