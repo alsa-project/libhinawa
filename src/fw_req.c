@@ -546,28 +546,27 @@ gboolean hinawa_fw_req_transaction_with_tstamp(HinawaFwReq *self, HinawaFwNode *
  *	   transaction.
  * @frame_size: The size of array in byte unit. The value of this argument should point to the
  *		numerical number and mutable for read and lock transaction.
+ * @timeout_ms: The timeout to wait for response subaction of the transaction since request
+ *		subaction is initiated, in milliseconds.
  * @error: A [struct@GLib.Error]. Error can be generated with two domains; Hinawa.FwNodeError and
  *	   Hinawa.FwReqError.
  *
  * Execute request subaction of transaction to the given node according to given code, then wait
  * for response subaction within the value of timeout argument.
  *
- * Since: 1.4
- * Deprecated: 2.1: Use [method@FwReq.transaction_with_tstamp()] instead.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
+ *
+ * Since: 3.0
  */
-void hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
+gboolean hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 			       HinawaFwTcode tcode, guint64 addr, gsize length,
-			       guint8 *const *frame, gsize *frame_size,
+			       guint8 **frame, gsize *frame_size, guint timeout_ms,
 			       GError **error)
 {
-	HinawaFwReqPrivate *priv;
 	struct waiter w;
 
-	g_return_if_fail(HINAWA_IS_FW_REQ(self));
-	priv = hinawa_fw_req_get_instance_private(self);
-
-	(void)complete_transaction(self, node, tcode, addr, length, frame, frame_size,
-				   priv->timeout, &w, error);
+	return complete_transaction(self, node, tcode, addr, length, frame, frame_size, timeout_ms,
+				    &w, error);
 }
 
 // NOTE: For HinawaFwNode, internal.
