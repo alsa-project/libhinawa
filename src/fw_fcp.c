@@ -458,18 +458,19 @@ end:
  * the case that AV/C INTERIM status is arrived, thus the caller should expand the timeout in
  * advance for the case.
  *
- * Since: 2.1.
- * Deprecated: 2.6: Use [method@FwFcp.avc_transaction_with_tstamp], instead.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
+ *
+ * Since: 3.0.
  */
-void hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
-				   guint8 *const *resp, gsize *resp_size, guint timeout_ms,
-				   GError **error)
+gboolean hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
+				       guint8 **resp, gsize *resp_size, guint timeout_ms,
+				       GError **error)
 {
 	struct waiter w;
 	guint tstamp[3];
 
-	(void)complete_avc_transaction(self, cmd, cmd_size, resp, resp_size, timeout_ms, &w,
-				       tstamp, error);
+	return complete_avc_transaction(self, cmd, cmd_size, resp, resp_size, timeout_ms, &w,
+					tstamp, error);
 }
 
 /**
