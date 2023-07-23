@@ -344,35 +344,6 @@ void hinawa_fw_resp_release(HinawaFwResp *self)
 }
 
 /**
- * hinawa_fw_resp_get_req_frame:
- * @self: A [class@FwResp]
- * @frame: (array length=length)(out)(transfer none): a 8bit array for response frame.
- * @length: (out): The length of bytes for the frame.
- *
- * Retrieve byte frame to be requested.
- *
- * Since: 2.0
- * Deprecated: 2.2: handler for [signal@FwResp::requested2] signal can receive the frame in its
- *		    argument.
- */
-void hinawa_fw_resp_get_req_frame(HinawaFwResp *self, const guint8 **frame,
-				  gsize *length)
-{
-	HinawaFwRespPrivate *priv;
-
-	g_return_if_fail(HINAWA_IS_FW_RESP(self));
-	g_return_if_fail(frame != NULL);
-	g_return_if_fail(length != NULL);
-
-	priv = hinawa_fw_resp_get_instance_private(self);
-
-	if (frame && length && priv->req_length > 0) {
-		*frame = (const guint8 *)priv->req_frame;
-		*length = priv->req_length;
-	}
-}
-
-/**
  * hinawa_fw_resp_set_resp_frame:
  * @self: A [class@FwResp]
  * @frame: (element-type guint8)(array length=length): a 8bit array for response frame.

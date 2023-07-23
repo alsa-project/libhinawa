@@ -17,7 +17,6 @@ props = (
 )
 methods = (
     'new',
-    'get_req_frame',
     'set_resp_frame',
     'reserve',
     'reserve_within_region',
