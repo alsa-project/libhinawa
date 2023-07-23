@@ -16,8 +16,6 @@ props = (
 methods = (
     'new',
     'transaction',
-    'transaction_async',
-    'transaction_sync',
     'request',
     'transaction_with_tstamp',
 )
