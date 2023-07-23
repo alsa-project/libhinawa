@@ -363,12 +363,14 @@ gboolean hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *
  * is a variant of [method@FwResp.reserve_within_region] so that the exact range of address should
  * be reserved as given.
  *
- * Since: 1.4.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
+ *
+ * Since: 3.0.
  */
-void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode *node,
-			    guint64 addr, guint width, GError **error)
+gboolean hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode *node, guint64 addr, guint width,
+				GError **error)
 {
-	(void)hinawa_fw_resp_reserve_within_region(self, node, addr, addr + width, width, error);
+	return hinawa_fw_resp_reserve_within_region(self, node, addr, addr + width, width, error);
 }
 
 /**
