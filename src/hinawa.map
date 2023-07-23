@@ -38,7 +38,6 @@ HINAWA_1_4_0 {
 
     "hinawa_fw_resp_release";
 
-    "hinawa_fw_fcp_bind";
     "hinawa_fw_fcp_unbind";
 } HINAWA_1_3_0;
 
@@ -112,4 +111,6 @@ HINAWA_3_0_0 {
 
     "hinawa_fw_resp_reserve_within_region";
     "hinawa_fw_resp_reserve";
+
+    "hinawa_fw_fcp_bind";
 } HINAWA_2_6_0;
