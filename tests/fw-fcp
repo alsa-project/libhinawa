@@ -16,7 +16,6 @@ props = (
 )
 methods = (
     'new',
-    'transaction',
     'bind',
     'unbind',
     'command',

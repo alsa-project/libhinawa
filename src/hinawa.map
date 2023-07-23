@@ -42,8 +42,6 @@ HINAWA_1_4_0 {
 } HINAWA_1_3_0;
 
 HINAWA_2_0_0 {
-    "hinawa_fw_fcp_transaction";
-
     "hinawa_fw_resp_set_resp_frame";
 } HINAWA_1_4_0;
 
