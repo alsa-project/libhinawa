@@ -35,7 +35,6 @@ HINAWA_1_3_0 {
 HINAWA_1_4_0 {
     "hinawa_fw_node_get_type";
     "hinawa_fw_node_new";
-    "hinawa_fw_node_create_source";
 
     "hinawa_fw_resp_reserve";
     "hinawa_fw_resp_release";
@@ -112,4 +111,5 @@ HINAWA_3_0_0 {
   global:
     "hinawa_fw_node_open";
     "hinawa_fw_node_get_config_rom";
+    "hinawa_fw_node_create_source";
 } HINAWA_2_6_0;
