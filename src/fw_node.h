@@ -41,8 +41,7 @@ struct _HinawaFwNodeClass {
 
 HinawaFwNode *hinawa_fw_node_new(void);
 
-void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
-			 GError **error);
+gboolean hinawa_fw_node_open(HinawaFwNode *self, const gchar *path, gint open_flag, GError **error);
 
 void hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
 				   gsize *length, GError **error);

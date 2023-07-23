@@ -333,30 +333,33 @@ static int update_info(HinawaFwNode *self)
  * hinawa_fw_node_open:
  * @self: A [class@FwNode]
  * @path: A path to Linux FireWire character device
+ * @open_flag: The flag of `open(2)` system call. `O_RDONLY` is fulfilled internally.
  * @error: A [struct@GLib.Error]. Error can be generated with two domains; GLib.Error and
  *	   Hinawa.FwNodeError.
  *
  * Open Linux FireWire character device to operate node on IEEE 1394 bus.
  *
- * Since: 1.4.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
+ *
+ * Since: 3.0.
  */
-void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
-			 GError **error)
+gboolean hinawa_fw_node_open(HinawaFwNode *self, const gchar *path, gint open_flag, GError **error)
 {
 	HinawaFwNodePrivate *priv;
 	int err;
 
-	g_return_if_fail(HINAWA_IS_FW_NODE(self));
-	g_return_if_fail(path != NULL && strlen(path) > 0);
-	g_return_if_fail(error == NULL || *error == NULL);
+	g_return_val_if_fail(HINAWA_IS_FW_NODE(self), FALSE);
+	g_return_val_if_fail(path != NULL && strlen(path) > 0, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	priv = hinawa_fw_node_get_instance_private(self);
 	if (priv->fd >= 0) {
 		generate_local_error(error, HINAWA_FW_NODE_ERROR_OPENED);
-		return;
+		return FALSE;
 	}
 
-	priv->fd = open(path, O_RDONLY);
+	open_flag |= O_RDONLY;
+	priv->fd = open(path, open_flag);
 	if (priv->fd < 0) {
 		if (errno == ENODEV) {
 			generate_local_error(error, HINAWA_FW_NODE_ERROR_DISCONNECTED);
@@ -367,7 +370,7 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
 			else
 				generate_syscall_error(error, errno, "open(%s)", path);
 		}
-		return;
+		return FALSE;
 	}
 
 	g_mutex_lock(&priv->mutex);
@@ -381,7 +384,11 @@ void hinawa_fw_node_open(HinawaFwNode *self, const gchar *path,
 			generate_syscall_error(error, errno, "ioctl(%s)", "FW_CDEV_IOC_GET_INFO");
 		close(priv->fd);
 		priv->fd = -1;
+
+		return FALSE;
 	}
+
+	return TRUE;
 }
 
 /**

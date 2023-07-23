@@ -35,7 +35,6 @@ HINAWA_1_3_0 {
 HINAWA_1_4_0 {
     "hinawa_fw_node_get_type";
     "hinawa_fw_node_new";
-    "hinawa_fw_node_open";
     "hinawa_fw_node_create_source";
 
     "hinawa_fw_resp_reserve";
@@ -110,3 +109,8 @@ HINAWA_2_6_0 {
     "hinawa_fw_fcp_command_with_tstamp";
     "hinawa_fw_fcp_avc_transaction_with_tstamp";
 } HINAWA_2_5_0;
+
+HINAWA_3_0_0 {
+  global:
+    "hinawa_fw_node_open";
+} HINAWA_2_6_0;

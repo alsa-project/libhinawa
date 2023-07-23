@@ -39,7 +39,7 @@ def main() -> int:
 
     try:
         node = Hinawa.FwNode.new()
-        node.open(str(path))
+        _ = node.open(str(path), 0)
         common.print_fw_node_information(node)
     except Exception as e:
         msg = str(e)
