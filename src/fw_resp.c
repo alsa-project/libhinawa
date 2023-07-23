@@ -208,7 +208,7 @@ static void hinawa_fw_resp_init(HinawaFwResp *self)
  * Instantiate [class@FwResp] object and return the instance.
  *
  * Returns: a new instance of [class@FwResp].
- * Since: 1.3.
+ * Since: 1.3
  */
 HinawaFwResp *hinawa_fw_resp_new(void)
 {
@@ -231,7 +231,7 @@ HinawaFwResp *hinawa_fw_resp_new(void)
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 3.0.
+ * Since: 3.0
  */
 gboolean hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *node,
 					      guint64 region_start, guint64 region_end,
@@ -295,7 +295,7 @@ gboolean hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 3.0.
+ * Since: 3.0
  */
 gboolean hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode *node, guint64 addr, guint width,
 				GError **error)
@@ -309,7 +309,7 @@ gboolean hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode *node, guint64 
  *
  * stop to listen to a range of address in local node (e.g. OHCI 1394 controller).
  *
- * Since: 1.4.
+ * Since: 1.4
  */
 void hinawa_fw_resp_release(HinawaFwResp *self)
 {

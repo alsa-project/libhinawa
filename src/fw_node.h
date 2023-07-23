@@ -23,7 +23,7 @@ struct _HinawaFwNodeClass {
 	 *
 	 * Class closure for the [signal@FwNode::bus-update].
 	 *
-	 * Since: 1.4.
+	 * Since: 1.4
 	 */
 	void (*bus_update)(HinawaFwNode *self);
 
@@ -33,7 +33,7 @@ struct _HinawaFwNodeClass {
 	 *
 	 * Class closure for the [signal@FwNode::disconnected].
 	 *
-	 * Since: 1.4.
+	 * Since: 1.4
 	 */
 	void (*disconnected)(HinawaFwNode *self);
 

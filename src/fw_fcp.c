@@ -157,7 +157,7 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 	 * If the version of kernel ABI for Linux FireWire subsystem is less than 6, the value of
 	 * @tstamp argument has invalid value (=G_MAXUINT).
 	 *
-	 * Since: 2.6.
+	 * Since: 2.6
 	 */
 	fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED2] =
 		g_signal_new("responded2",
@@ -181,7 +181,7 @@ static void hinawa_fw_fcp_init(HinawaFwFcp *self)
  * Instantiate [class@FwFcp] object and return the instance.
  *
  * Returns: an instance of [class@FwFcp].
- * Since: 1.3.
+ * Since: 1.3
  */
 HinawaFwFcp *hinawa_fw_fcp_new(void)
 {
@@ -231,7 +231,7 @@ static gboolean complete_command_transaction(HinawaFwFcp *self, const guint8 *cm
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 3.0.
+ * Since: 3.0
  */
 gboolean hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
 			       guint timeout_ms, GError **error)
@@ -265,7 +265,7 @@ gboolean hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_s
  * has invalid value (=G_MAXUINT16).
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
- * Since: 2.6.
+ * Since: 2.6
  */
 gboolean hinawa_fw_fcp_command_with_tstamp(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
 					   guint tstamp[2], guint timeout_ms, GError **error)
@@ -399,7 +399,7 @@ end:
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 3.0.
+ * Since: 3.0
  */
 gboolean hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
 				       guint8 **resp, gsize *resp_size, guint timeout_ms,
@@ -439,7 +439,7 @@ gboolean hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsi
  * caller should expand the timeout in advance for the case.
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
- * Since: 2.6.
+ * Since: 2.6
  */
 gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 				const guint8 *cmd, gsize cmd_size, guint8 **resp, gsize *resp_size,
@@ -508,7 +508,7 @@ gboolean hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node, GError **erro
  *
  * Stop to listen to FCP responses.
  *
- * Since: 1.4.
+ * Since: 1.4
  */
 void hinawa_fw_fcp_unbind(HinawaFwFcp *self)
 {

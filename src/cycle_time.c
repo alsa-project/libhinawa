@@ -30,7 +30,7 @@ G_DEFINE_BOXED_TYPE(HinawaCycleTime, hinawa_cycle_time, hinawa_cycle_time_copy, 
  *
  * Returns: (transfer full): An instance of [struct@CycleTime].
  *
- * Since: 2.6.
+ * Since: 2.6
  */
 HinawaCycleTime *hinawa_cycle_time_new()
 {
@@ -46,7 +46,7 @@ HinawaCycleTime *hinawa_cycle_time_new()
  * Get system time with enough size of strorage. The timestamp refers to clock_id available by
  * [method@CycleTime.get_clock_id].
  *
- * Since: 2.6.
+ * Since: 2.6
  */
 void hinawa_cycle_time_get_system_time(const HinawaCycleTime *self, gint64 *tv_sec, gint32 *tv_nsec)
 {
@@ -63,7 +63,7 @@ void hinawa_cycle_time_get_system_time(const HinawaCycleTime *self, gint64 *tv_s
  *
  * Get the ID of clock for timestamp.
  *
- * Since: 2.6.
+ * Since: 2.6
  */
 void hinawa_cycle_time_get_clock_id(const HinawaCycleTime *self, gint *clock_id)
 {
@@ -101,7 +101,7 @@ static guint ieee1394_cycle_time_to_offset(guint32 cycle_time)
  * value of sec field, up to 127. The second element of array expresses the value of cycle field,
  * up to 7999. The third element of array expresses the value of offset field, up to 3071.
  *
- * Since: 2.6.
+ * Since: 2.6
  */
 void hinawa_cycle_time_get_fields(const HinawaCycleTime *self, guint16 fields[3])
 {
@@ -117,7 +117,7 @@ void hinawa_cycle_time_get_fields(const HinawaCycleTime *self, guint16 fields[3]
  *
  * Get the value of cycle time in 1394 OHCI controller.
  *
- * Since: 2.6.
+ * Since: 2.6
  */
 void hinawa_cycle_time_get_raw(const HinawaCycleTime *self, guint32 *raw)
 {

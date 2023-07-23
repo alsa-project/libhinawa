@@ -16,7 +16,7 @@
  * application of Linux FireWire subsystem. All of operations utilize ioctl(2) with subsystem
  * specific request commands.
  *
- * Since: 1.4.
+ * Since: 1.4
  */
 
 // 256 comes from an actual implementation in kernel land. Read
@@ -291,7 +291,7 @@ static void hinawa_fw_node_init(HinawaFwNode *self)
  * Instantiate [class@FwNode] object and return the instance.
  *
  * Returns: an instance of [class@FwNode].
- * Since: 1.4.
+ * Since: 1.4
  */
 HinawaFwNode *hinawa_fw_node_new(void)
 {
@@ -341,7 +341,7 @@ static int update_info(HinawaFwNode *self)
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 3.0.
+ * Since: 3.0
  */
 gboolean hinawa_fw_node_open(HinawaFwNode *self, const gchar *path, gint open_flag, GError **error)
 {
@@ -402,7 +402,7 @@ gboolean hinawa_fw_node_open(HinawaFwNode *self, const gchar *path, gint open_fl
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 3.0.
+ * Since: 3.0
  */
 gboolean hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image, gsize *length,
 				       GError **error)
@@ -442,7 +442,7 @@ gboolean hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 2.6.
+ * Since: 2.6
  */
 gboolean hinawa_fw_node_read_cycle_time(HinawaFwNode *self, gint clock_id,
 					HinawaCycleTime *const *cycle_time, GError **error)
@@ -581,7 +581,7 @@ static void finalize_src(GSource *gsrc)
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 3.0.
+ * Since: 3.0
  */
 gboolean hinawa_fw_node_create_source(HinawaFwNode *self, GSource **gsrc, GError **error)
 {
