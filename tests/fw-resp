@@ -24,13 +24,9 @@ methods = (
     'release',
 )
 vmethods = (
-    'do_requested',
-    'do_requested2',
     'do_requested3',
 )
 signals = (
-    'requested',
-    'requested2',
     'requested3',
 )
 

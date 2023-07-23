@@ -64,9 +64,7 @@ static GParamSpec *fw_resp_props[FW_RESP_PROP_TYPE_COUNT] = { NULL, };
 
 // This object has one signal.
 enum fw_resp_sig_type {
-	FW_RESP_SIG_TYPE_REQ = 0,
-	FW_RESP_SIG_TYPE_REQ2,
-	FW_RESP_SIG_TYPE_REQ3,
+	FW_RESP_SIG_TYPE_REQ3 = 0,
 	FW_RESP_SIG_TYPE_COUNT,
 };
 static guint fw_resp_sigs[FW_RESP_SIG_TYPE_COUNT] = { 0 };
@@ -154,74 +152,6 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	g_object_class_install_properties(gobject_class,
 					  FW_RESP_PROP_TYPE_COUNT,
 					  fw_resp_props);
-
-	/**
-	 * HinawaFwResp::requested:
-	 * @self: A [class@FwResp]
-	 * @tcode: One of [enum@FwTcode] enumerations.
-	 *
-	 * Emitted when any node transfers requests to the range of address in 1394 OHCI controller
-	 * to which this object listening, except for the case that either
-	 * [signal@FwResp::requested2] signal handler or [signal@FwResp::requested3] signal handler
-	 * is already assigned.
-	 *
-	 * The handler can get data frame by a call of [method@FwResp.get_req_frame] and set data
-	 * frame by a call of [method@FwResp.set_resp_frame], then returns [enum@FwRcode] for
-	 * response subaction.
-	 *
-	 * Returns: One of [enum@FwRcode] enumerations corresponding to rcodes defined in IEEE 1394
-	 *	    specification.
-	 *
-	 * Since: 0.3
-	 * Deprecated: 2.2: Use [signal@FwResp::requested3], instead.
-	 */
-	fw_resp_sigs[FW_RESP_SIG_TYPE_REQ] =
-		g_signal_new("requested",
-			     G_OBJECT_CLASS_TYPE(klass),
-			     G_SIGNAL_RUN_LAST | G_SIGNAL_DEPRECATED,
-			     G_STRUCT_OFFSET(HinawaFwRespClass, requested),
-			     NULL, NULL,
-			     hinawa_sigs_marshal_ENUM__ENUM,
-			     HINAWA_TYPE_FW_RCODE, 1, HINAWA_TYPE_FW_TCODE);
-
-	/**
-	 * HinawaFwResp::requested2:
-	 * @self: A [class@FwResp]
-	 * @tcode: One of [enum@FwTcode] enumerations
-	 * @offset: The address offset at which the transaction arrives.
-	 * @src: The node ID of source for the transaction.
-	 * @dst: The node ID of destination for the transaction.
-	 * @card: The index of card corresponding to 1394 OHCI controller.
-	 * @generation: The generation of bus when the transaction is transferred.
-	 * @frame: (element-type guint8)(array length=length): The array with elements for byte
-	 *	   data.
-	 * @length: The length of bytes for the frame.
-	 *
-	 * Emitted when any node transfers request subaction to the range of address in 1394 OHCI
-	 * controller to which this object listening, except for the case that
-	 * [signal@FwResp::requested3] signal handler is already assigned.
-	 *
-	 * The handler is expected to call [method@FwResp.set_resp_frame] with frame and return
-	 * [enum@FwRcode] for response subaction.
-	 *
-	 * If the version is less than 4, the src, dst, card, generation arguments have invalid
-	 * value (=G_MAXUINT).
-	 *
-	 * Returns: One of [enum@FwRcode] enumerations corresponding to rcodes defined in IEEE 1394
-	 *	    specification.
-	 * Since: 2.2
-	 * Deprecated: 2.6: Use [signal@FwResp::requested3], instead.
-	 */
-	fw_resp_sigs[FW_RESP_SIG_TYPE_REQ2] =
-		g_signal_new("requested2",
-			     G_OBJECT_CLASS_TYPE(klass),
-			     G_SIGNAL_RUN_LAST,
-			     G_STRUCT_OFFSET(HinawaFwRespClass, requested2),
-			     NULL, NULL,
-			     hinawa_sigs_marshal_ENUM__ENUM_UINT64_UINT_UINT_UINT_UINT_POINTER_UINT,
-			     HINAWA_TYPE_FW_RCODE, 8, HINAWA_TYPE_FW_TCODE, G_TYPE_UINT64,
-			     G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT,
-			     G_TYPE_POINTER, G_TYPE_UINT);
 
 	/**
 	 * HinawaFwResp::requested3:
@@ -473,38 +403,22 @@ void hinawa_fw_resp_set_resp_frame(HinawaFwResp *self, guint8 *frame,
 void hinawa_fw_resp_handle_request(HinawaFwResp *self, const struct fw_cdev_event_request *event)
 {
 	HinawaFwRespPrivate *priv;
-	HinawaFwRespClass *klass;
 	struct fw_cdev_send_response resp = {0};
 	HinawaFwRcode rcode;
 	GError *error = NULL;
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
 	priv = hinawa_fw_resp_get_instance_private(self);
-	klass = HINAWA_FW_RESP_GET_CLASS(self);
 
 	memset(priv->resp_frame, 0, priv->width);
 	priv->resp_length = 0;
 
 	if (!priv->node || event->length > priv->width) {
 		rcode = RCODE_CONFLICT_ERROR;
-	} else if (klass->requested3 != NULL ||
-		   g_signal_has_handler_pending(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ3], 0, TRUE)) {
+	} else {
 		g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ3], 0, event->tcode,
 			      event->offset, G_MAXUINT, G_MAXUINT, G_MAXUINT, G_MAXUINT,
 			      G_MAXUINT, event->data, event->length, &rcode);
-	} else if (klass->requested2 != NULL ||
-		   g_signal_has_handler_pending(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ2], 0, TRUE)) {
-		// Pass arguments as much as possible, else fill with invalid value (G_MAX_UINT).
-		g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ2], 0, event->tcode,
-			      event->offset, G_MAXUINT, G_MAXUINT, G_MAXUINT, G_MAXUINT,
-			      event->data, event->length, &rcode);
-	} else {
-		// For backward compatibility to use Hinawa.FwResp.get_req_frame().
-		memcpy(priv->req_frame, event->data, event->length);
-		priv->req_length = event->length;
-
-		rcode = HINAWA_FW_RCODE_ADDRESS_ERROR;
-		g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ], 0, event->tcode, &rcode);
 	}
 
 	if (priv->resp_length > 0) {
@@ -523,40 +437,25 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self, const struct fw_cdev_even
 void hinawa_fw_resp_handle_request2(HinawaFwResp *self, const struct fw_cdev_event_request2 *event)
 {
 	HinawaFwRespPrivate *priv;
-	HinawaFwRespClass *klass;
 	struct fw_cdev_send_response resp = {0};
 	HinawaFwRcode rcode;
 	GError *error = NULL;
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
 	priv = hinawa_fw_resp_get_instance_private(self);
-	klass = HINAWA_FW_RESP_GET_CLASS(self);
 
 	memset(priv->resp_frame, 0, priv->width);
 	priv->resp_length = 0;
 
 	if (!priv->node || event->length > priv->width) {
 		rcode = RCODE_CONFLICT_ERROR;
-	} else if (klass->requested3 != NULL ||
-		   g_signal_has_handler_pending(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ3], 0, TRUE)) {
+	} else {
+		rcode = HINAWA_FW_RCODE_ADDRESS_ERROR;
+
 		g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ3], 0, event->tcode,
 			      event->offset, event->source_node_id, event->destination_node_id,
 			      event->card, event->generation, G_MAXUINT, event->data, event->length,
 			      &rcode);
-	} else if (klass->requested2 != NULL ||
-		   g_signal_has_handler_pending(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ2], 0, TRUE)) {
-		g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ2], 0, event->tcode,
-			      event->offset, event->source_node_id, event->destination_node_id,
-			      event->card, event->generation, event->data, event->length, &rcode);
-	} else if (klass->requested != NULL ||
-		   g_signal_has_handler_pending(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ], 0, TRUE)) {
-		// For backward compatibility to use Hinawa.FwResp.get_req_frame().
-		memcpy(priv->req_frame, event->data, event->length);
-		priv->req_length = event->length;
-
-		g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ], 0, event->tcode, &rcode);
-	} else {
-		rcode = HINAWA_FW_RCODE_ADDRESS_ERROR;
 	}
 
 	if (priv->resp_length > 0) {
@@ -575,40 +474,25 @@ void hinawa_fw_resp_handle_request2(HinawaFwResp *self, const struct fw_cdev_eve
 void hinawa_fw_resp_handle_request3(HinawaFwResp *self, const struct fw_cdev_event_request3 *event)
 {
 	HinawaFwRespPrivate *priv;
-	HinawaFwRespClass *klass;
 	struct fw_cdev_send_response resp = {0};
 	HinawaFwRcode rcode;
 	GError *error = NULL;
 
 	g_return_if_fail(HINAWA_IS_FW_RESP(self));
 	priv = hinawa_fw_resp_get_instance_private(self);
-	klass = HINAWA_FW_RESP_GET_CLASS(self);
 
 	memset(priv->resp_frame, 0, priv->width);
 	priv->resp_length = 0;
 
 	if (!priv->node || event->length > priv->width) {
 		rcode = RCODE_CONFLICT_ERROR;
-	} else if (klass->requested3 != NULL ||
-		   g_signal_has_handler_pending(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ3], 0, TRUE)) {
+	} else {
+		rcode = HINAWA_FW_RCODE_ADDRESS_ERROR;
+
 		g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ3], 0, event->tcode,
 			      event->offset, event->source_node_id, event->destination_node_id,
 			      event->card, event->generation, event->tstamp, event->data,
 			      event->length, &rcode);
-	} else if (klass->requested2 != NULL ||
-		   g_signal_has_handler_pending(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ2], 0, TRUE)) {
-		g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ2], 0, event->tcode,
-			      event->offset, event->source_node_id, event->destination_node_id,
-			      event->card, event->generation, event->data, event->length, &rcode);
-	} else if (klass->requested != NULL ||
-		   g_signal_has_handler_pending(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ], 0, TRUE)) {
-		// For backward compatibility to use Hinawa.FwResp.get_req_frame().
-		memcpy(priv->req_frame, event->data, event->length);
-		priv->req_length = event->length;
-
-		g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ], 0, event->tcode, &rcode);
-	} else {
-		rcode = HINAWA_FW_RCODE_ADDRESS_ERROR;
 	}
 
 	if (priv->resp_length > 0) {
