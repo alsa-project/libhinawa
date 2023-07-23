@@ -188,8 +188,33 @@ HinawaFwFcp *hinawa_fw_fcp_new(void)
 	return g_object_new(HINAWA_TYPE_FW_FCP, NULL);
 }
 
-static gboolean complete_command_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
-					     guint tstamp[2], guint timeout_ms, GError **error)
+/**
+ * hinawa_fw_fcp_command_with_tstamp:
+ * @self: A [class@FwFcp].
+ * @cmd: (array length=cmd_size): An array with elements for request byte data. The value of this
+ *	 argument should point to the array and immutable.
+ * @cmd_size: The size of array for request in byte unit.
+ * @tstamp: (array fixed-size=2)(out caller-allocates): The array with two elements for time stamps.
+ *	    The first element is for the isochronous cycle at which the request arrived. The second
+ *	    element is for the isochronous cycle at which the response was sent.
+ * @timeout_ms: The timeout to wait for response subaction of transaction for command frame.
+ * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinoko.FwNodeError and
+ *	   Hinoko.FwReqError.
+ *
+ * Transfer command frame for FCP. When receiving response frame for FCP, [signal@FwFcp::responded2]
+ * signal is emitted.
+ *
+ * Each value of @tstamp is unsigned 16 bit integer including higher 3 bits for three low order bits
+ * of second field and the rest 13 bits for cycle field in the format of IEEE 1394 CYCLE_TIMER register.
+ *
+ * If the version of kernel ABI for Linux FireWire subsystem is less than 6, each element of @tstamp
+ * has invalid value (=G_MAXUINT16).
+ *
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
+ * Since: 2.6
+ */
+gboolean hinawa_fw_fcp_command_with_tstamp(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
+					   guint tstamp[2], guint timeout_ms, GError **error)
 {
 	HinawaFwFcpPrivate *priv;
 	HinawaFwReq *req;
@@ -239,39 +264,7 @@ gboolean hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_s
 	guint tstamp[2];
 
 	// Finish transaction for command frame.
-	return complete_command_transaction(self, cmd, cmd_size, tstamp, timeout_ms, error);
-}
-
-/**
- * hinawa_fw_fcp_command_with_tstamp:
- * @self: A [class@FwFcp].
- * @cmd: (array length=cmd_size): An array with elements for request byte data. The value of this
- *	 argument should point to the array and immutable.
- * @cmd_size: The size of array for request in byte unit.
- * @tstamp: (array fixed-size=2)(out caller-allocates): The array with two elements for time stamps.
- *	    The first element is for the isochronous cycle at which the request arrived. The second
- *	    element is for the isochronous cycle at which the response was sent.
- * @timeout_ms: The timeout to wait for response subaction of transaction for command frame.
- * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinoko.FwNodeError and
- *	   Hinoko.FwReqError.
- *
- * Transfer command frame for FCP. When receiving response frame for FCP, [signal@FwFcp::responded2]
- * signal is emitted.
- *
- * Each value of @tstamp is unsigned 16 bit integer including higher 3 bits for three low order bits
- * of second field and the rest 13 bits for cycle field in the format of IEEE 1394 CYCLE_TIMER register.
- *
- * If the version of kernel ABI for Linux FireWire subsystem is less than 6, each element of @tstamp
- * has invalid value (=G_MAXUINT16).
- *
- * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
- * Since: 2.6
- */
-gboolean hinawa_fw_fcp_command_with_tstamp(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
-					   guint tstamp[2], guint timeout_ms, GError **error)
-{
-	// Finish transaction for command frame.
-	return complete_command_transaction(self, cmd, cmd_size, tstamp, timeout_ms, error);
+	return hinawa_fw_fcp_command_with_tstamp(self, cmd, cmd_size, tstamp, timeout_ms, error);
 }
 
 struct waiter {
@@ -336,7 +329,7 @@ static gboolean complete_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, g
 	g_mutex_lock(&w->mutex);
 
 	// Finish transaction for command frame.
-	result = complete_command_transaction(self, cmd, cmd_size, tstamp, timeout_ms, error);
+	result = hinawa_fw_fcp_command_with_tstamp(self, cmd, cmd_size, tstamp, timeout_ms, error);
 	if (*error)
 		goto end;
 deferred:
