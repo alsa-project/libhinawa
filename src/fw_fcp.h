@@ -18,19 +18,6 @@ struct _HinawaFwFcpClass {
 	HinawaFwRespClass parent_class;
 
 	/**
-	 * HinawaFwFcpClass::responded:
-	 * @self: A [class@FwFcp].
-	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for byte
-	 *	   data of response for Function Control Protocol.
-	 * @frame_size: The number of elements of the array.
-	 *
-	 * Class closure for the [signal@FwFcp::responded] signal.
-	 *
-	 * Since: 2.1
-	 */
-	void (*responded)(HinawaFwFcp *self, const guint8 *frame, guint frame_size);
-
-	/**
 	 * HinawaFwFcpClass::responded2:
 	 * @self: A [class@FwFcp].
 	 * @tstamp: The time stamp at which the request arrived for the response for FCP

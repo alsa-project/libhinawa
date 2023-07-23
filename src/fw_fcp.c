@@ -121,8 +121,7 @@ static void fw_fcp_finalize(GObject *obj)
 }
 
 enum fw_fcp_sig_type {
-	FW_FCP_SIG_TYPE_RESPONDED = 1,
-	FW_FCP_SIG_TYPE_RESPONDED2,
+	FW_FCP_SIG_TYPE_RESPONDED2 = 0,
 	FW_FCP_SIG_TYPE_COUNT,
 };
 static guint fw_fcp_sigs[FW_FCP_SIG_TYPE_COUNT] = { 0 };
@@ -173,30 +172,6 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 	g_object_class_install_properties(gobject_class,
 					  FW_FCP_PROP_TYPE_COUNT,
 					  fw_fcp_props);
-
-	/**
-	 * HinawaFwFcp::responded:
-	 * @self: A [class@FwFcp].
-	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for byte
-	 *	   data of response for FCP.
-	 * @frame_size: The number of elements of the array.
-	 *
-	 * Emitted when the node transfers asynchronous packet as response for FCP and the process
-	 * successfully read the content of packet, except for the case that
-	 * [signal@FwFcp::responded2] signal handler is already assigned.
-	 *
-	 * Since: 2.1
-	 * Deprecated: 2.6: Use [signal@FwFcp::responded2], instead.
-	 */
-	fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED] =
-		g_signal_new("responded",
-			     G_OBJECT_CLASS_TYPE(klass),
-			     G_SIGNAL_RUN_LAST,
-			     G_STRUCT_OFFSET(HinawaFwFcpClass, responded),
-			     NULL, NULL,
-			     hinawa_sigs_marshal_VOID__POINTER_UINT,
-			     G_TYPE_NONE,
-			     2, G_TYPE_POINTER, G_TYPE_UINT);
 
 	/**
 	 * HinawaFwFcp::responded2:
@@ -519,20 +494,12 @@ static HinawaFwRcode handle_requested3_signal(HinawaFwResp *resp, HinawaFwTcode 
 {
 	HinawaFwFcp *self = HINAWA_FW_FCP(resp);
 	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
-	HinawaFwFcpClass *klass = HINAWA_FW_FCP_GET_CLASS(self);
 	guint node_id;
 
 	g_object_get(priv->node, "node-id", &node_id, NULL);
 	if (offset == FCP_RESPOND_ADDR && tcode == HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST &&
-	    src == node_id) {
-		if (klass->responded2 != NULL ||
-		    g_signal_has_handler_pending(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED2], 0, TRUE)) {
-			g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED2], 0, tstamp, frame, length);
-		} else if (klass->responded != NULL ||
-		    g_signal_has_handler_pending(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0, TRUE)) {
-			g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0, frame, length);
-		}
-	}
+	    src == node_id)
+		g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED2], 0, tstamp, frame, length);
 
 	// MEMO: Linux firewire subsystem already send response subaction to finish the transaction,
 	// thus the rcode is just ignored.
