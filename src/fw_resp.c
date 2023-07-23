@@ -299,24 +299,26 @@ HinawaFwResp *hinawa_fw_resp_new(void)
  * controller), which is used to communicate to the node given as parameter. The range of address
  * is looked up in region between region_start and region_end.
  *
- * Since: 2.3.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
+ *
+ * Since: 3.0.
  */
-void hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *node,
-					  guint64 region_start, guint64 region_end, guint width,
-					  GError **error)
+gboolean hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *node,
+					      guint64 region_start, guint64 region_end,
+					      guint width, GError **error)
 {
 	HinawaFwRespPrivate *priv;
 	struct fw_cdev_allocate allocate = {0};
 	int err;
 
-	g_return_if_fail(HINAWA_IS_FW_RESP(self));
-	g_return_if_fail(width > 0);
-	g_return_if_fail(error == NULL || *error == NULL);
+	g_return_val_if_fail(HINAWA_IS_FW_RESP(self), FALSE);
+	g_return_val_if_fail(width > 0, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	priv = hinawa_fw_resp_get_instance_private(self);
 	if (priv->node != NULL) {
 		generate_local_error(error, HINAWA_FW_RESP_ERROR_RESERVED);
-		return;
+		return FALSE;
 	}
 
 	allocate.offset = region_start;
@@ -326,13 +328,13 @@ void hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *node
 
 	err = hinawa_fw_node_ioctl(node, FW_CDEV_IOC_ALLOCATE, &allocate, error);
 	if (*error != NULL)
-		return;
+		return FALSE;
 	if (err > 0) {
 		if (err == EBUSY)
 			generate_local_error(error, HINAWA_FW_RESP_ERROR_ADDR_SPACE_USED);
 		else
 			generate_syscall_error(error, err, "ioctl(%s)", "FW_CDEV_IOC_ALLOCATE");
-		return;
+		return FALSE;
 	}
 
 	priv->node = g_object_ref(node);
@@ -344,6 +346,8 @@ void hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *node
 	priv->offset = allocate.offset;
 	priv->width = allocate.length;
 	priv->addr_handle = allocate.handle;
+
+	return TRUE;
 }
 
 /**
@@ -364,7 +368,7 @@ void hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *node
 void hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode *node,
 			    guint64 addr, guint width, GError **error)
 {
-	hinawa_fw_resp_reserve_within_region(self, node, addr, addr + width, width, error);
+	(void)hinawa_fw_resp_reserve_within_region(self, node, addr, addr + width, width, error);
 }
 
 /**
