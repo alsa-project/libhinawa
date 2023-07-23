@@ -54,7 +54,7 @@ static void generate_fw_req_error_literal(GError **error, HinawaFwReqError code)
 }
 
 enum fw_req_sig_type {
-	FW_REQ_SIG_TYPE_RESPONDED2 = 1,
+	FW_REQ_SIG_TYPE_RESPONDED = 0,
 	FW_REQ_SIG_TYPE_COUNT,
 };
 static guint fw_req_sigs[FW_REQ_SIG_TYPE_COUNT] = { 0 };
@@ -62,7 +62,7 @@ static guint fw_req_sigs[FW_REQ_SIG_TYPE_COUNT] = { 0 };
 static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 {
 	/**
-	 * HinawaFwReq::responded2:
+	 * HinawaFwReq::responded:
 	 * @self: A [class@FwReq].
 	 * @rcode: One of [enum@FwRcode].
 	 * @request_tstamp: The isochronous cycle at which the request was sent.
@@ -82,13 +82,13 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 	 * If the version of kernel ABI for Linux FireWire subsystem is less than 6, the
 	 * @request_tstamp and @response_tstamp argument has invalid value (=G_MAXUINT).
 	 *
-	 * Since: 2.6
+	 * Since: 3.0
 	 */
-	fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED2] =
-		g_signal_new("responded2",
+	fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED] =
+		g_signal_new("responded",
 			     G_OBJECT_CLASS_TYPE(klass),
 			     G_SIGNAL_RUN_LAST,
-			     G_STRUCT_OFFSET(HinawaFwReqClass, responded2),
+			     G_STRUCT_OFFSET(HinawaFwReqClass, responded),
 			     NULL, NULL,
 			     hinawa_sigs_marshal_VOID__ENUM_UINT_UINT_POINTER_UINT,
 			     G_TYPE_NONE,
@@ -133,7 +133,7 @@ HinawaFwReq *hinawa_fw_req_new(void)
  *
  * Execute request subaction of transactions to the given node according to given code. When the
  * response subaction arrives and running event dispatcher reads the contents,
- * [signal@FwReq::responded2] signal handler is called.
+ * [signal@FwReq::responded] signal handler is called.
  *
  * Since: 2.6
  */
@@ -215,9 +215,9 @@ struct waiter {
 	GMutex mutex;
 };
 
-static void handle_responded2_signal(HinawaFwReq *self, HinawaFwRcode rcode, guint request_tstamp,
-				     guint response_tstamp, const guint8 *frame, guint frame_size,
-				     gpointer user_data)
+static void handle_responded_signal(HinawaFwReq *self, HinawaFwRcode rcode, guint request_tstamp,
+				    guint response_tstamp, const guint8 *frame, guint frame_size,
+				    gpointer user_data)
 {
 	struct waiter *w = (struct waiter *)user_data;
 
@@ -293,7 +293,7 @@ gboolean hinawa_fw_req_transaction_with_tstamp(HinawaFwReq *self, HinawaFwNode *
 	g_cond_init(&w.cond);
 	g_mutex_init(&w.mutex);
 
-        handler_id = g_signal_connect(self, "responded2", G_CALLBACK(handle_responded2_signal), &w);
+        handler_id = g_signal_connect(self, "responded", G_CALLBACK(handle_responded_signal), &w);
 
 	// Timeout is set in advance as a parameter of this object.
 	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
@@ -391,7 +391,7 @@ void hinawa_fw_req_handle_response(HinawaFwReq *self, const struct fw_cdev_event
 {
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
-	g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED2], 0, event->rcode, G_MAXUINT,
+	g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED], 0, event->rcode, G_MAXUINT,
 		      G_MAXUINT, event->data, event->length);
 }
 
@@ -400,6 +400,6 @@ void hinawa_fw_req_handle_response2(HinawaFwReq *self, const struct fw_cdev_even
 {
 	g_return_if_fail(HINAWA_IS_FW_REQ(self));
 
-	g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED2], 0, event->rcode,
+	g_signal_emit(self, fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED], 0, event->rcode,
 		      event->request_tstamp, event->response_tstamp, event->data, event->length);
 }
