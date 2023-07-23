@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
-#ifndef __ALSA_HINAWA_FW_FCP_H__
-#define __ALSA_HINAWA_FW_FCP_H__
+#ifndef __ORG_KERNEL_HINAWA_FW_FCP_H__
+#define __ORG_KERNEL_HINAWA_FW_FCP_H__
 
 #include <hinawa.h>
 
