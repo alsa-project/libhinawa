@@ -164,7 +164,7 @@ def listen_region(node: Hinawa.FwNode):
     cycle_time = Hinawa.CycleTime.new()
     handler = resp.connect('requested3', handle_requested3, (node, cycle_time))
     try:
-        resp.reserve(node, 0xfffff0000d00, 0x100)
+        _ = resp.reserve(node, 0xfffff0000d00, 0x100)
         yield
     except Exception as e:
         print(e)
