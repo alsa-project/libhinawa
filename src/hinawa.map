@@ -19,8 +19,6 @@ HINAWA_1_0_0 {
   global:
     "hinawa_fw_tcode_get_type";
     "hinawa_fw_rcode_get_type";
-
-    "hinawa_sigs_marshal_ENUM__ENUM";
 } HINAWA_0_8_0;
 
 HINAWA_1_1_0 {
