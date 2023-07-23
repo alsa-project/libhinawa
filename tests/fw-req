@@ -18,10 +18,10 @@ methods = (
     'transaction_with_tstamp',
 )
 vmethods = (
-    'do_responded2',
+    'do_responded',
 )
 signals = (
-    'responded2',
+    'responded',
 )
 
 if not test_object(target_type, props, methods, vmethods, signals):
