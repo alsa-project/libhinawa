@@ -23,10 +23,10 @@ methods = (
     'release',
 )
 vmethods = (
-    'do_requested3',
+    'do_requested',
 )
 signals = (
-    'requested3',
+    'requested',
 )
 
 if not test_object(target_type, props, methods, vmethods, signals):

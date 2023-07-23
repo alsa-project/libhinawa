@@ -107,15 +107,15 @@ enum fw_fcp_sig_type {
 static guint fw_fcp_sigs[FW_FCP_SIG_TYPE_COUNT] = { 0 };
 
 // Define later.
-static HinawaFwRcode handle_requested3_signal(HinawaFwResp *resp, HinawaFwTcode tcode, guint64 offset,
-					      guint src, guint dst, guint card, guint generation,
-					      guint tstamp, const guint8 *frame, guint length);
+static HinawaFwRcode handle_requested_signal(HinawaFwResp *resp, HinawaFwTcode tcode, guint64 offset,
+					     guint src, guint dst, guint card, guint generation,
+					     guint tstamp, const guint8 *frame, guint length);
 
 static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
-	HINAWA_FW_RESP_CLASS(klass)->requested3 = handle_requested3_signal;
+	HINAWA_FW_RESP_CLASS(klass)->requested = handle_requested_signal;
 
 	gobject_class->get_property = fw_fcp_get_property;
 	gobject_class->finalize = fw_fcp_finalize;
@@ -424,18 +424,18 @@ end:
  * Since: 3.0
  */
 gboolean hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,
-				       guint8 **resp, gsize *resp_size, guint timeout_ms,
-				       GError **error)
+                                      guint8 **resp, gsize *resp_size, guint timeout_ms,
+                                      GError **error)
 {
-	guint tstamp[3];
+       guint tstamp[3];
 
-	return hinawa_fw_fcp_avc_transaction_with_tstamp(self, cmd, cmd_size, resp, resp_size,
-							 tstamp, timeout_ms, error);
+       return hinawa_fw_fcp_avc_transaction_with_tstamp(self, cmd, cmd_size, resp, resp_size,
+                                                        tstamp, timeout_ms, error);
 }
 
-static HinawaFwRcode handle_requested3_signal(HinawaFwResp *resp, HinawaFwTcode tcode, guint64 offset,
-					      guint src, guint dst, guint card, guint generation,
-					      guint tstamp, const guint8 *frame, guint length)
+static HinawaFwRcode handle_requested_signal(HinawaFwResp *resp, HinawaFwTcode tcode, guint64 offset,
+					     guint src, guint dst, guint card, guint generation,
+					     guint tstamp, const guint8 *frame, guint length)
 {
 	HinawaFwFcp *self = HINAWA_FW_FCP(resp);
 	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
