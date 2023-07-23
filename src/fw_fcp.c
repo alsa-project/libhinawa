@@ -70,8 +70,7 @@ G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwFcp, hinawa_fw_fcp, HINAWA_TYPE_FW_RESP)
 
 /* This object has one property. */
 enum fw_fcp_prop_type {
-	FW_FCP_PROP_TYPE_TIMEOUT = 1,
-	FW_FCP_PROP_TYPE_IS_BOUND,
+	FW_FCP_PROP_TYPE_IS_BOUND = 1,
 	FW_FCP_PROP_TYPE_COUNT,
 };
 static GParamSpec *fw_fcp_props[FW_FCP_PROP_TYPE_COUNT] = { NULL, };
@@ -83,27 +82,8 @@ static void fw_fcp_get_property(GObject *obj, guint id, GValue *val,
 	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
 
 	switch (id) {
-	case FW_FCP_PROP_TYPE_TIMEOUT:
-		g_value_set_uint(val, priv->timeout);
-		break;
 	case FW_FCP_PROP_TYPE_IS_BOUND:
 		g_value_set_boolean(val, priv->node != NULL);
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
-		break;
-	}
-}
-
-static void fw_fcp_set_property(GObject *obj, guint id, const GValue *val,
-				GParamSpec *spec)
-{
-	HinawaFwFcp *self = HINAWA_FW_FCP(obj);
-	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
-
-	switch (id) {
-	case FW_FCP_PROP_TYPE_TIMEOUT:
-		priv->timeout = g_value_get_uint(val);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
@@ -138,22 +118,7 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 	HINAWA_FW_RESP_CLASS(klass)->requested3 = handle_requested3_signal;
 
 	gobject_class->get_property = fw_fcp_get_property;
-	gobject_class->set_property = fw_fcp_set_property;
 	gobject_class->finalize = fw_fcp_finalize;
-
-	/**
-	 * HinawaFwFcp:timeout:
-	 *
-	 * Since 1.4
-	 * Deprecated: 2.1: Use timeout_ms parameter of [method@FwFcp.avc_transaction].
-	 */
-	fw_fcp_props[FW_FCP_PROP_TYPE_TIMEOUT] =
-		g_param_spec_uint("timeout", "timeout",
-				  "An elapse to expire waiting for response "
-				  "by msec unit.",
-				  10, G_MAXUINT,
-				  200,
-				  G_PARAM_READWRITE | G_PARAM_CONSTRUCT | G_PARAM_DEPRECATED);
 
 	/**
 	 * HinawaFwFcp:is-bound:
@@ -429,9 +394,8 @@ end:
  *
  * Finish the pair of asynchronous transaction for AV/C command and response transactions. The
  * timeout_ms parameter is used to wait for response transaction since the command transaction is
- * initiated, ignoring [property@FwFcp:timeout] property of instance. The timeout is not expanded in
- * the case that AV/C INTERIM status is arrived, thus the caller should expand the timeout in
- * advance for the case.
+ * initiated The timeout is not expanded in the case that AV/C INTERIM status is arrived, thus the
+ * caller should expand the timeout in advance for the case.
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
@@ -471,9 +435,8 @@ gboolean hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsi
  *
  * Finish the pair of asynchronous transaction for AV/C command and response transactions. The
  * timeout_ms parameter is used to wait for response transaction since the command transaction is
- * initiated, ignoring [property@FwFcp:timeout] property of instance. The timeout is not expanded in
- * the case that AV/C INTERIM status is arrived, thus the caller should expand the timeout in
- * advance for the case.
+ * initiated. The timeout is not expanded in the case that AV/C INTERIM status is arrived, thus the
+ * caller should expand the timeout in advance for the case.
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  * Since: 2.6.
