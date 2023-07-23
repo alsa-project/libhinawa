@@ -73,8 +73,6 @@ HINAWA_2_2_0 {
 } HINAWA_2_1_0;
 
 HINAWA_2_3_0 {
-  global:
-    "hinawa_fw_resp_reserve_within_region";
 } HINAWA_2_2_0;
 
 HINAWA_2_4_0 {
@@ -112,4 +110,6 @@ HINAWA_3_0_0 {
     "hinawa_fw_node_create_source";
 
     "hinawa_fw_req_transaction";
+
+    "hinawa_fw_resp_reserve_within_region";
 } HINAWA_2_6_0;
