@@ -38,7 +38,7 @@ struct _HinawaFwReqClass {
 HinawaFwReq *hinawa_fw_req_new(void);
 
 gboolean hinawa_fw_req_request(HinawaFwReq *self, HinawaFwNode *node, HinawaFwTcode tcode,
-			       guint64 addr, gsize length, guint8 *const *frame, gsize *frame_size,
+			       guint64 addr, gsize length, guint8 **frame, gsize *frame_size,
 			       GError **error);
 
 gboolean hinawa_fw_req_transaction_with_tstamp(HinawaFwReq *self, HinawaFwNode *node,

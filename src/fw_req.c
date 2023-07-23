@@ -135,10 +135,10 @@ HinawaFwReq *hinawa_fw_req_new(void)
  * response subaction arrives and running event dispatcher reads the contents,
  * [signal@FwReq::responded] signal handler is called.
  *
- * Since: 2.6
+ * Since: 3.0
  */
 gboolean hinawa_fw_req_request(HinawaFwReq *self, HinawaFwNode *node, HinawaFwTcode tcode,
-			       guint64 addr, gsize length, guint8 *const *frame, gsize *frame_size,
+			       guint64 addr, gsize length, guint8 **frame, gsize *frame_size,
 			       GError **error)
 {
 	struct fw_cdev_send_request req = {0};
