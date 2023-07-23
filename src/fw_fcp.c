@@ -101,7 +101,7 @@ static void fw_fcp_finalize(GObject *obj)
 }
 
 enum fw_fcp_sig_type {
-	FW_FCP_SIG_TYPE_RESPONDED2 = 0,
+	FW_FCP_SIG_TYPE_RESPONDED = 0,
 	FW_FCP_SIG_TYPE_COUNT,
 };
 static guint fw_fcp_sigs[FW_FCP_SIG_TYPE_COUNT] = { 0 };
@@ -139,7 +139,7 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 					  fw_fcp_props);
 
 	/**
-	 * HinawaFwFcp::responded2:
+	 * HinawaFwFcp::responded:
 	 * @self: A [class@FwFcp].
 	 * @tstamp: The time stamp at which the request arrived for the response of FCP
 	 *	    transaction.
@@ -157,13 +157,13 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 	 * If the version of kernel ABI for Linux FireWire subsystem is less than 6, the value of
 	 * @tstamp argument has invalid value (=G_MAXUINT).
 	 *
-	 * Since: 2.6
+	 * Since: 3.0
 	 */
-	fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED2] =
-		g_signal_new("responded2",
+	fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED] =
+		g_signal_new("responded",
 			     G_OBJECT_CLASS_TYPE(klass),
 			     G_SIGNAL_RUN_LAST,
-			     G_STRUCT_OFFSET(HinawaFwFcpClass, responded2),
+			     G_STRUCT_OFFSET(HinawaFwFcpClass, responded),
 			     NULL, NULL,
 			     hinawa_sigs_marshal_VOID__UINT_POINTER_UINT,
 			     G_TYPE_NONE,
@@ -201,7 +201,7 @@ HinawaFwFcp *hinawa_fw_fcp_new(void)
  * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinoko.FwNodeError and
  *	   Hinoko.FwReqError.
  *
- * Transfer command frame for FCP. When receiving response frame for FCP, [signal@FwFcp::responded2]
+ * Transfer command frame for FCP. When receiving response frame for FCP, [signal@FwFcp::responded]
  * signal is emitted.
  *
  * Each value of @tstamp is unsigned 16 bit integer including higher 3 bits for three low order bits
@@ -251,7 +251,7 @@ gboolean hinawa_fw_fcp_command_with_tstamp(HinawaFwFcp *self, const guint8 *cmd,
  * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinoko.FwNodeError and
  *	   Hinoko.FwReqError.
  *
- * Transfer command frame for FCP. When receiving response frame for FCP, [signal@FwFcp::responded2]
+ * Transfer command frame for FCP. When receiving response frame for FCP, [signal@FwFcp::responded]
  * signal is emitted.
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
@@ -275,8 +275,8 @@ struct waiter {
 	GMutex mutex;
 };
 
-static void handle_responded2_signal(HinawaFwFcp *self, guint tstamp, const guint8 *frame,
-				     guint frame_size, gpointer user_data)
+static void handle_responded_signal(HinawaFwFcp *self, guint tstamp, const guint8 *frame,
+				    guint frame_size, gpointer user_data)
 {
 	struct waiter *w = (struct waiter *)user_data;
 
@@ -352,7 +352,7 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 	// The two bytes are used to match response and request.
 	w.frame[1] = cmd[1];
 	w.frame[2] = cmd[2];
-	handler_id = g_signal_connect(self, "responded2", (GCallback)handle_responded2_signal, &w);
+	handler_id = g_signal_connect(self, "responded", (GCallback)handle_responded_signal, &w);
 	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
 
 	g_mutex_lock(&w.mutex);
@@ -444,7 +444,7 @@ static HinawaFwRcode handle_requested_signal(HinawaFwResp *resp, HinawaFwTcode t
 	g_object_get(priv->node, "node-id", &node_id, NULL);
 	if (offset == FCP_RESPOND_ADDR && tcode == HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST &&
 	    src == node_id)
-		g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED2], 0, tstamp, frame, length);
+		g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0, tstamp, frame, length);
 
 	// MEMO: Linux firewire subsystem already send response subaction to finish the transaction,
 	// thus the rcode is just ignored.
