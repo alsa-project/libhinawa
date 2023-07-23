@@ -53,7 +53,7 @@ void hinawa_fw_fcp_transaction(HinawaFwFcp *self,
 			       guint8 *const *resp_frame, gsize *resp_frame_size,
 			       GError **error);
 
-void hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node, GError **error);
+gboolean hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node, GError **error);
 void hinawa_fw_fcp_unbind(HinawaFwFcp *self);
 
 void hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_size,

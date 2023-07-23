@@ -586,26 +586,28 @@ static HinawaFwRcode handle_requested3_signal(HinawaFwResp *resp, HinawaFwTcode 
  *
  * Start to listen to FCP responses.
  *
- * Since: 1.4
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
+ *
+ * Since: 3.0
  */
-void hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node, GError **error)
+gboolean hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node, GError **error)
 {
 	HinawaFwFcpPrivate *priv;
 
-	g_return_if_fail(HINAWA_IS_FW_FCP(self));
-	g_return_if_fail(node != NULL);
-	g_return_if_fail(error == NULL || *error == NULL);
+	g_return_val_if_fail(HINAWA_IS_FW_FCP(self), FALSE);
+	g_return_val_if_fail(node != NULL, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	priv = hinawa_fw_fcp_get_instance_private(self);
 
 	if (priv->node == NULL) {
-		hinawa_fw_resp_reserve(HINAWA_FW_RESP(self), node,
-				FCP_RESPOND_ADDR, FCP_MAXIMUM_FRAME_BYTES,
-				error);
-		if (*error != NULL)
-			return;
+		if (!hinawa_fw_resp_reserve(HINAWA_FW_RESP(self), node, FCP_RESPOND_ADDR,
+					    FCP_MAXIMUM_FRAME_BYTES, error))
+			return FALSE;
 		priv->node = g_object_ref(node);
 	}
+
+	return TRUE;
 }
 
 /**
