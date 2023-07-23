@@ -400,23 +400,24 @@ gboolean hinawa_fw_node_open(HinawaFwNode *self, const gchar *path, gint open_fl
  *
  * Get cached content of configuration ROM aligned to big-endian.
  *
- * Since: 1.4.
+ * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
+ *
+ * Since: 3.0.
  */
-void hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
-				   gsize *length, GError **error)
+gboolean hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image, gsize *length,
+				       GError **error)
 {
 	HinawaFwNodePrivate *priv;
 
-	g_return_if_fail(HINAWA_IS_FW_NODE(self));
-	g_return_if_fail(image != NULL);
-	g_return_if_fail(length != NULL);
-	g_return_if_fail(error == NULL || *error == NULL);
-
+	g_return_val_if_fail(HINAWA_IS_FW_NODE(self), FALSE);
+	g_return_val_if_fail(image != NULL, FALSE);
+	g_return_val_if_fail(length != NULL, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
 
 	priv = hinawa_fw_node_get_instance_private(self);
 	if (priv->fd < 0) {
 		generate_local_error(error, HINAWA_FW_NODE_ERROR_NOT_OPENED);
-		return;
+		return FALSE;
 	}
 
 	g_mutex_lock(&priv->mutex);
@@ -425,6 +426,8 @@ void hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
 	*length = priv->config_rom_length;
 
 	g_mutex_unlock(&priv->mutex);
+
+	return TRUE;
 }
 
 /**
