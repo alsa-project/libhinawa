@@ -18,7 +18,7 @@ struct _HinawaFwRespClass {
 	GObjectClass parent_class;
 
 	/**
-	 * HinawaFwRespClass::requested3:
+	 * HinawaFwRespClass::requested:
 	 * @self: A [class@FwResp]
 	 * @tcode: One of [enum@FwTcode] enumerations
 	 * @offset: The address offset at which the transaction arrives.
@@ -31,16 +31,16 @@ struct _HinawaFwRespClass {
 	 *	   data.
 	 * @length: The length of bytes for the frame.
 	 *
-	 * Class closure for the [signal@FwResp::requested3] signal.
+	 * Class closure for the [signal@FwResp::requested] signal.
 	 *
 	 * Returns: One of [enum@FwRcode enumerations corresponding to rcodes defined in IEEE 1394
 	 *	    specification.
 	 *
-	 * Since: 2.6
+	 * Since: 3.0
 	 */
-	HinawaFwRcode (*requested3)(HinawaFwResp *self, HinawaFwTcode tcode, guint64 offset,
-				    guint src, guint dst, guint card, guint generation,
-				    guint tstamp, const guint8 *frame, guint length);
+	HinawaFwRcode (*requested)(HinawaFwResp *self, HinawaFwTcode tcode, guint64 offset,
+				   guint src, guint dst, guint card, guint generation,
+				   guint tstamp, const guint8 *frame, guint length);
 };
 
 HinawaFwResp *hinawa_fw_resp_new(void);

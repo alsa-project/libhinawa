@@ -64,7 +64,7 @@ static GParamSpec *fw_resp_props[FW_RESP_PROP_TYPE_COUNT] = { NULL, };
 
 // This object has one signal.
 enum fw_resp_sig_type {
-	FW_RESP_SIG_TYPE_REQ3 = 0,
+	FW_RESP_SIG_TYPE_REQ = 0,
 	FW_RESP_SIG_TYPE_COUNT,
 };
 static guint fw_resp_sigs[FW_RESP_SIG_TYPE_COUNT] = { 0 };
@@ -154,7 +154,7 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 					  fw_resp_props);
 
 	/**
-	 * HinawaFwResp::requested3:
+	 * HinawaFwResp::requested:
 	 * @self: A [class@FwResp]
 	 * @tcode: One of [enum@FwTcode] enumerations
 	 * @offset: The address offset at which the transaction arrives.
@@ -183,13 +183,13 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	 *
 	 * Returns: One of [enum@FwRcode] enumerations corresponding to rcodes defined in IEEE 1394
 	 *	    specification.
-	 * Since: 2.6
+	 * Since: 3.0
 	 */
-	fw_resp_sigs[FW_RESP_SIG_TYPE_REQ3] =
-		g_signal_new("requested3",
+	fw_resp_sigs[FW_RESP_SIG_TYPE_REQ] =
+		g_signal_new("requested",
 			     G_OBJECT_CLASS_TYPE(klass),
 			     G_SIGNAL_RUN_LAST,
-			     G_STRUCT_OFFSET(HinawaFwRespClass, requested3),
+			     G_STRUCT_OFFSET(HinawaFwRespClass, requested),
 			     NULL, NULL,
 			     hinawa_sigs_marshal_ENUM__ENUM_UINT64_UINT_UINT_UINT_UINT_UINT_POINTER_UINT,
 			     HINAWA_TYPE_FW_RCODE, 9, HINAWA_TYPE_FW_TCODE, G_TYPE_UINT64,
@@ -387,7 +387,7 @@ void hinawa_fw_resp_handle_request(HinawaFwResp *self, const struct fw_cdev_even
 	if (!priv->node || event->length > priv->width) {
 		rcode = RCODE_CONFLICT_ERROR;
 	} else {
-		g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ3], 0, event->tcode,
+		g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ], 0, event->tcode,
 			      event->offset, G_MAXUINT, G_MAXUINT, G_MAXUINT, G_MAXUINT,
 			      G_MAXUINT, event->data, event->length, &rcode);
 	}
@@ -423,7 +423,7 @@ void hinawa_fw_resp_handle_request2(HinawaFwResp *self, const struct fw_cdev_eve
 	} else {
 		rcode = HINAWA_FW_RCODE_ADDRESS_ERROR;
 
-		g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ3], 0, event->tcode,
+		g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ], 0, event->tcode,
 			      event->offset, event->source_node_id, event->destination_node_id,
 			      event->card, event->generation, G_MAXUINT, event->data, event->length,
 			      &rcode);
@@ -460,7 +460,7 @@ void hinawa_fw_resp_handle_request3(HinawaFwResp *self, const struct fw_cdev_eve
 	} else {
 		rcode = HINAWA_FW_RCODE_ADDRESS_ERROR;
 
-		g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ3], 0, event->tcode,
+		g_signal_emit(self, fw_resp_sigs[FW_RESP_SIG_TYPE_REQ], 0, event->tcode,
 			      event->offset, event->source_node_id, event->destination_node_id,
 			      event->card, event->generation, event->tstamp, event->data,
 			      event->length, &rcode);
