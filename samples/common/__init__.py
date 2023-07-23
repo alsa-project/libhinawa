@@ -57,7 +57,7 @@ def print_fw_node_information(node: Hinawa.FwNode):
     print_generation_information(node)
 
     print('  Config ROM:')
-    image = node.get_config_rom()
+    _, image = node.get_config_rom()
     quads = unpack('>{}I'.format(len(image) // 4), image)
     for i, q in enumerate(quads):
         print('    0xfffff00004{:02x}: 0x{:08x}'.format(i * 4, q))
