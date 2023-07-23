@@ -195,7 +195,7 @@ def listen_fcp(node: Hinawa.FwNode):
     fcp = Hinawa.FwFcp()
     handler = fcp.connect('responded2', handle_responded2, (node, cycle_time))
     try:
-        fcp.bind(node)
+        _ = fcp.bind(node)
 
         _, cycle_time = node.read_cycle_time(CLOCK_MONOTONIC_RAW, cycle_time)
         initiate_cycle = cycle_time.get_fields()[:2]
