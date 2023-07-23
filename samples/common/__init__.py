@@ -141,11 +141,11 @@ def print_frame(frame: list):
         print('  [{:02d}]: 0x{:02x}'.format(i, frame[i]))
 
 
-def handle_requested3(resp: Hinawa.FwResp, tcode: Hinawa.FwRcode, offset: int,
-                      src: int, dst: int, card: int, generation: int, tstamp: int,
-                      frame: list, length: int, args: tuple[Hinawa.FwNode, Hinawa.CycleTime]):
+def handle_requested(resp: Hinawa.FwResp, tcode: Hinawa.FwRcode, offset: int,
+                     src: int, dst: int, card: int, generation: int, tstamp: int,
+                     frame: list, length: int, args: tuple[Hinawa.FwNode, Hinawa.CycleTime]):
     node, cycle_time = args
-    print('Event requested3: {0}'.format(tcode.value_nick))
+    print('Event requested: {0}'.format(tcode.value_nick))
     try:
         _, cycle_time = node.read_cycle_time(CLOCK_MONOTONIC_RAW, cycle_time)
         isoc_cycle = cycle_time.compute_tstamp(tstamp)
@@ -162,7 +162,7 @@ def handle_requested3(resp: Hinawa.FwResp, tcode: Hinawa.FwRcode, offset: int,
 def listen_region(node: Hinawa.FwNode):
     resp = Hinawa.FwResp()
     cycle_time = Hinawa.CycleTime.new()
-    handler = resp.connect('requested3', handle_requested3, (node, cycle_time))
+    handler = resp.connect('requested', handle_requested, (node, cycle_time))
     try:
         _ = resp.reserve(node, 0xfffff0000d00, 0x100)
         yield
