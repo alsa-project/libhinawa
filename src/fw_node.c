@@ -442,10 +442,10 @@ gboolean hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 2.6
+ * Since: 3.0
  */
 gboolean hinawa_fw_node_read_cycle_time(HinawaFwNode *self, gint clock_id,
-					HinawaCycleTime *const *cycle_time, GError **error)
+					HinawaCycleTime **cycle_time, GError **error)
 {
 	int err;
 
