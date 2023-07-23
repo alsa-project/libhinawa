@@ -45,8 +45,6 @@ HINAWA_1_4_0 {
 } HINAWA_1_3_0;
 
 HINAWA_2_0_0 {
-    "hinawa_fw_node_get_config_rom";
-
     "hinawa_fw_fcp_transaction";
 
     "hinawa_fw_resp_get_req_frame";
@@ -113,4 +111,5 @@ HINAWA_2_6_0 {
 HINAWA_3_0_0 {
   global:
     "hinawa_fw_node_open";
+    "hinawa_fw_node_get_config_rom";
 } HINAWA_2_6_0;
