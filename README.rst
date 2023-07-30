@@ -103,7 +103,7 @@ How to build
 
 ::
 
-    $ meson (--prefix=directory-to-install) build
+    $ meson setup (--prefix=directory-to-install) build
     $ meson compile -C build
     $ meson install -C build
     ($ meson test -C build)
@@ -154,7 +154,7 @@ How to make RPM package
 
 ::
 
-    $ meson . build
+    $ meson setup build
     $ cd build
     $ meson dist
     ...
