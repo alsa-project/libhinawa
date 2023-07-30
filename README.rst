@@ -23,49 +23,6 @@ The latest release is `2.6.1 <https://git.kernel.org/pub/scm/libs/ieee1394/libhi
 The package archive is available in `<https://kernel.org/pub/linux/libs/ieee1394/>`_ with detached
 signature created by `my GnuPG key <https://git.kernel.org/pub/scm/docs/kernel/pgpkeys.git/tree/keys/B5A586C7D66FD341.asc>`_.
 
-Example of Python3 with PyGobject
-=================================
-
-::
-
-    #!/usr/bin/env python3
-
-    import gi
-    gi.require_version('GLib', '2.0')
-    gi.require_version('Hinawa', '3.0')
-    from gi.repository import GLib, Hinawa
-
-    from threading import Thread
-    from struct import unpack
-
-    node = Hinawa.FwNode.new()
-    node.open('/dev/fw1')
-
-    ctx = GLib.MainContext.new()
-    src = node.create_source()
-    src.attach(ctx)
-
-    dispatcher = GLib.MainLoop.new(ctx, False)
-    th = Thread(target=lambda d: d.run(), args=(dispatcher, ))
-    th.start()
-
-    addr = 0xfffff0000404
-    req = Hinawa.FwReq.new()
-    frame = [0] * 4
-    _, frame, tstamp = req.transaction_with_tstamp(
-        node,
-        Hinawa.FwTcode.READ_QUADLET_REQUEST,
-        addr,
-        len(frame),
-        frame,
-        50
-    )
-    quad = unpack('>I', frame)[0]
-    print('0x{:012x}: 0x{:02x}'.format(addr, quad))
-
-    dispatcher.quit()
-    th.join()
-
 License
 =======
 
@@ -143,6 +100,49 @@ Some sample scripts are available under ``samples`` directory:
 - gtk3 - PyGObject is required.
 - gtk4 - PyGObject is required.
 - qt5 - PyQt5 is required.
+
+Example of Python3 with PyGobject
+=================================
+
+::
+
+    #!/usr/bin/env python3
+
+    import gi
+    gi.require_version('GLib', '2.0')
+    gi.require_version('Hinawa', '3.0')
+    from gi.repository import GLib, Hinawa
+
+    from threading import Thread
+    from struct import unpack
+
+    node = Hinawa.FwNode.new()
+    node.open('/dev/fw1')
+
+    ctx = GLib.MainContext.new()
+    src = node.create_source()
+    src.attach(ctx)
+
+    dispatcher = GLib.MainLoop.new(ctx, False)
+    th = Thread(target=lambda d: d.run(), args=(dispatcher, ))
+    th.start()
+
+    addr = 0xfffff0000404
+    req = Hinawa.FwReq.new()
+    frame = [0] * 4
+    _, frame = req.transaction(
+        node,
+        Hinawa.FwTcode.READ_QUADLET_REQUEST,
+        addr,
+        len(frame),
+        frame,
+        50
+    )
+    quad = unpack('>I', frame)[0]
+    print('0x{:012x}: 0x{:02x}'.format(addr, quad))
+
+    dispatcher.quit()
+    th.join()
 
 How to make DEB package
 =======================
