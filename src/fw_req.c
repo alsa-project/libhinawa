@@ -142,7 +142,7 @@ gboolean hinawa_fw_req_request(HinawaFwReq *self, HinawaFwNode *node, HinawaFwTc
 			       GError **error)
 {
 	struct fw_cdev_send_request req = {0};
-	guint64 generation;
+	guint generation;
 	int err;
 
 	g_return_val_if_fail(HINAWA_IS_FW_REQ(self), FALSE);
