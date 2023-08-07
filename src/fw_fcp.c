@@ -63,8 +63,6 @@ enum avc_status {
 
 typedef struct {
 	HinawaFwNode *node;
-
-	guint timeout;
 } HinawaFwFcpPrivate;
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwFcp, hinawa_fw_fcp, HINAWA_TYPE_FW_RESP)
 
