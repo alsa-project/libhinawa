@@ -275,7 +275,13 @@ gboolean hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_s
 	return hinawa_fw_fcp_command_with_tstamp(self, cmd, cmd_size, tstamp, timeout_ms, error);
 }
 
+enum waiter_state {
+	WAITER_STATE_PENDING = 0,
+	WAITER_STATE_RESPONDED,
+};
+
 struct waiter {
+	enum waiter_state state;
 	guint8 *frame;
 	guint frame_size;
 	guint tstamp;
@@ -299,6 +305,7 @@ static void handle_responded_signal(HinawaFwFcp *self, guint tstamp, const guint
 		g_mutex_lock(&w->mutex);
 
 		if (w->frame[1] == frame[1] && w->frame[2] == frame[2]) {
+			w->state = WAITER_STATE_RESPONDED;
 			w->tstamp = tstamp;
 
 			if (frame_size <= w->frame_size)
@@ -363,6 +370,7 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 
 	priv = hinawa_fw_fcp_get_instance_private(self);
 
+	w.state = WAITER_STATE_PENDING;
 	w.frame = *resp;
 	w.frame_size = *resp_size;
 	w.tstamp = G_MAXUINT;
@@ -392,7 +400,7 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 		goto end;
 	}
 deferred:
-	while (w.frame[0] == 0xff) {
+	while (w.state == WAITER_STATE_PENDING) {
 		// NOTE: Timeout at bus-reset, illegally.
 		if (!g_cond_wait_until(&w.cond, &w.mutex, expiration))
 			break;
@@ -400,6 +408,7 @@ deferred:
 
 	// It's a deffered transaction, wait again.
 	if (w.frame[0] == AVC_STATUS_INTERIM) {
+		w.state = WAITER_STATE_PENDING;
 		w.frame[0] = 0x00;
 		w.frame_size = *resp_size;
 		// Although the timeout is infinite in 1394 TA specification,
@@ -414,15 +423,21 @@ deferred:
 	g_signal_handler_disconnect(self, responded_handler_id);
 	g_mutex_unlock(&w.mutex);
 
-	if (w.frame[0] == 0xff) {
+	switch (w.state) {
+	case WAITER_STATE_RESPONDED:
+		if (w.frame_size > *resp_size) {
+			generate_local_error(error, HINAWA_FW_FCP_ERROR_LARGE_RESP);
+			result = FALSE;
+		} else {
+			*resp_size = w.frame_size;
+			tstamp[2] = w.tstamp;
+		}
+		break;
+	case WAITER_STATE_PENDING:
+	default:
 		generate_local_error(error, HINAWA_FW_FCP_ERROR_TIMEOUT);
 		result = FALSE;
-	} else if (w.frame_size > *resp_size) {
-		generate_local_error(error, HINAWA_FW_FCP_ERROR_LARGE_RESP);
-		result = FALSE;
-	} else {
-		*resp_size = w.frame_size;
-		tstamp[2] = w.tstamp;
+		break;
 	}
 end:
 	g_cond_clear(&w.cond);
