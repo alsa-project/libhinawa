@@ -366,25 +366,25 @@ deferred:
 			break;
 	}
 
-	if (w.frame[0] == 0xff) {
-		generate_local_error(error, HINAWA_FW_FCP_ERROR_TIMEOUT);
-	} else if (w.frame[0] == AVC_STATUS_INTERIM) {
-		// It's a deffered transaction, wait again.
+	// It's a deffered transaction, wait again.
+	if (w.frame[0] == AVC_STATUS_INTERIM) {
 		w.frame[0] = 0x00;
 		w.frame_size = *resp_size;
 		// Although the timeout is infinite in 1394 TA specification,
 		// use the finite value for safe.
 		goto deferred;
-	} else if (w.frame_size > *resp_size) {
-		generate_local_error(error, HINAWA_FW_FCP_ERROR_LARGE_RESP);
-	} else {
-		*resp_size = w.frame_size;
 	}
 
-	if (*error != NULL)
+	if (w.frame[0] == 0xff) {
+		generate_local_error(error, HINAWA_FW_FCP_ERROR_TIMEOUT);
 		result = FALSE;
-	else
+	} else if (w.frame_size > *resp_size) {
+		generate_local_error(error, HINAWA_FW_FCP_ERROR_LARGE_RESP);
+		result = FALSE;
+	} else {
+		*resp_size = w.frame_size;
 		tstamp[2] = w.tstamp;
+	}
 end:
 	g_signal_handler_disconnect(self, handler_id);
 
