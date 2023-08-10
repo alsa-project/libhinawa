@@ -284,23 +284,34 @@ struct waiter {
 };
 
 static void handle_responded_signal(HinawaFwFcp *self, guint tstamp, const guint8 *frame,
-				    guint frame_size, gpointer user_data)
+				    guint frame_size)
 {
-	struct waiter *w = (struct waiter *)user_data;
+	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
+	GList *entry;
 
-	g_mutex_lock(&w->mutex);
+	g_mutex_lock(&priv->transactions_mutex);
 
-	if (w->frame[1] == frame[1] && w->frame[2] == frame[2]) {
-		w->tstamp = tstamp;
+	for (entry = g_list_first(priv->transactions);
+	     entry != NULL;
+	     entry = g_list_next(priv->transactions)) {
+		struct waiter *w = (struct waiter *)entry->data;
 
-		if (frame_size <= w->frame_size)
-			memcpy(w->frame, frame, frame_size);
-		w->frame_size = frame_size;
+		g_mutex_lock(&w->mutex);
 
-		g_cond_signal(&w->cond);
+		if (w->frame[1] == frame[1] && w->frame[2] == frame[2]) {
+			w->tstamp = tstamp;
+
+			if (frame_size <= w->frame_size)
+				memcpy(w->frame, frame, frame_size);
+			w->frame_size = frame_size;
+
+			g_cond_signal(&w->cond);
+		}
+
+		g_mutex_unlock(&w->mutex);
 	}
 
-	g_mutex_unlock(&w->mutex);
+	g_mutex_unlock(&priv->transactions_mutex);
 }
 
 /**
@@ -338,7 +349,7 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 {
 	HinawaFwFcpPrivate *priv;
 	struct waiter w;
-	gulong handler_id;
+	gulong responded_handler_id;
 	gint64 expiration;
 	gboolean result;
 
@@ -364,19 +375,19 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 	w.frame[1] = cmd[1];
 	w.frame[2] = cmd[2];
 
-	handler_id = g_signal_connect(self, "responded", (GCallback)handle_responded_signal, &w);
-	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
-
 	g_mutex_lock(&w.mutex);
+	responded_handler_id = g_signal_connect(self, "responded",
+						G_CALLBACK(handle_responded_signal), NULL);
 
 	g_mutex_lock(&priv->transactions_mutex);
 	priv->transactions = g_list_append(priv->transactions, &w);
 	g_mutex_unlock(&priv->transactions_mutex);
 
 	// Finish transaction for command frame.
+	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
 	result = hinawa_fw_fcp_command_with_tstamp(self, cmd, cmd_size, tstamp, timeout_ms, error);
 	if (!result) {
-		g_signal_handler_disconnect(self, handler_id);
+		g_signal_handler_disconnect(self, responded_handler_id);
 		g_mutex_unlock(&w.mutex);
 		goto end;
 	}
@@ -400,7 +411,7 @@ deferred:
 	priv->transactions = g_list_remove(priv->transactions, &w);
 	g_mutex_unlock(&priv->transactions_mutex);
 
-	g_signal_handler_disconnect(self, handler_id);
+	g_signal_handler_disconnect(self, responded_handler_id);
 	g_mutex_unlock(&w.mutex);
 
 	if (w.frame[0] == 0xff) {
