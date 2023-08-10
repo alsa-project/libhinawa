@@ -153,6 +153,7 @@ typedef enum {
  * HinawaFwFcpError:
  * @HINAWA_FW_FCP_ERROR_TIMEOUT:	The transaction is canceled due to response timeout.
  * @HINAWA_FW_FCP_ERROR_LARGE_RESP:	The size of response is larger than expected.
+ * @HINAWA_FW_FCP_ERROR_ABORTED:	The transaction is aborted due to bus reset.
  *
  * A set of error code for [struct@GLib.Error] with domain which equals to Hinawa.FwFcpError.
  *
@@ -161,6 +162,7 @@ typedef enum {
 typedef enum {
 	HINAWA_FW_FCP_ERROR_TIMEOUT,
 	HINAWA_FW_FCP_ERROR_LARGE_RESP,
+	HINAWA_FW_FCP_ERROR_ABORTED,
 } HinawaFwFcpError;
 
 G_END_DECLS
