@@ -357,8 +357,11 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 
 	// Finish transaction for command frame.
 	result = hinawa_fw_fcp_command_with_tstamp(self, cmd, cmd_size, tstamp, timeout_ms, error);
-	if (*error)
+	if (!result) {
+		g_signal_handler_disconnect(self, handler_id);
+		g_mutex_unlock(&w.mutex);
 		goto end;
+	}
 deferred:
 	while (w.frame[0] == 0xff) {
 		// NOTE: Timeout at bus-reset, illegally.
@@ -375,6 +378,9 @@ deferred:
 		goto deferred;
 	}
 
+	g_signal_handler_disconnect(self, handler_id);
+	g_mutex_unlock(&w.mutex);
+
 	if (w.frame[0] == 0xff) {
 		generate_local_error(error, HINAWA_FW_FCP_ERROR_TIMEOUT);
 		result = FALSE;
@@ -386,10 +392,6 @@ deferred:
 		tstamp[2] = w.tstamp;
 	}
 end:
-	g_signal_handler_disconnect(self, handler_id);
-
-	g_mutex_unlock(&w.mutex);
-
 	g_cond_clear(&w.cond);
 	g_mutex_clear(&w.mutex);
 
