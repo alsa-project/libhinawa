@@ -31,6 +31,7 @@ G_DEFINE_QUARK(hinawa-fw-fcp-error-quark, hinawa_fw_fcp_error)
 static const char *const local_err_msgs[] = {
 	[HINAWA_FW_FCP_ERROR_TIMEOUT]		= "The transaction is canceled due to response timeout",
 	[HINAWA_FW_FCP_ERROR_LARGE_RESP]	= "The size of response is larger than expected",
+	[HINAWA_FW_FCP_ERROR_ABORTED]		= "The transaction is aborted due to bus reset",
 };
 
 #define generate_local_error(error, code)						\
@@ -278,6 +279,7 @@ gboolean hinawa_fw_fcp_command(HinawaFwFcp *self, const guint8 *cmd, gsize cmd_s
 enum waiter_state {
 	WAITER_STATE_PENDING = 0,
 	WAITER_STATE_RESPONDED,
+	WAITER_STATE_ABORTED,
 };
 
 struct waiter {
@@ -321,6 +323,27 @@ static void handle_responded_signal(HinawaFwFcp *self, guint tstamp, const guint
 	g_mutex_unlock(&priv->transactions_mutex);
 }
 
+static void handle_bus_update_signal(HinawaFwNode *node, HinawaFwFcp *self)
+{
+	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
+	GList *entry;
+
+	g_mutex_lock(&priv->transactions_mutex);
+
+	for (entry = g_list_first(priv->transactions);
+	     entry != NULL;
+	     entry = g_list_next(priv->transactions)) {
+		struct waiter *w = (struct waiter *)entry->data;
+
+		g_mutex_lock(&w->mutex);
+		w->state = WAITER_STATE_ABORTED;
+		g_cond_signal(&w->cond);
+		g_mutex_unlock(&w->mutex);
+	}
+
+	g_mutex_unlock(&priv->transactions_mutex);
+}
+
 /**
  * hinawa_fw_fcp_avc_transaction_with_tstamp:
  * @self: A [class@FwFcp].
@@ -356,7 +379,7 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 {
 	HinawaFwFcpPrivate *priv;
 	struct waiter w;
-	gulong responded_handler_id;
+	gulong responded_handler_id, bus_update_handler_id;
 	gint64 expiration;
 	gboolean result;
 
@@ -386,6 +409,8 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 	g_mutex_lock(&w.mutex);
 	responded_handler_id = g_signal_connect(self, "responded",
 						G_CALLBACK(handle_responded_signal), NULL);
+	bus_update_handler_id = g_signal_connect(priv->node, "bus-update",
+						G_CALLBACK(handle_bus_update_signal), self);
 
 	g_mutex_lock(&priv->transactions_mutex);
 	priv->transactions = g_list_append(priv->transactions, &w);
@@ -395,19 +420,19 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
 	result = hinawa_fw_fcp_command_with_tstamp(self, cmd, cmd_size, tstamp, timeout_ms, error);
 	if (!result) {
+		g_signal_handler_disconnect(priv->node, bus_update_handler_id);
 		g_signal_handler_disconnect(self, responded_handler_id);
 		g_mutex_unlock(&w.mutex);
 		goto end;
 	}
 deferred:
 	while (w.state == WAITER_STATE_PENDING) {
-		// NOTE: Timeout at bus-reset, illegally.
 		if (!g_cond_wait_until(&w.cond, &w.mutex, expiration))
 			break;
 	}
 
 	// It's a deffered transaction, wait again.
-	if (w.frame[0] == AVC_STATUS_INTERIM) {
+	if (w.state == WAITER_STATE_RESPONDED && w.frame[0] == AVC_STATUS_INTERIM) {
 		w.state = WAITER_STATE_PENDING;
 		w.frame[0] = 0x00;
 		w.frame_size = *resp_size;
@@ -420,6 +445,7 @@ deferred:
 	priv->transactions = g_list_remove(priv->transactions, &w);
 	g_mutex_unlock(&priv->transactions_mutex);
 
+	g_signal_handler_disconnect(priv->node, bus_update_handler_id);
 	g_signal_handler_disconnect(self, responded_handler_id);
 	g_mutex_unlock(&w.mutex);
 
@@ -432,6 +458,10 @@ deferred:
 			*resp_size = w.frame_size;
 			tstamp[2] = w.tstamp;
 		}
+		break;
+	case WAITER_STATE_ABORTED:
+		generate_local_error(error, HINAWA_FW_FCP_ERROR_ABORTED);
+		result = FALSE;
 		break;
 	case WAITER_STATE_PENDING:
 	default:
