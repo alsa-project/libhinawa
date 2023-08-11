@@ -519,11 +519,11 @@ static HinawaFwRcode handle_requested_signal(HinawaFwResp *resp, HinawaFwTcode t
 {
 	HinawaFwFcp *self = HINAWA_FW_FCP(resp);
 	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
-	guint node_id;
+	guint local_card_id;
 
-	g_object_get(priv->node, "node-id", &node_id, NULL);
+	g_object_get(priv->node, "card-id", &local_card_id, NULL);
 	if (offset == FCP_RESPOND_ADDR && tcode == HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST &&
-	    src_node_id == node_id)
+	    card_id == local_card_id)
 		g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0, tstamp, frame, length);
 
 	// MEMO: Linux firewire subsystem already send response subaction to finish the transaction,
