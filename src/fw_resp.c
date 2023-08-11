@@ -158,9 +158,10 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	 * @self: A [class@FwResp]
 	 * @tcode: One of [enum@FwTcode] enumerations
 	 * @offset: The address offset at which the transaction arrives.
-	 * @src: The node ID of source for the transaction.
-	 * @dst: The node ID of destination for the transaction.
-	 * @card: The index of card corresponding to 1394 OHCI controller.
+	 * @src_node_id: The node ID of source for the transaction.
+	 * @dst_node_id: The node ID of destination for the transaction.
+	 * @card_id: The index of card specific to the 1394 OHCI controller at which the request
+	 *	     subaction arrived.
 	 * @generation: The generation of bus when the transaction is transferred.
 	 * @tstamp: The isochronous cycle at which the request arrived.
 	 * @frame: (element-type guint8)(array length=length): The array with elements for byte
