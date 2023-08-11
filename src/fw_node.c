@@ -32,6 +32,7 @@ typedef struct {
 	guint8 config_rom[MAX_CONFIG_ROM_LENGTH];
 	gsize config_rom_length;
 	struct fw_cdev_event_bus_reset generation;
+	guint32 card_id;
 
 	GList *transactions;
 	GMutex transactions_mutex;
@@ -80,6 +81,7 @@ enum fw_node_prop_type {
 	FW_NODE_PROP_TYPE_IR_MANAGER_NODE_ID,
 	FW_NODE_PROP_TYPE_ROOT_NODE_ID,
 	FW_NODE_PROP_TYPE_GENERATION,
+	FW_NODE_PROP_TYPE_CARD_ID,
 	FW_NODE_PROP_TYPE_COUNT,
 };
 static GParamSpec *fw_node_props[FW_NODE_PROP_TYPE_COUNT] = { NULL, };
@@ -131,6 +133,9 @@ static void fw_node_get_property(GObject *obj, guint id,
 		break;
 	case FW_NODE_PROP_TYPE_GENERATION:
 		g_value_set_uint(val, priv->generation.generation);
+		break;
+	case FW_NODE_PROP_TYPE_CARD_ID:
+		g_value_set_uint(val, priv->card_id);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
@@ -235,6 +240,21 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 				  0, G_MAXUINT32, 0,
 				  G_PARAM_READABLE);
 
+	/**
+	 * HinawaFwNode:card-id:
+	 *
+	 * The numeric index for 1394 OHCI hardware used for the communication to the node. The
+	 * value is stable against bus generation.
+	 *
+	 * Since: 3.0
+	 */
+	fw_node_props[FW_NODE_PROP_TYPE_CARD_ID] =
+		g_param_spec_uint("card-id", "card-id",
+				  "The numeric index for 1394 OHCI hardware used for the "
+				  "communication to the node",
+				  0, G_MAXUINT32, 0,
+				  G_PARAM_READABLE);
+
 	g_object_class_install_properties(gobject_class,
 					  FW_NODE_PROP_TYPE_COUNT,
 					  fw_node_props);
@@ -325,6 +345,8 @@ static int update_info(HinawaFwNode *self)
 	for (i = 0; i < quads; ++i)
 		rom[i] = GUINT32_TO_BE(rom[i]);
 	priv->config_rom_length = info.rom_length;
+
+	priv->card_id = info.card;
 
 	return 0;
 }
