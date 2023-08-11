@@ -22,9 +22,10 @@ struct _HinawaFwRespClass {
 	 * @self: A [class@FwResp]
 	 * @tcode: One of [enum@FwTcode] enumerations
 	 * @offset: The address offset at which the transaction arrives.
-	 * @src: The node ID of source for the transaction.
-	 * @dst: The node ID of destination for the transaction.
-	 * @card: The index of card corresponding to 1394 OHCI controller.
+	 * @src_node_id: The node ID of source for the transaction.
+	 * @dst_node_id: The node ID of destination for the transaction.
+	 * @card_id: The index of card specific to 1394 OHCI controller at which the request
+	 *	     subaction arrived.
 	 * @generation: The generation of bus when the transaction is transferred.
 	 * @tstamp: The time stamp at which the request arrived.
 	 * @frame: (element-type guint8)(array length=length): The array with elements for byte
@@ -39,8 +40,9 @@ struct _HinawaFwRespClass {
 	 * Since: 3.0
 	 */
 	HinawaFwRcode (*requested)(HinawaFwResp *self, HinawaFwTcode tcode, guint64 offset,
-				   guint src, guint dst, guint card, guint generation,
-				   guint tstamp, const guint8 *frame, guint length);
+				   guint src_node_id, guint dst_node_id, guint card_id,
+				   guint generation, guint tstamp,
+				   const guint8 *frame, guint length);
 };
 
 HinawaFwResp *hinawa_fw_resp_new(void);
