@@ -7,11 +7,11 @@
 
 /**
  * HinawaFwResp:
- * A transaction responder for request initiated by node in IEEE 1394 bus.
+ * A transaction responder for request subaction initiated by node in IEEE 1394 bus.
  *
- * The [class@FwResp] responds transaction initiated by node in IEEE 1394 bus.
+ * The [class@FwResp] responds to request subaction initiated by node in IEEE 1394 bus.
  *
- * This class is an application of Linux FireWire subsystem. All of operations utilize ioctl(2)
+ * This class is an application of Linux FireWire subsystem. Some operations utilize ioctl(2)
  * with subsystem specific request commands.
  */
 
@@ -168,8 +168,8 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	 *	   data.
 	 * @length: The length of bytes for the frame.
 	 *
-	 * Emitted when any node transfers request subaction to the range of address in 1394 OHCI
-	 * controller to which this object listening.
+	 * Emitted when any node transfers request subaction to local nodes within the address
+	 * range reserved in Linux system.
 	 *
 	 * The handler is expected to call [method@FwResp.set_resp_frame] with frame and return
 	 * [enum@FwRcode] for response subaction.
@@ -226,9 +226,12 @@ HinawaFwResp *hinawa_fw_resp_new(void)
  * @error: A [struct@GLib.Error]. Error can be generated with two domain of Hinawa.FwNodeError and
  *	   Hinawa.FwRespError.
  *
- * Start to listen to range of address equals to #width in local node (e.g. 1394 OHCI host
- * controller), which is used to communicate to the node given as parameter. The range of address
- * is looked up in region between region_start and region_end.
+ * Allocate an address range within Linux system for local nodes, each of which represents 1394
+ * OHCI hardware. Once successful, [signal@FwResp::requested] signal will be emitted whenever any
+ * request subactions arrive at the 1394 OHCI hardware within the dedicated range.
+ *
+ * The range is reserved between the values specified by #region_start and #region_end with the size
+ * indicated by #width, The starting offset may vary every time.
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
@@ -290,9 +293,13 @@ gboolean hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *
  * @error: A [struct@GLib.Error]. Error can be generated with two domain of Hinawa.FwNodeError and
  *	   and Hinawa.FwRespError.
  *
- * Start to listen to a range of address in host controller which connects to the node. The function
- * is a variant of [method@FwResp.reserve_within_region] so that the exact range of address should
- * be reserved as given.
+ * Allocate an address range within Linux system for local nodes, each of which represents 1394
+ * OHCI hardware. Once successful, [signal@FwResp::requested] signal will be emitted whenever any
+ * request subactions arrive at the 1394 OHCI hardware within the dedicated range.
+ *
+ * The range is precisely reserved at the address specified by #addr with the size indicated by
+ * #width. In essence, this function is a variant of [method@FwResp.reserve_within_region] in
+ * which the specified address range is reserved as provided.
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
@@ -308,7 +315,7 @@ gboolean hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode *node, guint64 
  * hinawa_fw_resp_release:
  * @self: A [class@FwResp].
  *
- * stop to listen to a range of address in local node (e.g. OHCI 1394 controller).
+ * Stop listening to the address range in Linu system for local nodes.
  *
  * Since: 1.4
  */
@@ -350,7 +357,7 @@ void hinawa_fw_resp_release(HinawaFwResp *self)
  * @frame: (element-type guint8)(array length=length): a 8bit array for response frame.
  * @length: The length of bytes for the frame.
  *
- * Register byte frame as response.
+ * Register byte frame for the response subaction.
  *
  * Since: 2.0
  */
