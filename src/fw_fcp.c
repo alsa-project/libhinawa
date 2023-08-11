@@ -114,8 +114,9 @@ static guint fw_fcp_sigs[FW_FCP_SIG_TYPE_COUNT] = { 0 };
 
 // Define later.
 static HinawaFwRcode handle_requested_signal(HinawaFwResp *resp, HinawaFwTcode tcode, guint64 offset,
-					     guint src, guint dst, guint card, guint generation,
-					     guint tstamp, const guint8 *frame, guint length);
+					     guint src_node_id, guint dst_node_id, guint card_id,
+					     guint generation, guint tstamp,
+					     const guint8 *frame, guint length);
 
 static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 {
@@ -512,8 +513,9 @@ gboolean hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsi
 }
 
 static HinawaFwRcode handle_requested_signal(HinawaFwResp *resp, HinawaFwTcode tcode, guint64 offset,
-					     guint src, guint dst, guint card, guint generation,
-					     guint tstamp, const guint8 *frame, guint length)
+					     guint src_node_id, guint dst_node_id, guint card_id,
+					     guint generation, guint tstamp,
+					     const guint8 *frame, guint length)
 {
 	HinawaFwFcp *self = HINAWA_FW_FCP(resp);
 	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
@@ -521,7 +523,7 @@ static HinawaFwRcode handle_requested_signal(HinawaFwResp *resp, HinawaFwTcode t
 
 	g_object_get(priv->node, "node-id", &node_id, NULL);
 	if (offset == FCP_RESPOND_ADDR && tcode == HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST &&
-	    src == node_id)
+	    src_node_id == node_id)
 		g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0, tstamp, frame, length);
 
 	// MEMO: Linux firewire subsystem already send response subaction to finish the transaction,
