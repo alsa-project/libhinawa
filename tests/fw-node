@@ -17,6 +17,7 @@ props = (
     'ir-manager-node-id',
     'root-node-id',
     'generation',
+    'card-id',
 )
 methods = (
     'new',
