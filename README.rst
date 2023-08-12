@@ -190,3 +190,19 @@ The version 3 library is specifically tailored to features in Linux FireWire sub
 sole focus on asynchronous communication in IEEE 1394 bus. For isochronous communication,
 `libhinoko <https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git/>`_ provides the
 necessary features.
+
+About Hinawa
+============
+
+``Hinawa`` is a Japanese term for a match cord used to ignite fires for various purposes. For
+example, twine fuses used for igniting gunpowder weapons are a type of ``Hinawa``. The name
+``Hinawa`` consists of two kanji characters; ``Hi`` (U+2F55 |kanji-hi|) meaning ``fire``, and
+``Nawa`` (U+7E04 |kanji-nawa|) meaning ``cord``.
+
+.. |kanji-hi| unicode:: &#x2f55 .. Hi spelled in Kanji
+.. |kanji-nawa| unicode:: &#x7e04 .. Nawa spelled in Kanji
+
+In the IEEE 1394 bus, asynchronous communication is the foundational step for operating functions
+within nodes. The ``Hinawa`` library is designed specifically to address this aspect.
+
+end
