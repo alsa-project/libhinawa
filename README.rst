@@ -2,7 +2,7 @@
 The libhinawa project
 =====================
 
-2023/07/16
+2023/08/12
 Takashi Sakamoto
 
 Instruction
@@ -152,35 +152,7 @@ How to make DEB package
 How to make RPM package
 =======================
 
-1. Satisfy build dependencies
-
-::
-
-    $ dns install meson glib2-devel gobject-introspection-devel gi-docgen
-
-2. make archive
-
-::
-
-    $ meson setup build
-    $ cd build
-    $ meson dist
-    ...
-    Distribution package /.../libhinawa/build/meson-dist/libhinawa-2.6.0.tar.xz tested
-    Created /.../libhinawa/build/meson-dist/libhinawa-2.6.0.tar.xz
-    $ cd ..
-
-3. copy the archive
-
-::
-
-    $ cp build/meson-dist/libhinawa-2.6.0.tar.xz ~/rpmbuild/SOURCES/
-
-4. build package
-
-::
-
-    $ rpmbuild -bb libhinawa.spec
+- Please refer to `<https://build.opensuse.org/package/show/openSUSE:Factory/libhinawa>`_.
 
 Loss of backward compatibility with version 1 and version 2 releases
 ====================================================================
