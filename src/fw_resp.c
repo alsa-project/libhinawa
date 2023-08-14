@@ -230,8 +230,8 @@ HinawaFwResp *hinawa_fw_resp_new(void)
  * OHCI hardware. Once successful, [signal@FwResp::requested] signal will be emitted whenever any
  * request subactions arrive at the 1394 OHCI hardware within the dedicated range.
  *
- * The range is reserved between the values specified by #region_start and #region_end with the size
- * indicated by #width, The starting offset may vary every time.
+ * The range is reserved between the values specified by @region_start and @region_end with the size
+ * indicated by @width, The starting offset may vary every time.
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
@@ -297,8 +297,8 @@ gboolean hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *
  * OHCI hardware. Once successful, [signal@FwResp::requested] signal will be emitted whenever any
  * request subactions arrive at the 1394 OHCI hardware within the dedicated range.
  *
- * The range is precisely reserved at the address specified by #addr with the size indicated by
- * #width. In essence, this function is a variant of [method@FwResp.reserve_within_region] in
+ * The range is precisely reserved at the address specified by @addr with the size indicated by
+ * @width. In essence, this function is a variant of [method@FwResp.reserve_within_region] in
  * which the specified address range is reserved as provided.
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
