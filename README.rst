@@ -2,7 +2,7 @@
 The libhinawa project
 =====================
 
-2023/08/12
+2023/08/16
 Takashi Sakamoto
 
 Instruction
@@ -13,7 +13,7 @@ IEEE 1394 bus and to handle asynchronous transaction initiated by the node. The 
 itself an application of Linux FireWire subsystem,
 `GLib and GObject <https://gitlab.gnome.org/GNOME/glib>`_.
 
-The library also has originally included some helper object classes for model-specific functions
+The library had originally included some helper object classes for model-specific functions
 via ALSA HwDep character device added by drivers in ALSA firewire stack. The object classes have
 been already obsoleted and deligated the functions to
 `libhitaki <https://github.com/alsa-project/libhitaki>`_, while are still kept for backward
