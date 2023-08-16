@@ -64,6 +64,7 @@ enum avc_status {
 
 typedef struct {
 	HinawaFwNode *node;
+	gulong bus_update_handler_id;
 
 	GList *transactions;
 	GMutex transactions_mutex;
@@ -319,27 +320,6 @@ static void handle_responded_signal(HinawaFwFcp *self, guint tstamp, const guint
 	g_mutex_unlock(&priv->transactions_mutex);
 }
 
-static void handle_bus_update_signal(HinawaFwNode *node, HinawaFwFcp *self)
-{
-	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
-	GList *entry;
-
-	g_mutex_lock(&priv->transactions_mutex);
-
-	for (entry = g_list_first(priv->transactions);
-	     entry != NULL;
-	     entry = g_list_next(priv->transactions)) {
-		struct waiter *w = (struct waiter *)entry->data;
-
-		g_mutex_lock(&w->mutex);
-		w->state = WAITER_STATE_ABORTED;
-		g_cond_signal(&w->cond);
-		g_mutex_unlock(&w->mutex);
-	}
-
-	g_mutex_unlock(&priv->transactions_mutex);
-}
-
 /**
  * hinawa_fw_fcp_avc_transaction_with_tstamp:
  * @self: A [class@FwFcp].
@@ -375,7 +355,7 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 {
 	HinawaFwFcpPrivate *priv;
 	struct waiter w;
-	gulong responded_handler_id, bus_update_handler_id;
+	gulong handler_id;
 	gint64 expiration;
 	gboolean result;
 
@@ -403,10 +383,8 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 	w.frame[2] = cmd[2];
 
 	g_mutex_lock(&w.mutex);
-	responded_handler_id = g_signal_connect(self, "responded",
-						G_CALLBACK(handle_responded_signal), NULL);
-	bus_update_handler_id = g_signal_connect(priv->node, "bus-update",
-						G_CALLBACK(handle_bus_update_signal), self);
+	handler_id = g_signal_connect(self, "responded", G_CALLBACK(handle_responded_signal),
+				      NULL);
 
 	g_mutex_lock(&priv->transactions_mutex);
 	priv->transactions = g_list_append(priv->transactions, &w);
@@ -416,8 +394,7 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
 	result = hinawa_fw_fcp_command_with_tstamp(self, cmd, cmd_size, tstamp, timeout_ms, error);
 	if (!result) {
-		g_signal_handler_disconnect(priv->node, bus_update_handler_id);
-		g_signal_handler_disconnect(self, responded_handler_id);
+		g_signal_handler_disconnect(self, handler_id);
 		g_mutex_unlock(&w.mutex);
 		goto end;
 	}
@@ -441,8 +418,7 @@ deferred:
 	priv->transactions = g_list_remove(priv->transactions, &w);
 	g_mutex_unlock(&priv->transactions_mutex);
 
-	g_signal_handler_disconnect(priv->node, bus_update_handler_id);
-	g_signal_handler_disconnect(self, responded_handler_id);
+	g_signal_handler_disconnect(self, handler_id);
 	g_mutex_unlock(&w.mutex);
 
 	switch (w.state) {
@@ -527,6 +503,27 @@ static HinawaFwRcode handle_requested_signal(HinawaFwResp *resp, HinawaFwTcode t
 	return HINAWA_FW_RCODE_COMPLETE;
 }
 
+static void handle_bus_update_signal(HinawaFwNode *node, HinawaFwFcp *self)
+{
+	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
+	GList *entry;
+
+	g_mutex_lock(&priv->transactions_mutex);
+
+	for (entry = g_list_first(priv->transactions);
+	     entry != NULL;
+	     entry = g_list_next(priv->transactions)) {
+		struct waiter *w = (struct waiter *)entry->data;
+
+		g_mutex_lock(&w->mutex);
+		w->state = WAITER_STATE_ABORTED;
+		g_cond_signal(&w->cond);
+		g_mutex_unlock(&w->mutex);
+	}
+
+	g_mutex_unlock(&priv->transactions_mutex);
+}
+
 /**
  * hinawa_fw_fcp_bind:
  * @self: A [class@FwFcp].
@@ -557,6 +554,9 @@ gboolean hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node, GError **erro
 		if (!hinawa_fw_resp_reserve(HINAWA_FW_RESP(self), node, FCP_RESPOND_ADDR,
 					    FCP_MAXIMUM_FRAME_BYTES, error))
 			return FALSE;
+		priv->bus_update_handler_id =
+			g_signal_connect(node, "bus-update",
+					 G_CALLBACK(handle_bus_update_signal), self);
 		priv->node = g_object_ref(node);
 	}
 
@@ -581,6 +581,7 @@ void hinawa_fw_fcp_unbind(HinawaFwFcp *self)
 
 	if (priv->node != NULL) {
 		hinawa_fw_resp_release(HINAWA_FW_RESP(self));
+		g_signal_handler_disconnect(priv->node, priv->bus_update_handler_id);
 
 		g_object_unref(priv->node);
 		priv->node = NULL;
