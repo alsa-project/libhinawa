@@ -64,6 +64,19 @@ enum avc_status {
 	AVC_STATUS_INTERIM		= 0x0f,
 };
 
+#define NODE_HISTORY_RECORD_COUNT	10
+
+struct node_record {
+	guint generation;
+	guint src_node_id;
+};
+
+struct node_history {
+	GMutex record_mutex;
+	struct node_record records[NODE_HISTORY_RECORD_COUNT];
+	struct node_record *cursor;
+};
+
 struct waiter;
 LIST_HEAD(waiter_entries, waiter);
 
@@ -74,7 +87,10 @@ typedef struct {
 
 	struct waiter_entries transactions;
 	GMutex transactions_mutex;
+
+	struct node_history history;
 } HinawaFwFcpPrivate;
+
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwFcp, hinawa_fw_fcp, HINAWA_TYPE_FW_RESP)
 
 /* This object has one property. */
@@ -180,11 +196,14 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 			     3, G_TYPE_UINT, G_TYPE_POINTER, G_TYPE_UINT);
 }
 
+static void node_history_init(struct node_history *history);
+
 static void hinawa_fw_fcp_init(HinawaFwFcp *self)
 {
 	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
 
 	g_mutex_init(&priv->transactions_mutex);
+	node_history_init(&priv->history);
 }
 
 /**
@@ -486,6 +505,86 @@ gboolean hinawa_fw_fcp_avc_transaction(HinawaFwFcp *self, const guint8 *cmd, gsi
                                                         tstamp, timeout_ms, error);
 }
 
+struct node_record_iterator {
+	const struct node_record *records;
+	int cursor;
+};
+
+static void node_record_iterator_init(struct node_record_iterator *iter,
+				      const struct node_history *history)
+{
+	iter->records = history->records;
+	iter->cursor = 0;
+}
+
+static const struct node_record *node_record_iterator_next(struct node_record_iterator *iter)
+{
+	const struct node_record *record;
+
+	if (iter->cursor >= NODE_HISTORY_RECORD_COUNT)
+		return NULL;
+
+	record = iter->records + iter->cursor;
+	++iter->cursor;
+
+	return record;
+}
+
+static void node_history_init(struct node_history *history)
+{
+	g_mutex_init(&history->record_mutex);
+}
+
+static void node_history_reset(struct node_history *history)
+{
+	memset(history->records, 0, sizeof(history->records));
+
+	history->cursor = history->records;
+}
+
+static void node_history_lock(struct node_history *history)
+{
+	g_mutex_lock(&history->record_mutex);
+}
+
+static void node_history_unlock(struct node_history *history)
+{
+	g_mutex_unlock(&history->record_mutex);
+}
+
+static const struct node_record *node_history_find_record(const struct node_history *history,
+							  const struct node_record *target)
+{
+	struct node_record_iterator iter;
+	const struct node_record *record;
+
+	node_record_iterator_init(&iter, history);
+	while ((record = node_record_iterator_next(&iter))) {
+		if (!memcmp(record, target, sizeof(*record)))
+			return record;
+	}
+
+	return NULL;
+}
+
+static void node_history_insert_record(struct node_history *history,
+				       const struct node_record *record)
+{
+	if (node_history_find_record(history, record) == NULL) {
+		*history->cursor = *record;
+
+		++history->cursor;
+		if (history->cursor >= history->records + NODE_HISTORY_RECORD_COUNT)
+			history->cursor = history->records;
+	}
+}
+
+static gboolean node_history_detect_record(struct node_history *history,
+					   const struct node_record *record)
+{
+	return node_history_find_record(history, record) != NULL;
+}
+
 static HinawaFwRcode handle_requested_signal(HinawaFwResp *resp, HinawaFwTcode tcode, guint64 offset,
 					     guint src_node_id, guint dst_node_id, guint card_id,
 					     guint generation, guint tstamp,
@@ -495,8 +594,36 @@ static HinawaFwRcode handle_requested_signal(HinawaFwResp *resp, HinawaFwTcode t
 	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
 
 	if (offset == FCP_RESPOND_ADDR && tcode == HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST &&
-	    card_id == priv->card_id)
-		g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0, tstamp, frame, length);
+	    card_id == priv->card_id) {
+		const struct node_record record = {
+			.generation = generation,
+			.src_node_id = src_node_id,
+		};
+		gboolean recorded = FALSE;
+
+		node_history_lock(&priv->history);
+		recorded = node_history_detect_record(&priv->history, &record);
+		if (!recorded) {
+			struct node_record current;
+
+			// NOTE: for the case that the event of bus update is not handled yet.
+			g_object_get(priv->node,
+				     "generation", &current.generation,
+				     "node-id", &current.src_node_id,
+				     NULL);
+			if (current.generation != record.generation)
+				node_history_insert_record(&priv->history, &current);
+
+			recorded = node_history_detect_record(&priv->history, &record);
+		}
+		node_history_unlock(&priv->history);
+
+		// Emit the event only when the source node is the target node.
+		if (recorded) {
+			g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0,
+				      tstamp, frame, length);
+		}
+	}
 
 	// MEMO: Linux firewire subsystem already send response subaction to finish the transaction,
 	// thus the rcode is just ignored.
@@ -508,6 +635,7 @@ static void handle_bus_update_signal(HinawaFwNode *node, HinawaFwFcp *self)
 {
 	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
 	struct waiter *w;
+	struct node_record record;
 
 	g_mutex_lock(&priv->transactions_mutex);
 
@@ -519,6 +647,12 @@ static void handle_bus_update_signal(HinawaFwNode *node, HinawaFwFcp *self)
 	}
 
 	g_mutex_unlock(&priv->transactions_mutex);
+
+	g_object_get(node, "generation", &record.generation, "node-id", &record.src_node_id, NULL);
+
+	node_history_lock(&priv->history);
+	node_history_insert_record(&priv->history, &record);
+	node_history_unlock(&priv->history);
 }
 
 /**
@@ -544,6 +678,8 @@ gboolean hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node, GError **erro
 	priv = hinawa_fw_fcp_get_instance_private(self);
 
 	if (priv->node == NULL) {
+		struct node_record record;
+
 		g_mutex_lock(&priv->transactions_mutex);
 		LIST_INIT(&priv->transactions);
 		g_mutex_unlock(&priv->transactions_mutex);
@@ -551,7 +687,17 @@ gboolean hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node, GError **erro
 		if (!hinawa_fw_resp_reserve(HINAWA_FW_RESP(self), node, FCP_RESPOND_ADDR,
 					    FCP_MAXIMUM_FRAME_BYTES, error))
 			return FALSE;
-		g_object_get(node, "card-id", &priv->card_id, NULL);
+		g_object_get(node,
+			     "card-id", &priv->card_id,
+			     "generation", &record.generation,
+			     "node-id", &record.src_node_id,
+			     NULL);
+
+		node_history_lock(&priv->history);
+		node_history_reset(&priv->history);
+		node_history_insert_record(&priv->history, &record);
+		node_history_unlock(&priv->history);
+
 		priv->bus_update_handler_id =
 			g_signal_connect(node, "bus-update",
 					 G_CALLBACK(handle_bus_update_signal), self);
