@@ -96,12 +96,8 @@ static void fw_fcp_get_property(GObject *obj, guint id, GValue *val,
 static void fw_fcp_finalize(GObject *obj)
 {
 	HinawaFwFcp *self = HINAWA_FW_FCP(obj);
-	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
 
 	hinawa_fw_fcp_unbind(self);
-
-	g_mutex_clear(&priv->transactions_mutex);
-	g_list_free(priv->transactions);
 
 	G_OBJECT_CLASS(hinawa_fw_fcp_parent_class)->finalize(obj);
 }
@@ -182,7 +178,6 @@ static void hinawa_fw_fcp_init(HinawaFwFcp *self)
 	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
 
 	g_mutex_init(&priv->transactions_mutex);
-	g_list_free(priv->transactions);
 }
 
 /**
@@ -555,6 +550,10 @@ gboolean hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node, GError **erro
 	priv = hinawa_fw_fcp_get_instance_private(self);
 
 	if (priv->node == NULL) {
+		g_mutex_lock(&priv->transactions_mutex);
+		g_list_free(priv->transactions);
+		g_mutex_unlock(&priv->transactions_mutex);
+
 		if (!hinawa_fw_resp_reserve(HINAWA_FW_RESP(self), node, FCP_RESPOND_ADDR,
 					    FCP_MAXIMUM_FRAME_BYTES, error))
 			return FALSE;
@@ -568,13 +567,14 @@ gboolean hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node, GError **erro
  * hinawa_fw_fcp_unbind:
  * @self: A [class@FwFcp].
  *
- * Stop to listen to FCP responses.
+ * Stop to listen to FCP responses. Any pending transactions are forced to be aborted.
  *
  * Since: 1.4
  */
 void hinawa_fw_fcp_unbind(HinawaFwFcp *self)
 {
 	HinawaFwFcpPrivate *priv;
+	GList *entry;
 
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
 	priv = hinawa_fw_fcp_get_instance_private(self);
@@ -585,4 +585,23 @@ void hinawa_fw_fcp_unbind(HinawaFwFcp *self)
 		g_object_unref(priv->node);
 		priv->node = NULL;
 	}
+
+	g_mutex_lock(&priv->transactions_mutex);
+
+	for (entry = g_list_first(priv->transactions);
+	     entry != NULL;
+	     entry = g_list_next(priv->transactions)) {
+		struct waiter *w = (struct waiter *)entry->data;
+
+		g_mutex_lock(&w->mutex);
+
+		if (w->state == WAITER_STATE_PENDING) {
+			w->state = WAITER_STATE_ABORTED;
+			g_cond_signal(&w->cond);
+		}
+
+		g_mutex_unlock(&w->mutex);
+	}
+
+	g_mutex_unlock(&priv->transactions_mutex);
 }
