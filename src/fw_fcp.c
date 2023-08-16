@@ -4,6 +4,8 @@
 #include <string.h>
 #include <errno.h>
 
+#include <sys/queue.h>
+
 /**
  * HinawaFwFcp:
  * A FCP transaction executor to node in IEEE 1394 bus.
@@ -62,12 +64,15 @@ enum avc_status {
 	AVC_STATUS_INTERIM		= 0x0f,
 };
 
+struct waiter;
+LIST_HEAD(waiter_entries, waiter);
+
 typedef struct {
 	HinawaFwNode *node;
 	gulong bus_update_handler_id;
 	guint card_id;
 
-	GList *transactions;
+	struct waiter_entries transactions;
 	GMutex transactions_mutex;
 } HinawaFwFcpPrivate;
 G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwFcp, hinawa_fw_fcp, HINAWA_TYPE_FW_RESP)
@@ -287,21 +292,18 @@ struct waiter {
 	guint tstamp;
 	GCond cond;
 	GMutex mutex;
+	LIST_ENTRY(waiter) list;
 };
 
 static void handle_responded_signal(HinawaFwFcp *self, guint tstamp, const guint8 *frame,
 				    guint frame_size)
 {
 	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
-	GList *entry;
+	struct waiter *w;
 
 	g_mutex_lock(&priv->transactions_mutex);
 
-	for (entry = g_list_first(priv->transactions);
-	     entry != NULL;
-	     entry = g_list_next(priv->transactions)) {
-		struct waiter *w = (struct waiter *)entry->data;
-
+	LIST_FOREACH(w, &priv->transactions, list) {
 		g_mutex_lock(&w->mutex);
 
 		if (w->frame[1] == frame[1] && w->frame[2] == frame[2]) {
@@ -388,7 +390,7 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 				      NULL);
 
 	g_mutex_lock(&priv->transactions_mutex);
-	priv->transactions = g_list_append(priv->transactions, &w);
+	LIST_INSERT_HEAD(&priv->transactions, &w, list);
 	g_mutex_unlock(&priv->transactions_mutex);
 
 	// Finish transaction for command frame.
@@ -416,7 +418,7 @@ deferred:
 	}
 
 	g_mutex_lock(&priv->transactions_mutex);
-	priv->transactions = g_list_remove(priv->transactions, &w);
+	LIST_REMOVE(&w, list);
 	g_mutex_unlock(&priv->transactions_mutex);
 
 	g_signal_handler_disconnect(self, handler_id);
@@ -505,15 +507,11 @@ static HinawaFwRcode handle_requested_signal(HinawaFwResp *resp, HinawaFwTcode t
 static void handle_bus_update_signal(HinawaFwNode *node, HinawaFwFcp *self)
 {
 	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
-	GList *entry;
+	struct waiter *w;
 
 	g_mutex_lock(&priv->transactions_mutex);
 
-	for (entry = g_list_first(priv->transactions);
-	     entry != NULL;
-	     entry = g_list_next(priv->transactions)) {
-		struct waiter *w = (struct waiter *)entry->data;
-
+	LIST_FOREACH(w, &priv->transactions, list) {
 		g_mutex_lock(&w->mutex);
 		w->state = WAITER_STATE_ABORTED;
 		g_cond_signal(&w->cond);
@@ -547,7 +545,7 @@ gboolean hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node, GError **erro
 
 	if (priv->node == NULL) {
 		g_mutex_lock(&priv->transactions_mutex);
-		g_list_free(priv->transactions);
+		LIST_INIT(&priv->transactions);
 		g_mutex_unlock(&priv->transactions_mutex);
 
 		if (!hinawa_fw_resp_reserve(HINAWA_FW_RESP(self), node, FCP_RESPOND_ADDR,
@@ -574,7 +572,7 @@ gboolean hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node, GError **erro
 void hinawa_fw_fcp_unbind(HinawaFwFcp *self)
 {
 	HinawaFwFcpPrivate *priv;
-	GList *entry;
+	struct waiter *w;
 
 	g_return_if_fail(HINAWA_IS_FW_FCP(self));
 	priv = hinawa_fw_fcp_get_instance_private(self);
@@ -589,11 +587,7 @@ void hinawa_fw_fcp_unbind(HinawaFwFcp *self)
 
 	g_mutex_lock(&priv->transactions_mutex);
 
-	for (entry = g_list_first(priv->transactions);
-	     entry != NULL;
-	     entry = g_list_next(priv->transactions)) {
-		struct waiter *w = (struct waiter *)entry->data;
-
+	LIST_FOREACH(w, &priv->transactions, list) {
 		g_mutex_lock(&w->mutex);
 
 		if (w->state == WAITER_STATE_PENDING) {
