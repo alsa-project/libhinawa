@@ -65,6 +65,7 @@ enum avc_status {
 typedef struct {
 	HinawaFwNode *node;
 	gulong bus_update_handler_id;
+	guint card_id;
 
 	GList *transactions;
 	GMutex transactions_mutex;
@@ -490,11 +491,9 @@ static HinawaFwRcode handle_requested_signal(HinawaFwResp *resp, HinawaFwTcode t
 {
 	HinawaFwFcp *self = HINAWA_FW_FCP(resp);
 	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
-	guint local_card_id;
 
-	g_object_get(priv->node, "card-id", &local_card_id, NULL);
 	if (offset == FCP_RESPOND_ADDR && tcode == HINAWA_FW_TCODE_WRITE_BLOCK_REQUEST &&
-	    card_id == local_card_id)
+	    card_id == priv->card_id)
 		g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0, tstamp, frame, length);
 
 	// MEMO: Linux firewire subsystem already send response subaction to finish the transaction,
@@ -554,6 +553,7 @@ gboolean hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node, GError **erro
 		if (!hinawa_fw_resp_reserve(HINAWA_FW_RESP(self), node, FCP_RESPOND_ADDR,
 					    FCP_MAXIMUM_FRAME_BYTES, error))
 			return FALSE;
+		g_object_get(node, "card-id", &priv->card_id, NULL);
 		priv->bus_update_handler_id =
 			g_signal_connect(node, "bus-update",
 					 G_CALLBACK(handle_bus_update_signal), self);
