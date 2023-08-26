@@ -20,6 +20,7 @@ struct _HinawaFwFcpClass {
 	/**
 	 * HinawaFwFcpClass::responded:
 	 * @self: A [class@FwFcp].
+	 * @generation: The generation of bus topology.
 	 * @tstamp: The time stamp at which the request arrived for the response for FCP
 	 *	    transaction.
 	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for byte
@@ -30,7 +31,8 @@ struct _HinawaFwFcpClass {
 	 *
 	 * Since: 3.0
 	 */
-	void (*responded)(HinawaFwFcp *self, guint tstamp, const guint8 *frame, guint frame_size);
+	void (*responded)(HinawaFwFcp *self, guint generation, guint tstamp, const guint8 *frame,
+			  guint frame_size);
 };
 
 HinawaFwFcp *hinawa_fw_fcp_new(void);

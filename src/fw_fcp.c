@@ -166,6 +166,7 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 	/**
 	 * HinawaFwFcp::responded:
 	 * @self: A [class@FwFcp].
+	 * @generation: The generation of bus topology.
 	 * @tstamp: The time stamp at which the request arrived for the response of FCP
 	 *	    transaction.
 	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for byte
@@ -190,9 +191,9 @@ static void hinawa_fw_fcp_class_init(HinawaFwFcpClass *klass)
 			     G_SIGNAL_RUN_LAST,
 			     G_STRUCT_OFFSET(HinawaFwFcpClass, responded),
 			     NULL, NULL,
-			     hinawa_sigs_marshal_VOID__UINT_POINTER_UINT,
+			     hinawa_sigs_marshal_VOID__UINT_UINT_POINTER_UINT,
 			     G_TYPE_NONE,
-			     3, G_TYPE_UINT, G_TYPE_POINTER, G_TYPE_UINT);
+			     4, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_POINTER, G_TYPE_UINT);
 }
 
 static void node_history_init(struct node_history *history);
@@ -305,6 +306,7 @@ enum waiter_state {
 
 struct waiter {
 	enum waiter_state state;
+	guint generation;
 	guint8 *frame;
 	guint frame_size;
 	guint tstamp;
@@ -313,8 +315,8 @@ struct waiter {
 	LIST_ENTRY(waiter) list;
 };
 
-static void handle_responded_signal(HinawaFwFcp *self, guint tstamp, const guint8 *frame,
-				    guint frame_size)
+static void handle_responded_signal(HinawaFwFcp *self, guint generation, guint tstamp,
+				    const guint8 *frame, guint frame_size)
 {
 	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
 	struct waiter *w;
@@ -326,6 +328,7 @@ static void handle_responded_signal(HinawaFwFcp *self, guint tstamp, const guint
 
 		if (w->frame[1] == frame[1] && w->frame[2] == frame[2]) {
 			w->state = WAITER_STATE_RESPONDED;
+			w->generation = generation;
 			w->tstamp = tstamp;
 
 			if (frame_size <= w->frame_size)
@@ -377,6 +380,7 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 	HinawaFwFcpPrivate *priv;
 	struct waiter w;
 	gulong handler_id;
+	guint generation;
 	gint64 expiration;
 	gboolean result;
 
@@ -412,6 +416,7 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 	g_mutex_unlock(&priv->transactions_mutex);
 
 	// Finish transaction for command frame.
+	g_object_get(G_OBJECT(priv->node), "generation", &generation, NULL);
 	expiration = g_get_monotonic_time() + timeout_ms * G_TIME_SPAN_MILLISECOND;
 	result = hinawa_fw_fcp_command_with_tstamp(self, cmd, cmd_size, tstamp, timeout_ms, error);
 	if (!result) {
@@ -421,13 +426,13 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 	}
 deferred:
 	while (w.state == WAITER_STATE_PENDING) {
-		// NOTE: Timeout at bus-reset, illegally.
 		if (!g_cond_wait_until(&w.cond, &w.mutex, expiration))
 			break;
 	}
 
 	// It's a deffered transaction, wait again.
-	if (w.state == WAITER_STATE_RESPONDED && w.frame[0] == AVC_STATUS_INTERIM) {
+	if (w.state == WAITER_STATE_RESPONDED && w.generation == generation &&
+	    w.frame[0] == AVC_STATUS_INTERIM) {
 		w.state = WAITER_STATE_PENDING;
 		w.frame[0] = 0x00;
 		w.frame_size = *resp_size;
@@ -445,17 +450,16 @@ deferred:
 
 	switch (w.state) {
 	case WAITER_STATE_RESPONDED:
-		if (w.frame_size > *resp_size) {
+		if (w.generation != generation) {
+			generate_local_error(error, HINAWA_FW_FCP_ERROR_ABORTED);
+			result = FALSE;
+		} else if (w.frame_size > *resp_size) {
 			generate_local_error(error, HINAWA_FW_FCP_ERROR_LARGE_RESP);
 			result = FALSE;
 		} else {
 			*resp_size = w.frame_size;
 			tstamp[2] = w.tstamp;
 		}
-		break;
-	case WAITER_STATE_ABORTED:
-		generate_local_error(error, HINAWA_FW_FCP_ERROR_ABORTED);
-		result = FALSE;
 		break;
 	case WAITER_STATE_PENDING:
 	default:
@@ -620,7 +624,7 @@ static HinawaFwRcode handle_requested_signal(HinawaFwResp *resp, HinawaFwTcode t
 		// Emit the event only when the source node is the target node.
 		if (recorded) {
 			g_signal_emit(self, fw_fcp_sigs[FW_FCP_SIG_TYPE_RESPONDED], 0,
-				      tstamp, frame, length);
+				      generation, tstamp, frame, length);
 		}
 	}
 
