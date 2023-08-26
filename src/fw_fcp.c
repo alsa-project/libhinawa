@@ -82,7 +82,6 @@ LIST_HEAD(waiter_entries, waiter);
 
 typedef struct {
 	HinawaFwNode *node;
-	gulong bus_update_handler_id;
 	guint card_id;
 
 	struct waiter_entries transactions;
@@ -422,6 +421,7 @@ gboolean hinawa_fw_fcp_avc_transaction_with_tstamp(HinawaFwFcp *self,
 	}
 deferred:
 	while (w.state == WAITER_STATE_PENDING) {
+		// NOTE: Timeout at bus-reset, illegally.
 		if (!g_cond_wait_until(&w.cond, &w.mutex, expiration))
 			break;
 	}
@@ -613,8 +613,7 @@ static HinawaFwRcode handle_requested_signal(HinawaFwResp *resp, HinawaFwTcode t
 				     NULL);
 			if (current.generation != record.generation)
 				node_history_insert_record(&priv->history, &current);
-
-			recorded = node_history_detect_record(&priv->history, &record);
+			recorded = !memcmp(&record, &current, sizeof(record));
 		}
 		node_history_unlock(&priv->history);
 
@@ -629,30 +628,6 @@ static HinawaFwRcode handle_requested_signal(HinawaFwResp *resp, HinawaFwTcode t
 	// thus the rcode is just ignored.
 
 	return HINAWA_FW_RCODE_COMPLETE;
-}
-
-static void handle_bus_update_signal(HinawaFwNode *node, HinawaFwFcp *self)
-{
-	HinawaFwFcpPrivate *priv = hinawa_fw_fcp_get_instance_private(self);
-	struct waiter *w;
-	struct node_record record;
-
-	g_mutex_lock(&priv->transactions_mutex);
-
-	LIST_FOREACH(w, &priv->transactions, list) {
-		g_mutex_lock(&w->mutex);
-		w->state = WAITER_STATE_ABORTED;
-		g_cond_signal(&w->cond);
-		g_mutex_unlock(&w->mutex);
-	}
-
-	g_mutex_unlock(&priv->transactions_mutex);
-
-	g_object_get(node, "generation", &record.generation, "node-id", &record.src_node_id, NULL);
-
-	node_history_lock(&priv->history);
-	node_history_insert_record(&priv->history, &record);
-	node_history_unlock(&priv->history);
 }
 
 /**
@@ -698,9 +673,6 @@ gboolean hinawa_fw_fcp_bind(HinawaFwFcp *self, HinawaFwNode *node, GError **erro
 		node_history_insert_record(&priv->history, &record);
 		node_history_unlock(&priv->history);
 
-		priv->bus_update_handler_id =
-			g_signal_connect(node, "bus-update",
-					 G_CALLBACK(handle_bus_update_signal), self);
 		priv->node = g_object_ref(node);
 	}
 
@@ -725,7 +697,6 @@ void hinawa_fw_fcp_unbind(HinawaFwFcp *self)
 
 	if (priv->node != NULL) {
 		hinawa_fw_resp_release(HINAWA_FW_RESP(self));
-		g_signal_handler_disconnect(priv->node, priv->bus_update_handler_id);
 
 		g_object_unref(priv->node);
 		priv->node = NULL;
