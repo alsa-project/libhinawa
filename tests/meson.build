@@ -25,5 +25,6 @@ foreach test : tests
     prog = find_program(script)
     test(name, prog,
       env: envs,
+      depends: hinawa_gir,
     )
 endforeach

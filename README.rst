@@ -2,7 +2,7 @@
 The libhinawa project
 =====================
 
-2023/07/16
+2023/10/01
 Takashi Sakamoto
 
 Instruction
@@ -173,6 +173,35 @@ How to make RPM package
 ::
 
     $ rpmbuild -bb libhinawa.spec
+
+Meson subproject
+================
+
+This is a sample of wrap file to satisfy dependency on libhinawa by
+`Meson subprojects <https://mesonbuild.com/Subprojects.html>`_.
+
+::
+
+    $ cat subproject/hinawa.wrap
+    [wrap-git]
+    directory = hinawa
+    url = https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git
+    revision = 2.6.0
+    depth = 1
+    
+    [provide]
+    hinawa = hinawa_dep
+
+After installation of the wrap file, the dependency can be solved by ``hinawa`` name since it is
+common in both pkg-config and the wrap file. The implicit or explicit fallback to subproject is
+available.
+
+::
+
+    $ cat meson.build
+    hinawa_dependency = dependency('hinawa',
+      version: '>=2.6.0'
+    )
 
 Plan for version 3.0 stable release
 ============================

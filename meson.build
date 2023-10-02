@@ -7,17 +7,16 @@ project('libhinawa', 'c',
 # Detect support level in Linux sound subsystem.
 cc = meson.get_compiler('c')
 
-backport = []
+header_dirs = []
 if not cc.has_header_symbol('include/sound/firewire.h',
 			    'SNDRV_FIREWIRE_MOTU_REGISTER_DSP_METER_INPUT_COUNT') or
    not cc.has_header_symbol('include/linux/firewire-cdev.h', 'FW_CDEV_EVENT_REQUEST3')
   # Use backport header from Linux kernel v5.16 prepatch.
-  backport += include_directories('include')
+  header_dirs += include_directories('include')
 endif
 
 # For g-i and documentation.
 gnome = import('gnome')
-inc = include_directories('src')
 
 subdir('src')
 subdir('tests')

@@ -65,12 +65,14 @@ enums = gnome.mkenums_simple('hinawa_enums',
 mapfile = 'hinawa.map'
 vflag = '-Wl,--version-script,' + join_paths(meson.current_source_dir(), mapfile)
 
+header_dirs += include_directories('.')
+
 myself = library('hinawa',
   sources: sources + headers + privates + marshallers + enums,
   version: meson.project_version(),
   soversion: meson.project_version().split('.')[0],
   install: true,
-  include_directories: backport,
+  include_directories: header_dirs,
   dependencies: dependencies,
   link_args : vflag,
   link_depends : mapfile,
@@ -104,3 +106,11 @@ hinawa_gir = gnome.generate_gir(myself,
 
 # For test.
 builddir = meson.current_build_dir()
+
+# For wrap dependency system.
+hinawa_dep = declare_dependency(
+  link_with: myself,
+  dependencies: dependencies,
+  sources: headers + marshallers + enums + hinawa_gir,
+  include_directories: include_directories('.'),
+)
