@@ -19,7 +19,7 @@ been already obsoleted and deligated the functions to
 `libhitaki <https://github.com/alsa-project/libhitaki>`_, while are still kept for backward
 compatibility. They should not be used for applications written newly.
 
-The latest release is `2.6.0 <https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/tag/?h=2.6.0>`_.
+The latest release is `2.6.1 <https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/tag/?h=2.6.1>`_.
 The package archive is available in `<https://kernel.org/pub/linux/libs/ieee1394/>`_ with detached
 signature created by `my GnuPG key <https://git.kernel.org/pub/scm/docs/kernel/pgpkeys.git/tree/keys/B5A586C7D66FD341.asc>`_.
 
@@ -158,15 +158,15 @@ How to make RPM package
     $ cd build
     $ meson dist
     ...
-    Distribution package /.../libhinawa/build/meson-dist/libhinawa-2.6.0.tar.xz tested
-    Created /.../libhinawa/build/meson-dist/libhinawa-2.6.0.tar.xz
+    Distribution package /.../libhinawa/build/meson-dist/libhinawa-2.6.1.tar.xz tested
+    Created /.../libhinawa/build/meson-dist/libhinawa-2.6.1.tar.xz
     $ cd ..
 
 3. copy the archive
 
 ::
 
-    $ cp build/meson-dist/libhinawa-2.6.0.tar.xz ~/rpmbuild/SOURCES/
+    $ cp build/meson-dist/libhinawa-2.6.1.tar.xz ~/rpmbuild/SOURCES/
 
 4. build package
 
@@ -186,7 +186,7 @@ This is a sample of wrap file to satisfy dependency on libhinawa by
     [wrap-git]
     directory = hinawa
     url = https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git
-    revision = 2.6.0
+    revision = 2.6.1
     depth = 1
     
     [provide]
@@ -200,11 +200,11 @@ available.
 
     $ cat meson.build
     hinawa_dependency = dependency('hinawa',
-      version: '>=2.6.0'
+      version: '>=2.6.1'
     )
 
 Plan for version 3.0 stable release
-============================
+===================================
 
 Some changes are scheduled to lose backward compatibility.
 
