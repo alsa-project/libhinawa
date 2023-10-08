@@ -100,3 +100,4 @@ hinawa_dep = declare_dependency(
   sources: headers + marshallers + enums + hinawa_gir,
   include_directories: include_directories('.'),
 )
+meson.override_dependency('hinawa', hinawa_dep)
