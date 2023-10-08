@@ -51,14 +51,12 @@ enums = gnome.mkenums_simple('hinawa_enums',
 mapfile = 'hinawa.map'
 vflag = '-Wl,--version-script,' + join_paths(meson.current_source_dir(), mapfile)
 
-header_dirs += include_directories('.')
-
 myself = library('hinawa',
   sources: sources + headers + privates + marshallers + enums,
   version: meson.project_version(),
   soversion: meson.project_version().split('.')[0],
   install: true,
-  include_directories: header_dirs,
+  include_directories: backport_header_dir + include_directories('.'),
   dependencies: dependencies,
   link_args : vflag,
   link_depends : mapfile,

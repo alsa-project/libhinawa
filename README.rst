@@ -50,7 +50,7 @@ Dependencies
 Requirements to build
 =====================
 
-- Meson 0.56.0 or later
+- Meson 0.60.0 or later
 - Ninja
 - PyGObject (optional to run unit tests)
 - gi-docgen (optional to generate API documentation)
