@@ -2,7 +2,7 @@
 The libhinawa project
 =====================
 
-2023/10/01
+2023/10/07
 Takashi Sakamoto
 
 Instruction
@@ -50,7 +50,7 @@ Dependencies
 Requirements to build
 =====================
 
-- Meson 0.46.0 or later
+- Meson 0.54.0 or later
 - Ninja
 - PyGObject (optional to run unit tests)
 - gi-docgen (optional to generate API documentation)
