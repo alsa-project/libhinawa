@@ -1,7 +1,7 @@
 project('libhinawa', 'c',
   version: '2.6.1',
   license: 'LGPL-2.1+',
-  meson_version: '>= 0.54.0',
+  meson_version: '>= 0.56.0',
 )
 
 # Detect support level in Linux sound subsystem.

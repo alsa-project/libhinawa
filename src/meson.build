@@ -90,9 +90,6 @@ hinawa_gir = gnome.generate_gir(myself,
   install: true,
 )
 
-# For test.
-builddir = meson.current_build_dir()
-
 # For wrap dependency system.
 hinawa_dep = declare_dependency(
   link_with: myself,
