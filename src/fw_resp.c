@@ -110,14 +110,13 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	/**
 	 * HinawaFwResp:is-reserved:
 	 *
-	 * Whether a range of address is reserved or not in host controller.
+	 * Whether a range of address is reserved or not.
 	 *
 	 * Since: 2.0
 	 */
 	fw_resp_props[FW_RESP_PROP_TYPE_IS_RESERVED] =
 		g_param_spec_boolean("is-reserved", "is-reserved",
-				     "Whether a range of address is reserved "
-				     "or not in host controller. ",
+				     "Whether a range of address is reserved or not.",
 				     FALSE,
 				     G_PARAM_READABLE);
 
@@ -160,7 +159,7 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	 * @offset: The address offset at which the transaction arrives.
 	 * @src_node_id: The node ID of source for the transaction.
 	 * @dst_node_id: The node ID of destination for the transaction.
-	 * @card_id: The index of card specific to the 1394 OHCI controller at which the request
+	 * @card_id: The index of card specific to the 1394 OHCI hardware at which the request
 	 *	     subaction arrived.
 	 * @generation: The generation of bus when the transaction is transferred.
 	 * @tstamp: The isochronous cycle at which the request arrived.
@@ -288,8 +287,8 @@ gboolean hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *
  * hinawa_fw_resp_reserve:
  * @self: A [class@FwResp].
  * @node: A [class@FwNode].
- * @addr: A start address to listen to in host controller.
- * @width: The byte width of address to listen to host controller.
+ * @addr: A start address to listen to in 1394 OHCI hardware.
+ * @width: The byte width of address to listen to 1394 OHCI hardware.
  * @error: A [struct@GLib.Error]. Error can be generated with two domain of Hinawa.FwNodeError and
  *	   and Hinawa.FwRespError.
  *

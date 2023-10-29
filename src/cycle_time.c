@@ -95,9 +95,9 @@ static guint ieee1394_cycle_time_to_offset(guint32 cycle_time)
  * hinawa_cycle_time_get_fields:
  * @self: A [struct@CycleTime].
  * @fields: (array fixed-size=3) (out caller-allocates): The value of cycle time register of 1394
- *	    OHCI, including three elements; second, cycle, and offset in its order.
+ *	    OHCI hardware, including three elements; second, cycle, and offset in its order.
  *
- * Get the value of cycle time in 1394 OHCI controller. The first element of array expresses the
+ * Get the value of cycle time in 1394 OHCI hardware. The first element of array expresses the
  * value of sec field, up to 127. The second element of array expresses the value of cycle field,
  * up to 7999. The third element of array expresses the value of offset field, up to 3071.
  *
@@ -115,7 +115,7 @@ void hinawa_cycle_time_get_fields(const HinawaCycleTime *self, guint16 fields[3]
  * @self: A [struct@CycleTime].
  * @raw: (out caller-allocates): The raw value for CYCLE_TIME register.
  *
- * Get the value of cycle time in 1394 OHCI controller.
+ * Get the value of cycle time in 1394 OHCI hardware.
  *
  * Since: 2.6
  */

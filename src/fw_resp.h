@@ -24,7 +24,7 @@ struct _HinawaFwRespClass {
 	 * @offset: The address offset at which the transaction arrives.
 	 * @src_node_id: The node ID of source for the transaction.
 	 * @dst_node_id: The node ID of destination for the transaction.
-	 * @card_id: The index of card specific to 1394 OHCI controller at which the request
+	 * @card_id: The index of card specific to 1394 OHCI hardware at which the request
 	 *	     subaction arrived.
 	 * @generation: The generation of bus when the transaction is transferred.
 	 * @tstamp: The time stamp at which the request arrived.

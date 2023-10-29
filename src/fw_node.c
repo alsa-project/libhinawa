@@ -172,7 +172,7 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 	 * HinawaFwNode:local-node-id:
 	 *
 	 * Node ID of node which application uses to communicate to node associated to instance of
-	 * object at current generation of bus topology. In general, it is for 1394 OHCI controller.
+	 * object at current generation of bus topology. In general, it is for 1394 OHCI hardware.
 	 *
 	 * Since: 1.4
 	 */
@@ -180,7 +180,7 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 		g_param_spec_uint("local-node-id", "local-node-id",
 				  "Node ID of node which application uses to communicate to node "
 				  "associated to instance of object at current generation of bus "
-				  "topology. In general, it is for OHCI 1394 host controller.",
+				  "topology. In general, it is for 1394 OHCI hardware.",
 				  0, G_MAXUINT32, 0,
 				  G_PARAM_READABLE);
 
@@ -460,7 +460,7 @@ gboolean hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
  * @cycle_time: (inout): A [struct@CycleTime].
  * @error: A [struct@GLib.Error].
  *
- * Read current value of CYCLE_TIME register in 1394 OHCI controller.
+ * Read current value of CYCLE_TIME register in 1394 OHCI hardware.
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
