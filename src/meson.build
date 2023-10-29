@@ -68,7 +68,7 @@ install_headers(headers,
 
 pkg = import('pkgconfig')
 pkg.generate(myself,
-  description: 'The library to operate OHCI 1394 hardware for asynchronous communication in IEEE 1394 bus',
+  description: 'The library to operate 1394 OHCI hardware for asynchronous communication in IEEE 1394 bus',
   subdirs: inc_dir,
 )
 

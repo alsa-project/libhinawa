@@ -1,6 +1,6 @@
 [library]
 version = "@VERSION@"
-description = "The library to operate OHCI 1394 hardware for asynchronous communication in IEEE 1394 bus"
+description = "The library to operate 1394 OHCI hardware for asynchronous communication in IEEE 1394 bus"
 authors = "Takashi Sakamoto"
 license = "LGPL-2.1-or-later"
 website_url = "https://alsa-project.github.io/gobject-introspection-docs/hinawa/"
