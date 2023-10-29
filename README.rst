@@ -170,7 +170,7 @@ This is a sample of wrap file to satisfy dependency on libhinawa by
     depth = 1
     
     [provide]
-    hinawa = hinawa_dep
+    dependency_names = hinawa
 
 After installation of the wrap file, the dependency can be solved by ``hinawa`` name since it is
 common in both pkg-config and the wrap file. The implicit or explicit fallback to subproject is
