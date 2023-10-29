@@ -2,7 +2,7 @@
 The libhinawa project
 =====================
 
-2023/10/07
+2023/10/29
 Takashi Sakamoto
 
 Instruction
@@ -19,9 +19,11 @@ been already obsoleted and deligated the functions to
 `libhitaki <https://github.com/alsa-project/libhitaki>`_, while are still kept for backward
 compatibility. They should not be used for applications written newly.
 
-The latest release is `2.6.1 <https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/tag/?h=2.6.1>`_.
+The latest release is `4.0.0 <https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/tag/?h=4.0.0>`_.
 The package archive is available in `<https://kernel.org/pub/linux/libs/ieee1394/>`_ with detached
 signature created by `my GnuPG key <https://git.kernel.org/pub/scm/docs/kernel/pgpkeys.git/tree/keys/B5A586C7D66FD341.asc>`_.
+I note that version 3 release is skipped to use the same major version in library itself and
+GObject Introspection (g-i) metadata.
 
 License
 =======
@@ -65,9 +67,9 @@ How to build
     $ meson install -C build
     ($ meson test -C build)
 
-When working with gobject-introspection, ``Hinawa-3.0.typelib`` should be
+When working with gobject-introspection, ``Hinawa-4.0.typelib`` should be
 installed in your system girepository so that ``libgirepository`` can find
-it. Of course, your system LD should find ELF shared object for libhinawa2.
+it. Of course, your system LD should find ELF shared object for libhinawa4.
 Before installing, it's good to check path of the above and configure
 '--prefix' meson option appropriately. The environment variables,
 ``GI_TYPELIB_PATH`` and ``LD_LIBRARY_PATH`` are available for ad-hoc settings
@@ -110,7 +112,7 @@ Example of Python3 with PyGobject
 
     import gi
     gi.require_version('GLib', '2.0')
-    gi.require_version('Hinawa', '3.0')
+    gi.require_version('Hinawa', '4.0')
     from gi.repository import GLib, Hinawa
 
     from threading import Thread
@@ -166,7 +168,7 @@ This is a sample of wrap file to satisfy dependency on libhinawa by
     [wrap-git]
     directory = hinawa
     url = https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git
-    revision = 2.6.1
+    revision = 4.0.0
     depth = 1
     
     [provide]
@@ -180,7 +182,7 @@ available.
 
     $ cat meson.build
     hinawa_dependency = dependency('hinawa',
-      version: '>=2.6.1'
+      version: '>=4.0.0'
     )
 
 Loss of backward compatibility with version 1 and version 2 releases
@@ -207,7 +209,7 @@ for processing it using ``GLib.MainContext``. Additionally, ``Hinawa.FwNode`` wa
 obsolete ``Hinawa.FwUnit`` in an aspect of topology in IEEE 1394 bus. Consequently,
 ``Hinawa.SndUnit`` directly derived from GObject.
 
-Before releasing the version 3 of library, `libhitaki <https://github.com/alsa-project/libhitaki>`_
+Before releasing the version 4 of library, `libhitaki <https://github.com/alsa-project/libhitaki>`_
 was released. The library provides ``Hitaki.SndUnit`` and its derived object classes to obsolete
 equivalent features in the version 2 of library. Furthermore, with the release of Linux kernel
 version 6.5, new events were introduced to deliver hardware time stamp for asynchronous
@@ -215,7 +217,7 @@ communication. To accommodate this, ``Hinawa.CycleTime`` was added, along with s
 ``Hinawa.FwReq``, ``Hinawa.FwResp``, and ``Hinawa.FwFcp``, to facilitating user application
 processing of the hardware time stamp.
 
-The version 3 library is specifically tailored to features in Linux FireWire subsystem, with a
+The version 4 library is specifically tailored to features in Linux FireWire subsystem, with a
 sole focus on asynchronous communication in IEEE 1394 bus. For isochronous communication,
 `libhinoko <https://git.kernel.org/pub/scm/libs/ieee1394/libhinoko.git/>`_ provides the
 necessary features.

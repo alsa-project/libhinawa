@@ -7,7 +7,7 @@ from struct import unpack
 import common
 
 import gi
-gi.require_versions({'GLib': '2.0', 'Hinawa': '3.0'})
+gi.require_versions({'GLib': '2.0', 'Hinawa': '4.0'})
 from gi.repository import GLib, Hinawa
 
 # Qt5 python binding
@@ -64,7 +64,7 @@ class Sample(QWidget):
         self.node = node
         self.req = Hinawa.FwReq.new()
 
-        self.setWindowTitle("Hinawa-3.0 gir sample")
+        self.setWindowTitle("Hinawa-4.0 gir sample")
 
         layout = QVBoxLayout()
         self.setLayout(layout)

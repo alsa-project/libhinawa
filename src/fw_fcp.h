@@ -29,7 +29,7 @@ struct _HinawaFwFcpClass {
 	 *
 	 * Class closure for the [signal@FwFcp::responded] signal.
 	 *
-	 * Since: 3.0
+	 * Since: 4.0
 	 */
 	void (*responded)(HinawaFwFcp *self, guint generation, guint tstamp, const guint8 *frame,
 			  guint frame_size);

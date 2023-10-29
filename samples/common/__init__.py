@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from threading import Thread
 
 import gi
-gi.require_versions({'GLib': '2.0', 'Hinawa': '3.0'})
+gi.require_versions({'GLib': '2.0', 'Hinawa': '4.0'})
 from gi.repository import GLib, Hinawa
 
 CLOCK_MONOTONIC_RAW = 4

@@ -180,7 +180,7 @@ static void hinawa_fw_resp_class_init(HinawaFwRespClass *klass)
 	 *
 	 * Returns: One of [enum@FwRcode] enumerations corresponding to rcodes defined in IEEE 1394
 	 *	    specification.
-	 * Since: 3.0
+	 * Since: 4.0
 	 */
 	fw_resp_sigs[FW_RESP_SIG_TYPE_REQ] =
 		g_signal_new("requested",
@@ -231,7 +231,7 @@ HinawaFwResp *hinawa_fw_resp_new(void)
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 3.0
+ * Since: 4.0
  */
 gboolean hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *node,
 					      guint64 region_start, guint64 region_end,
@@ -299,7 +299,7 @@ gboolean hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 3.0
+ * Since: 4.0
  */
 gboolean hinawa_fw_resp_reserve(HinawaFwResp *self, HinawaFwNode *node, guint64 addr, guint width,
 				GError **error)

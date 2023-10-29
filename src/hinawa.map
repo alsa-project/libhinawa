@@ -87,7 +87,7 @@ HINAWA_2_6_0 {
     "hinawa_fw_fcp_avc_transaction_with_tstamp";
 } HINAWA_2_5_0;
 
-HINAWA_3_0_0 {
+HINAWA_4_0_0 {
   global:
     "hinawa_fw_node_open";
     "hinawa_fw_node_get_config_rom";

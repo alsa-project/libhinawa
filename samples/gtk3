@@ -7,7 +7,7 @@ from struct import unpack
 import common
 
 import gi
-gi.require_versions({'GLib': '2.0', 'Hinawa': '3.0', 'Gtk': '3.0'})
+gi.require_versions({'GLib': '2.0', 'Hinawa': '4.0', 'Gtk': '3.0'})
 from gi.repository import GLib, Hinawa, Gtk
 
 
@@ -45,7 +45,7 @@ def main() -> int:
 
 class Sample(Gtk.Window):
     def __init__(self, node):
-        Gtk.Window.__init__(self, title="Hinawa-3.0 gir sample")
+        Gtk.Window.__init__(self, title="Hinawa-4.0 gir sample")
 
         self.node = node
         self.req = Hinawa.FwReq.new()

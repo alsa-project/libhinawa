@@ -1,8 +1,13 @@
-project('libhinawa', 'c',
-  version: '2.6.1',
+project('hinawa', 'c',
+  version: '4.0.0',
   license: 'LGPL-2.1+',
   meson_version: '>= 0.60.0',
 )
+
+version = meson.project_version().split('.')
+major_version = version[0].to_int()
+minor_version = version[1].to_int()
+micro_version = version[2].to_int()
 
 # Detect support level in Linux sound subsystem.
 cc = meson.get_compiler('c')

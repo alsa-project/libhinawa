@@ -31,7 +31,7 @@ struct _HinawaFwReqClass {
 	 *
 	 * Class closure for the [signal@FwReq::responded] signal.
 	 *
-	 * Since: 3.0
+	 * Since: 4.0
 	 */
 	void (*responded)(HinawaFwReq *self, HinawaFwRcode rcode, guint request_tstamp,
 			  guint response_tstamp, const guint8 *frame, guint frame_size);

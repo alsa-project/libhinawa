@@ -80,7 +80,7 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 	 * If the version of kernel ABI for Linux FireWire subsystem is less than 6, the
 	 * @request_tstamp and @response_tstamp argument has invalid value (=G_MAXUINT).
 	 *
-	 * Since: 3.0
+	 * Since: 4.0
 	 */
 	fw_req_sigs[FW_REQ_SIG_TYPE_RESPONDED] =
 		g_signal_new("responded",
@@ -133,7 +133,7 @@ HinawaFwReq *hinawa_fw_req_new(void)
  * response subaction arrives and running event dispatcher reads the contents,
  * [signal@FwReq::responded] signal handler is called.
  *
- * Since: 3.0
+ * Since: 4.0
  */
 gboolean hinawa_fw_req_request(HinawaFwReq *self, HinawaFwNode *node, HinawaFwTcode tcode,
 			       guint64 addr, gsize length, guint8 **frame, gsize *frame_size,
@@ -371,7 +371,7 @@ gboolean hinawa_fw_req_transaction_with_tstamp(HinawaFwReq *self, HinawaFwNode *
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
- * Since: 3.0
+ * Since: 4.0
  */
 gboolean hinawa_fw_req_transaction(HinawaFwReq *self, HinawaFwNode *node,
 			       HinawaFwTcode tcode, guint64 addr, gsize length,

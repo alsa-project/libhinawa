@@ -37,7 +37,7 @@ struct _HinawaFwRespClass {
 	 * Returns: One of [enum@FwRcode enumerations corresponding to rcodes defined in IEEE 1394
 	 *	    specification.
 	 *
-	 * Since: 3.0
+	 * Since: 4.0
 	 */
 	HinawaFwRcode (*requested)(HinawaFwResp *self, HinawaFwTcode tcode, guint64 offset,
 				   guint src_node_id, guint dst_node_id, guint card_id,
