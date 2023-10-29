@@ -13,7 +13,7 @@ doc_toml = configure_file(
 )
 
 dependency('gi-docgen',
-  version: '>= 2021.8',
+  version: '>= 2023.1',
   fallback: ['gi-docgen', 'dummy_dep'],
 )
 gidocgen = find_program('gi-docgen')

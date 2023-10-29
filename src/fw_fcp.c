@@ -23,7 +23,7 @@
 /**
  * hinawa_fw_fcp_error_quark:
  *
- * Return the [alias@GLib.Quark] for [struct@GLib.Error] which has code in Hinawa.FwFcpError.
+ * Return the [alias@GLib.Quark] for [struct@GLib.Error] which has code in [error@FwFcpError].
  *
  * Since: 2.1
  *
@@ -230,8 +230,8 @@ HinawaFwFcp *hinawa_fw_fcp_new(void)
  *	    The first element is for the isochronous cycle at which the request arrived. The second
  *	    element is for the isochronous cycle at which the response was sent.
  * @timeout_ms: The timeout to wait for response subaction of transaction for command frame.
- * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinoko.FwNodeError and
- *	   Hinoko.FwReqError.
+ * @error: A [struct@GLib.Error]. Error can be generated with two domains; [error@FwNodeError] and
+ *	   [error@FwReqError].
  *
  * Transfer command frame for FCP. When receiving response frame for FCP, [signal@FwFcp::responded]
  * signal is emitted.
@@ -280,8 +280,8 @@ gboolean hinawa_fw_fcp_command_with_tstamp(HinawaFwFcp *self, const guint8 *cmd,
  *	 argument should point to the array and immutable.
  * @cmd_size: The size of array for request in byte unit.
  * @timeout_ms: The timeout to wait for response subaction of transaction for command frame.
- * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinoko.FwNodeError and
- *	   Hinoko.FwReqError.
+ * @error: A [struct@GLib.Error]. Error can be generated with two domains; [error@FwNodeError] and
+ *	   [error@FwReqError].
  *
  * Transfer command frame for FCP. When receiving response frame for FCP, [signal@FwFcp::responded]
  * signal is emitted.
@@ -363,8 +363,8 @@ static void handle_responded_signal(HinawaFwFcp *self, guint generation, guint t
  *	    which the response arrived for the command of FCP transaction. The third element is for
  *	    the isochronous cycle at which the request was sent for the response of FCP transaction.
  * @timeout_ms: The timeout to wait for response transaction since command transactions finishes.
- * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinawa.FwNodeError,
- *	   Hinawa.FwReqError, and Hinawa.FwFcpError.
+ * @error: A [struct@GLib.Error]. Error can be generated with thtree domains; [error@FwNodeError],
+ *	   [error@FwReqError], and [error@FwFcpError].
  *
  * Finish the pair of asynchronous transaction for AV/C command and response. The @timeout_ms
  * parameter is used to wait for response transaction since the command transaction is initiated.
@@ -488,8 +488,8 @@ end:
  * @resp_size: The size of array for response in byte unit. The value of this argument should point to
  *	       the numerical number and mutable.
  * @timeout_ms: The timeout to wait for response transaction since command transactions finishes.
- * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinawa.FwNodeError,
- *	   Hinawa.FwReqError, and Hinawa.FwFcpError.
+ * @error: A [struct@GLib.Error]. Error can be generated with three domains; [error@FwNodeError],
+ *	   [error@FwReqError], and [error@FwFcpError].
  *
  * Finish the pair of asynchronous transaction for AV/C command and response. The @timeout_ms
  * parameter is used to wait for response transaction since the command transaction is initiated.
@@ -639,7 +639,7 @@ static HinawaFwRcode handle_requested_signal(HinawaFwResp *resp, HinawaFwTcode t
  * hinawa_fw_fcp_bind:
  * @self: A [class@FwFcp].
  * @node: A [class@FwNode].
- * @error: A [struct@GLib.Error]. Error can be generated with domain of Hinawa.FwFcpError.
+ * @error: A [struct@GLib.Error]. Error can be generated with domain of [error@FwFcpError].
  *
  * Start to listen to FCP responses.
  *

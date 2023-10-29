@@ -41,7 +41,7 @@ G_DEFINE_TYPE_WITH_PRIVATE(HinawaFwNode, hinawa_fw_node, G_TYPE_OBJECT)
 /**
  * hinawa_fw_node_error_quark:
  *
- * Return the [alias@GLib.Quark] for [struct@GLib.Error] with Hinawa.FwNodeError domain.
+ * Return the [alias@GLib.Quark] for [struct@GLib.Error] with [error@FwNodeError] domain.
  *
  * Since: 2.1
  *
@@ -355,8 +355,8 @@ static int update_info(HinawaFwNode *self)
  * @self: A [class@FwNode]
  * @path: A path to Linux FireWire character device
  * @open_flag: The flag of `open(2)` system call. `O_RDONLY` is fulfilled internally.
- * @error: A [struct@GLib.Error]. Error can be generated with two domains; GLib.Error and
- *	   Hinawa.FwNodeError.
+ * @error: A [struct@GLib.Error]. Error can be generated with two domains; [error@GLib.FileError]
+ *	   and [error@FwNodeError].
  *
  * Open Linux FireWire character device to operate node in IEEE 1394 bus.
  *
@@ -596,7 +596,7 @@ static void finalize_src(GSource *gsrc)
  * hinawa_fw_node_create_source:
  * @self: A [class@FwNode].
  * @gsrc: (out): A [struct@GLib.Source].
- * @error: A [struct@GLib.Error]. Error can be generated with domain of Hinawa.FwNodeError.
+ * @error: A [struct@GLib.Error]. Error can be generated with domain of [error@FwNodeError].
  *
  * Create [struct@GLib.Source] for [struct@GLib.MainContext] to dispatch events for the node on
  * IEEE 1394 bus.

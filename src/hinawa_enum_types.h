@@ -95,8 +95,8 @@ typedef enum {
  * @HINAWA_FW_REQ_ERROR_NO_ACK:		For no acknowledge.
  * @HINAWA_FW_REQ_ERROR_INVALID:	For rcode out of specification.
  *
- * A set of error code for [class@Hinawa.FwReq]. Each of them has the same value as the
- * corresponding enumeration in [enum@Hinawa.FwRcode].
+ * A set of error code for [struct@GLib.Error] for operations in [class@FwReq].
+ * The actual value is equivalent to [enum@FwRcode].
  *
  * Since: 2.5.
  */
@@ -122,7 +122,7 @@ typedef enum {
  *					firewire character device.
  * @HINAWA_FW_NODE_ERROR_FAILED:	The system call fails.
  *
- * A set of error code for [struct@GLib.Error] with domain which equals to Hinawa.FwNodeError.
+ * A set of error code for [struct@GLib.Error] for operations in [class@FwNode].
  *
  * Since: 2.1
  */
@@ -139,7 +139,7 @@ typedef enum {
  * @HINAWA_FW_RESP_ERROR_RESERVED:		The instance is already associated to reserved address range.
  * @HINAWA_FW_RESP_ERROR_ADDR_SPACE_USED:	The address space is used exclusively.
  *
- * A set of error code for [struct@GLib.Error] with domain which equals to Hinawa.FwRespError.
+ * A set of error code for [struct@GLib.Error] for operations in [class@FwResp].
  *
  * Since: 2.2
  */
@@ -155,7 +155,7 @@ typedef enum {
  * @HINAWA_FW_FCP_ERROR_LARGE_RESP:	The size of response is larger than expected.
  * @HINAWA_FW_FCP_ERROR_ABORTED:	The transaction is aborted due to bus reset.
  *
- * A set of error code for [struct@GLib.Error] with domain which equals to Hinawa.FwFcpError.
+ * A set of error code for [struct@GLib.Error] for operations in [class@FwFcp].
  *
  * Since: 2.1
  */
