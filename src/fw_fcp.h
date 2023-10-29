@@ -21,10 +21,10 @@ struct _HinawaFwFcpClass {
 	 * HinawaFwFcpClass::responded:
 	 * @self: A [class@FwFcp].
 	 * @generation: The generation of bus topology.
-	 * @tstamp: The time stamp at which the request arrived for the response for FCP
+	 * @tstamp: The time stamp at which the request subaction arrived for the response of FCP
 	 *	    transaction.
 	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for byte
-	 *	   data of response for Function Control Protocol.
+	 *	   data in the response of Function Control Protocol.
 	 * @frame_size: The number of elements of the array.
 	 *
 	 * Class closure for the [signal@FwFcp::responded] signal.

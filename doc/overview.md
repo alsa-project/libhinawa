@@ -1,7 +1,7 @@
 Title: Overview
 
 This library gives some objects for abstraction to operate system resources in Linux FireWire
-subsystem. This library mainly supports operations for asynchronous communication to nodes on
+subsystem. This library mainly supports operations for asynchronous communication with nodes in
 IEEE 1394 bus.
 
 This library originally supported some model-specific operations for Audio and Music units on

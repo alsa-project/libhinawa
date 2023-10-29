@@ -10,11 +10,10 @@
 
 /**
  * HinawaFwNode:
- * An event listener for FireWire node
+ * An event listener for node in IEEE 1394 bus.
  *
- * A [class@FwNode] is an event listener for a specified node on IEEE 1394 bus. This class is an
- * application of Linux FireWire subsystem. All of operations utilize ioctl(2) with subsystem
- * specific request commands.
+ * [class@FwNode] listens to any events for an associated node in IEEE 1394 bus. Additionally,
+ * it provides some methods to retrieve fundamental information about the bus.
  *
  * Since: 1.4
  */
@@ -216,7 +215,7 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 	/**
 	 * HinawaFwNode:root-node-id:
 	 *
-	 * Node ID of root node in bus topology at current generation of the bus topology.
+	 * Node ID of root node in bus topology at current generation of bus topology.
 	 *
 	 * Since: 1.4
 	 */
@@ -243,7 +242,7 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 	/**
 	 * HinawaFwNode:card-id:
 	 *
-	 * The numeric index for 1394 OHCI hardware used for the communication to the node. The
+	 * The numeric index for 1394 OHCI hardware used for the communication with the node. The
 	 * value is stable against bus generation.
 	 *
 	 * Since: 3.0
@@ -251,7 +250,7 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 	fw_node_props[FW_NODE_PROP_TYPE_CARD_ID] =
 		g_param_spec_uint("card-id", "card-id",
 				  "The numeric index for 1394 OHCI hardware used for the "
-				  "communication to the node",
+				  "communication with the node",
 				  0, G_MAXUINT32, 0,
 				  G_PARAM_READABLE);
 
@@ -281,8 +280,8 @@ static void hinawa_fw_node_class_init(HinawaFwNodeClass *klass)
 	 * HinawaFwNode::disconnected:
 	 * @self: A [class@FwNode].
 	 *
-	 * Emitted when the node is not available anymore due to removal from IEEE 1394 bus. It's
-	 * preferable to call [method@GObject.Object.unref] immediately to release file descriptor.
+	 * Emitted when the node is not available anymore in Linux system. It's preferable to call
+	 * [method@GObject.Object.unref] immediately to release file descriptor.
 	 *
 	 * Since: 1.4
 	 */
@@ -359,7 +358,7 @@ static int update_info(HinawaFwNode *self)
  * @error: A [struct@GLib.Error]. Error can be generated with two domains; GLib.Error and
  *	   Hinawa.FwNodeError.
  *
- * Open Linux FireWire character device to operate node on IEEE 1394 bus.
+ * Open Linux FireWire character device to operate node in IEEE 1394 bus.
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
@@ -417,7 +416,7 @@ gboolean hinawa_fw_node_open(HinawaFwNode *self, const gchar *path, gint open_fl
  * hinawa_fw_node_get_config_rom:
  * @self: A [class@FwNode]
  * @image: (array length=length)(out)(transfer none): The content of configuration ROM.
- * @length: (out): The number of bytes consists of the configuration rom.
+ * @length: (out): The number of bytes consists of the configuration ROM.
  * @error: A [struct@GLib.Error].
  *
  * Get cached content of configuration ROM aligned to big-endian.
@@ -460,7 +459,8 @@ gboolean hinawa_fw_node_get_config_rom(HinawaFwNode *self, const guint8 **image,
  * @cycle_time: (inout): A [struct@CycleTime].
  * @error: A [struct@GLib.Error].
  *
- * Read current value of CYCLE_TIME register in 1394 OHCI hardware.
+ * Read current value of CYCLE_TIME register in 1394 OHCI hardware dedicated to communicate with
+ * the associated node in IEEE 1394 bus.
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
