@@ -9,11 +9,7 @@
  * HinawaFwReq:
  * A transaction executor to a node in IEEE 1394 bus.
  *
- * A HinawaFwReq supports some types of transactions in IEEE 1212. Mainly for read, write and lock
- * operations.
- *
- * This class is an application of Linux FireWire subsystem. All of operations utilize ioctl(2)
- * with subsystem specific request commands.
+ * [class@FwReq] supports all types of transactions defiend in IEEE 1212.
  */
 
 /**
@@ -65,10 +61,12 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 	 * HinawaFwReq::responded:
 	 * @self: A [class@FwReq].
 	 * @rcode: One of [enum@FwRcode].
-	 * @request_tstamp: The isochronous cycle at which the request was sent.
-	 * @response_tstamp: The isochronous cycle at which the response arrived.
+	 * @request_tstamp: The isochronous cycle at which the request subaction was sent for the
+	 *		    transaction.
+	 * @response_tstamp: The isochronous cycle at which the response subaction arrived for the
+	 *		     transaction.
 	 * @frame: (array length=frame_size)(element-type guint8): The array with elements for
-	 *	   byte data of response subaction for transaction.
+	 *	   byte data of response subaction for the transaction.
 	 * @frame_size: The number of elements of the array.
 	 *
 	 * Emitted when the node transfers asynchronous packet as response subaction for the
@@ -127,11 +125,11 @@ HinawaFwReq *hinawa_fw_req_new(void)
  *	   to the array and immutable. The content of array is mutable for read and lock
  *	   transaction.
  * @frame_size: The size of array in byte unit. The value of this argument should point to the
- *		numerical number and mutable for read and lock transaction.
+ *		numeric number and mutable for read and lock transaction.
  * @error: A [struct@GLib.Error]. Error can be generated with two domains; Hinawa.FwNodeError and
  *	   Hinawa.FwReqError.
  *
- * Execute request subaction of transactions to the given node according to given code. When the
+ * Execute request subaction of transaction to the given node according to given code. When the
  * response subaction arrives and running event dispatcher reads the contents,
  * [signal@FwReq::responded] signal handler is called.
  *
@@ -252,9 +250,9 @@ static void handle_responded_signal(HinawaFwReq *self, HinawaFwRcode rcode, guin
  * @frame_size: The size of array in byte unit. The value of this argument should point to the
  *		numeric number and mutable for read and lock transaction.
  * @tstamp: (array fixed-size=2)(out caller-allocates): The array with two elements for time stamps.
- *	    The first element is for the isochronous cycle at which the request was sent. The second
- *	    element is for the isochronous cycle at which the response arrived.
- * @timeout_ms: The timeout to wait for response subaction of the transaction since request
+ *	    The first element is for the isochronous cycle at which the request subaction was sent.
+ *	    The second element is for the isochronous cycle at which the response subaction arrived.
+ * @timeout_ms: The timeout to wait for the response subaction of transaction since the request
  *		subaction is initiated, in milliseconds.
  * @error: A [struct@GLib.Error]. Error can be generated with two domains; Hinawa.FwNodeError and
  *	   Hinawa.FwReqError.

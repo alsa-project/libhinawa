@@ -10,12 +10,13 @@
  * HinawaFwFcp:
  * A FCP transaction executor to node in IEEE 1394 bus.
  *
- * A HinawaFwFcp supports Function Control Protocol (FCP) in IEC 61883-1, in which no way is defined
- * to match response against command by the contents of frames. In 'AV/C Digital Interface Command
- * Set General Specification Version 4.2' (Sep 1 2004, 1394TA), a pair of command and response is
- * loosely matched by the contents of frames.
+ * [class@FwFcp] supports Function Control Protocol (FCP) in IEC 61883-1. FCP transaction consists
+ * of a pair of asynchronous transactions for command and response, while the protocol has no
+ * mechanism to match them. In AV/C Digital Interface Command Set General Specification Version 4.2
+ * (Sep 1 2004, 1394TA), they are loosely matched by the content of their frames, and this class
+ * employs the way.
  *
- * Any of transaction frames should be aligned to 8bit (byte). This class is an application of
+ * Any of transaction frames should be aligned to 8 bit (1 byte). This class is an application of
  * [class@FwReq] / [class@FwResp].
  */
 
@@ -365,10 +366,10 @@ static void handle_responded_signal(HinawaFwFcp *self, guint generation, guint t
  * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinawa.FwNodeError,
  *	   Hinawa.FwReqError, and Hinawa.FwFcpError.
  *
- * Finish the pair of asynchronous transaction for AV/C command and response transactions. The
- * timeout_ms parameter is used to wait for response transaction since the command transaction is
- * initiated. The timeout is not expanded in the case that AV/C INTERIM status arrived, thus the
- * caller should expand the timeout in advance for the case.
+ * Finish the pair of asynchronous transaction for AV/C command and response. The @timeout_ms
+ * parameter is used to wait for response transaction since the command transaction is initiated.
+ * The timeout is not expanded in the case that AV/C INTERIM status arrived, thus the caller should
+ * expand the timeout in advance for the case.
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  * Since: 2.6
@@ -490,10 +491,10 @@ end:
  * @error: A [struct@GLib.Error]. Error can be generated with four domains; Hinawa.FwNodeError,
  *	   Hinawa.FwReqError, and Hinawa.FwFcpError.
  *
- * Finish the pair of asynchronous transaction for AV/C command and response transactions. The
- * timeout_ms parameter is used to wait for response transaction since the command transaction is
- * initiated The timeout is not expanded in the case that AV/C INTERIM status arrived, thus the
- * caller should expand the timeout in advance for the case.
+ * Finish the pair of asynchronous transaction for AV/C command and response. The @timeout_ms
+ * parameter is used to wait for response transaction since the command transaction is initiated.
+ * The timeout is not expanded in the case that AV/C INTERIM status arrived, thus the caller should
+ * expand the timeout in advance for the case.
  *
  * Returns: TRUE if the overall operation finishes successfully, otherwise FALSE.
  *
