@@ -7,7 +7,7 @@
 
 /**
  * HinawaFwReq:
- * A transaction executor to a FireWire unit.
+ * A transaction executor to a node in IEEE 1394 bus.
  *
  * A HinawaFwReq supports some types of transactions in IEEE 1212. Mainly for read, write and lock
  * operations.
@@ -71,7 +71,7 @@ static void hinawa_fw_req_class_init(HinawaFwReqClass *klass)
 	 *	   byte data of response subaction for transaction.
 	 * @frame_size: The number of elements of the array.
 	 *
-	 * Emitted when the unit transfers asynchronous packet as response subaction for the
+	 * Emitted when the node transfers asynchronous packet as response subaction for the
 	 * transaction and the process successfully reads the content of packet from Linux firewire
 	 * subsystem.
 	 *
@@ -184,7 +184,7 @@ gboolean hinawa_fw_req_request(HinawaFwReq *self, HinawaFwNode *node, HinawaFwTc
 		g_return_val_if_reached(FALSE);
 	}
 
-	// Get unit properties.
+	// Get node property.
 	g_object_get(G_OBJECT(node), "generation", &generation, NULL);
 
 	// Setup a transaction structure.
