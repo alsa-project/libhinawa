@@ -126,8 +126,8 @@ HinawaFwReq *hinawa_fw_req_new(void)
  *	   transaction.
  * @frame_size: The size of array in byte unit. The value of this argument should point to the
  *		numeric number and mutable for read and lock transaction.
- * @error: A [struct@GLib.Error]. Error can be generated with two domains; Hinawa.FwNodeError and
- *	   Hinawa.FwReqError.
+ * @error: A [struct@GLib.Error]. Error can be generated with two domains; [error@FwNodeError] and
+ *	   [error@FwReqError].
  *
  * Execute request subaction of transaction to the given node according to given code. When the
  * response subaction arrives and running event dispatcher reads the contents,
@@ -254,8 +254,8 @@ static void handle_responded_signal(HinawaFwReq *self, HinawaFwRcode rcode, guin
  *	    The second element is for the isochronous cycle at which the response subaction arrived.
  * @timeout_ms: The timeout to wait for the response subaction of transaction since the request
  *		subaction is initiated, in milliseconds.
- * @error: A [struct@GLib.Error]. Error can be generated with two domains; Hinawa.FwNodeError and
- *	   Hinawa.FwReqError.
+ * @error: A [struct@GLib.Error]. Error can be generated with two domains; [error@FwNodeError] and
+ *	   [error@FwReqError].
  *
  * Execute request subaction of transaction to the given node according to given code, then wait
  * for response subaction within the given timeout.
@@ -362,8 +362,8 @@ gboolean hinawa_fw_req_transaction_with_tstamp(HinawaFwReq *self, HinawaFwNode *
  *		numerical number and mutable for read and lock transaction.
  * @timeout_ms: The timeout to wait for response subaction of the transaction since request
  *		subaction is initiated, in milliseconds.
- * @error: A [struct@GLib.Error]. Error can be generated with two domains; Hinawa.FwNodeError and
- *	   Hinawa.FwReqError.
+ * @error: A [struct@GLib.Error]. Error can be generated with two domains; [error@FwNodeError] and
+ *	   [error@FwReqError].
  *
  * Execute request subaction of transaction to the given node according to given code, then wait
  * for response subaction within the value of timeout argument. The function is a thin wrapper to

@@ -8,14 +8,27 @@ jobs:
     container:
       image: fedora:rawhide
     steps:
-    - name: Checkout repository.
-      uses: actions/checkout@v2
     - name: Prepare build environment.
       run: |
         dnf -y upgrade
         dnf -y install @development-tools
         dnf -y install meson gobject-introspection-devel systemd-devel
         dnf -y install gi-docgen python3-gobject
+    - name: Checkout repository.
+      uses: actions/checkout@v2
+    - name: Create gi-docgen.wrap in subproject directory
+      run: |
+        mkdir subprojects
+        cat > subprojects/gi-docgen.wrap << EOF
+        [wrap-git]
+        directory = gi-docgen
+        url = https://gitlab.gnome.org/GNOME/gi-docgen.git
+        revision = 2023.1
+        depth = 1
+        
+        [provide]
+        program_names = gi-docgen
+        EOF
     - name: Initialization for build.
       run: |
         meson --prefix=/tmp. -Ddoc=true -Dwarning_level=3 . build
@@ -41,8 +54,6 @@ jobs:
     container:
       image: ubuntu:latest
     steps:
-    - name: Checkout repository.
-      uses: actions/checkout@v3
     - name: Prepare build environment.
       run: |
         DEBIAN_FRONTEND=noninteractive apt-get update
@@ -50,6 +61,21 @@ jobs:
         DEBIAN_FRONTEND=noninteractive apt-get install -y git build-essential
         DEBIAN_FRONTEND=noninteractive apt-get install -y meson ninja-build libglib2.0-dev gobject-introspection libgirepository1.0-dev
         DEBIAN_FRONTEND=noninteractive apt-get install -y gi-docgen python3-gi
+    - name: Checkout repository.
+      uses: actions/checkout@v2
+    - name: Create gi-docgen.wrap in subproject directory
+      run: |
+        mkdir subprojects
+        cat > subprojects/gi-docgen.wrap << EOF
+        [wrap-git]
+        directory = gi-docgen
+        url = https://gitlab.gnome.org/GNOME/gi-docgen.git
+        revision = 2023.1
+        depth = 1
+        
+        [provide]
+        program_names = gi-docgen
+        EOF
     - name: Initialization for build.
       run: |
         meson --prefix=/tmp. -Ddoc=true -Dwarning_level=3 . build

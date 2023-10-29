@@ -53,7 +53,7 @@ Requirements to build
 - Meson 0.60.0 or later
 - Ninja
 - PyGObject (optional to run unit tests)
-- gi-docgen (optional to generate API documentation)
+- gi-docgen 2023.1 or later (optional to generate API documentation)
 
 How to build
 ============

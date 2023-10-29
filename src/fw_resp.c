@@ -16,7 +16,7 @@
  * hinawa_fw_resp_error_quark:
  *
  * Return the [alias@GLib.Quark] for error domain of [struct@GLib.Error] which has code in
- * Hinawa.FwRespError.
+ * [error@FwRespError].
  *
  * Since: 2.2
  *
@@ -219,8 +219,8 @@ HinawaFwResp *hinawa_fw_resp_new(void)
  * @region_start:  Start offset of address region in which range of address is looked up.
  * @region_end:  End offset of address region in which range of address is looked up.
  * @width: The width for range of address to be looked up.
- * @error: A [struct@GLib.Error]. Error can be generated with two domain of Hinawa.FwNodeError and
- *	   Hinawa.FwRespError.
+ * @error: A [struct@GLib.Error]. Error can be generated with two domain of [error@FwNodeError] and
+ *	   [error@FwRespError].
  *
  * Allocate an address range within Linux system for local nodes, each of which expresses 1394
  * OHCI hardware. Once successful, [signal@FwResp::requested] signal will be emitted whenever any
@@ -286,8 +286,8 @@ gboolean hinawa_fw_resp_reserve_within_region(HinawaFwResp *self, HinawaFwNode *
  * @node: A [class@FwNode].
  * @addr: A start address to listen to in 1394 OHCI hardware.
  * @width: The byte width of address to listen to 1394 OHCI hardware.
- * @error: A [struct@GLib.Error]. Error can be generated with two domain of Hinawa.FwNodeError and
- *	   and Hinawa.FwRespError.
+ * @error: A [struct@GLib.Error]. Error can be generated with two domain of [error@FwNodeError] and
+ *	   and [error@FwRespError].
  *
  * Allocate an address range within Linux system for local nodes, each of which expresses 1394
  * OHCI hardware. Once successful, [signal@FwResp::requested] signal will be emitted whenever any
