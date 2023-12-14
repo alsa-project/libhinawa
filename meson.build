@@ -1,5 +1,5 @@
 project('hinawa', 'c',
-  version: '4.0.0',
+  version: '4.0.1',
   license: 'LGPL-2.1+',
   meson_version: '>= 0.60.0',
 )
