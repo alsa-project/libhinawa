@@ -98,7 +98,7 @@ typedef enum {
  * A set of error code for [struct@GLib.Error] for operations in [class@FwReq].
  * The actual value is equivalent to [enum@FwRcode].
  *
- * Since: 2.5.
+ * Since: 2.5
  */
 typedef enum {
 	HINAWA_FW_REQ_ERROR_CONFLICT_ERROR	= HINAWA_FW_RCODE_CONFLICT_ERROR,
