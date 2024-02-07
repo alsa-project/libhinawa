@@ -119,10 +119,10 @@ Example of Python3 with PyGobject
     from struct import unpack
 
     node = Hinawa.FwNode.new()
-    node.open('/dev/fw1')
+    _ = node.open('/dev/fw1', 0)
 
     ctx = GLib.MainContext.new()
-    src = node.create_source()
+    _, src = node.create_source()
     src.attach(ctx)
 
     dispatcher = GLib.MainLoop.new(ctx, False)
