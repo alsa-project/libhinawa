@@ -15,7 +15,7 @@ jobs:
         dnf -y install meson gobject-introspection-devel systemd-devel
         dnf -y install gi-docgen python3-gobject
     - name: Checkout repository.
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Create gi-docgen.wrap in subproject directory
       run: |
         mkdir subprojects
@@ -62,7 +62,7 @@ jobs:
         DEBIAN_FRONTEND=noninteractive apt-get install -y meson ninja-build libglib2.0-dev gobject-introspection libgirepository1.0-dev
         DEBIAN_FRONTEND=noninteractive apt-get install -y gi-docgen python3-gi
     - name: Checkout repository.
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Create gi-docgen.wrap in subproject directory
       run: |
         mkdir subprojects
