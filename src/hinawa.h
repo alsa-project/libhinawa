@@ -7,7 +7,6 @@
 
 #include <linux/firewire-cdev.h>
 #include <linux/firewire-constants.h>
-#include <sound/firewire.h>
 
 #include <hinawa_sigs_marshal.h>
 
