@@ -2,7 +2,7 @@
 The libhinawa project
 =====================
 
-2023/12/14
+2024/04/06
 Takashi Sakamoto
 
 Instruction
@@ -19,7 +19,7 @@ been already obsoleted and deligated the functions to
 `libhitaki <https://github.com/alsa-project/libhitaki>`_, while are still kept for backward
 compatibility. They should not be used for applications written newly.
 
-The latest release is `4.0.1 <https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/tag/?h=4.0.1>`_.
+The latest release is `4.0.2 <https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git/tag/?h=4.0.2>`_.
 The package archive is available in `<https://kernel.org/pub/linux/libs/ieee1394/>`_ with detached
 signature created by `my GnuPG key <https://git.kernel.org/pub/scm/docs/kernel/pgpkeys.git/tree/keys/B5A586C7D66FD341.asc>`_.
 I note that version 3 release is skipped to use the same major version in library itself and
@@ -168,7 +168,7 @@ This is a sample of wrap file to satisfy dependency on libhinawa by
     [wrap-git]
     directory = hinawa
     url = https://git.kernel.org/pub/scm/libs/ieee1394/libhinawa.git
-    revision = 4.0.1
+    revision = 4.0.2
     depth = 1
     
     [provide]
@@ -182,7 +182,7 @@ available.
 
     $ cat meson.build
     hinawa_dependency = dependency('hinawa',
-      version: '>=4.0.1'
+      version: '>=4.0'
     )
 
 Loss of backward compatibility with version 1 and version 2 releases
