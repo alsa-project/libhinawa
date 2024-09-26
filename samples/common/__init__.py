@@ -41,6 +41,26 @@ def detect_fw_cdev(literal: str) -> Path:
     return path
 
 
+def print_transaction_result(
+    addr: int,
+    payload: list[int],
+    initiate_cycle: list[2],
+    sent_cycle: list[2],
+    recv_cycle: list[2],
+    finish_cycle: list[2],
+):
+    quadlet = unpack(">I", payload)[0]
+
+    print("Read quadlet transaction:")
+    print("  addr 0x{:012x}, quadlet: 0x{:08x}".format(addr, quadlet))
+    print(
+        "  initiate at:  {} sec {} cycle".format(initiate_cycle[0], initiate_cycle[1])
+    )
+    print("  sent at:      {} sec {} cycle".format(sent_cycle[0], sent_cycle[1]))
+    print("  received at:  {} sec {} cycle".format(recv_cycle[0], recv_cycle[1]))
+    print("  finish at:    {} sec {} cycle".format(finish_cycle[0], finish_cycle[1]))
+
+
 def print_generation_information(node: Hinawa.FwNode):
     print('  Topology:')
     print('    self:        {:04x}'.format(node.get_property('node-id')))
