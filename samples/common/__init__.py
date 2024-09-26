@@ -4,15 +4,17 @@ from struct import unpack
 
 
 def print_help_with_msg(cmd: str, msg: str):
-    print('Error:', file=stderr)
-    print('  {}'.format(msg), file=stderr)
-    print('', file=stderr)
-    print('Usage:', file=stderr)
-    print('  {} PATH'.format(cmd), file=stderr)
-    print('', file=stderr)
-    print('  where', file=stderr)
-    print('    PATH: path to special file for Linux FireWire character device (/dev/fw[0-9]+)',
-          file=stderr)
+    print("Error:", file=stderr)
+    print("  {}".format(msg), file=stderr)
+    print("", file=stderr)
+    print("Usage:", file=stderr)
+    print("  {} PATH".format(cmd), file=stderr)
+    print("", file=stderr)
+    print("  where", file=stderr)
+    print(
+        "    PATH: path to special file for Linux FireWire character device (/dev/fw[0-9]+)",
+        file=stderr,
+    )
 
 
 def detect_fw_cdev(literal: str) -> Path:
@@ -26,8 +28,10 @@ def detect_fw_cdev(literal: str) -> Path:
         msg = '"{}" is not for special file of any character device'.format(path)
         raise ValueError(msg)
 
-    if path.name.find('fw') != 0:
-        msg = '"{}" is not for special file of Linux Firewire character device'.format(path)
+    if path.name.find("fw") != 0:
+        msg = '"{}" is not for special file of Linux Firewire character device'.format(
+            path
+        )
         raise ValueError(msg)
 
     return path
