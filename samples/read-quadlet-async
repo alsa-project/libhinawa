@@ -1,0 +1,204 @@
+#!/usr/bin/env python3
+
+from pathlib import Path
+from sys import argv, exit
+import traceback
+import common
+
+from asyncio import Event, Future, get_running_loop, run, timeout_at
+from contextlib import asynccontextmanager
+
+import gi
+
+gi.require_versions({"GLib": "2.0", "Hinawa": "4.0"})
+from gi.repository import GLib, Hinawa
+
+CLOCK_MONOTONIC_RAW = 4
+
+
+class TransactionData:
+    def __init__(self):
+        self.rcode = Hinawa.FwRcode.INVALID
+        self.request_tstamp = -1
+        self.response_tstamp = -1
+        self.payload = []
+
+
+def handle_responded(
+    req: Hinawa.FwReq,
+    rcode: Hinawa.FwRcode,
+    request_tstamp: int,
+    response_tstamp: int,
+    payload: bytes,
+    _length: int,
+    args: (TransactionData, Future),
+):
+    data, future = args
+
+    data.rcode = rcode
+    data.request_tstamp = request_tstamp
+    data.response_tstamp = response_tstamp
+    data.payload = payload
+
+    future.set_result("finished")
+
+
+def rcode_to_glib_error(rcode: Hinawa.FwRcode) -> GLib.Error:
+    entries = {
+        Hinawa.FwRcode.CONFLICT_ERROR: (
+            Hinawa.FwReqError.CONFLICT_ERROR,
+            "conflict error",
+        ),
+        Hinawa.FwRcode.DATA_ERROR: (Hinawa.FwReqError.DATA_ERROR, "data error"),
+        Hinawa.FwRcode.TYPE_ERROR: (Hinawa.FwReqError.TYPE_ERROR, "type error"),
+        Hinawa.FwRcode.ADDRESS_ERROR: (
+            Hinawa.FwReqError.ADDRESS_ERROR,
+            "address error",
+        ),
+        Hinawa.FwRcode.SEND_ERROR: (Hinawa.FwReqError.SEND_ERROR, "send error"),
+        Hinawa.FwRcode.CANCELLED: (Hinawa.FwReqError.CANCELLED, "timeout"),
+        Hinawa.FwRcode.BUSY: (Hinawa.FwReqError.BUSY, "busy"),
+        Hinawa.FwRcode.GENERATION: (Hinawa.FwReqError.GENERATION, "bus reset"),
+        Hinawa.FwRcode.NO_ACK: (Hinawa.FwReqError.NO_ACK, "no ack"),
+        Hinawa.FwRcode.INVALID: (Hinawa.FwReqError.INVALID, "invalid"),
+    }
+    code, label = entries[rcode]
+
+    return GLib.Error(label, Hinawa.fw_req_error_quark(), code)
+
+
+# The variation of Hinawa.FwReq.transaction_with_tstamp() for asynchronous runtime.
+async def transaction_with_tstamp_async(
+    req: Hinawa.FwReq,
+    node: Hinawa.FwNode,
+    tcode: Hinawa.FwTcode,
+    addr: int,
+    length: int,
+    timeout_ms: int,
+) -> (bool, bytes, list[int]):
+    future = get_running_loop().create_future()
+
+    data = TransactionData()
+
+    handler_id = req.connect("responded", handle_responded, (data, future))
+
+    when = get_running_loop().time() + timeout_ms / 1000.0
+
+    req.request(node, tcode, addr, length, [0] * length)
+
+    try:
+        async with timeout_at(when):
+            _ = await future
+    except TimeoutError:
+        raise rcode_to_glib_error(Hinawa.FwRcode.CANCELLED) from None
+
+    req.disconnect(handler_id)
+
+    if data.rcode != Hinawa.FwRcode.COMPLETE:
+        raise rcode_to_glib_error(data.rcode)
+
+    return True, bytes(data.payload), [data.request_tstamp, data.response_tstamp]
+
+
+@asynccontextmanager
+async def run_dispatcher_async(src: GLib.Source):
+    def dispatch_event(ctx: GLib.MainContext, state: Event):
+        if state.is_set():
+            ctx.iteration(False)
+            # Reschedule this immediately.
+            get_running_loop().call_later(0.0, dispatch_event, ctx, state)
+
+    ctx = GLib.MainContext.new()
+    src.attach(ctx)
+
+    ctx.acquire()
+
+    state = Event()
+    state.set()
+
+    get_running_loop().call_soon(dispatch_event, ctx, state)
+
+    try:
+        yield
+    finally:
+        state.clear()
+        ctx.release()
+
+
+async def async_main(path: Path):
+    node = Hinawa.FwNode.new()
+    _ = node.open(str(path), 0)
+    _, src = node.create_source()
+
+    async with run_dispatcher_async(src):
+        req = Hinawa.FwReq.new()
+        addr = 0xFFFFF0000404
+
+        _, cycle_time = node.read_cycle_time(
+            CLOCK_MONOTONIC_RAW, Hinawa.CycleTime.new()
+        )
+        initiate_cycle = cycle_time.get_fields()[:2]
+
+        (
+            _,
+            payload,
+            (request_tstamp, response_tstamp),
+        ) = await transaction_with_tstamp_async(
+            req, node, Hinawa.FwTcode.READ_QUADLET_REQUEST, addr, 4, 100
+        )
+
+        sent_cycle = cycle_time.compute_tstamp(request_tstamp)
+        recv_cycle = cycle_time.compute_tstamp(response_tstamp)
+
+        _, cycle_time = node.read_cycle_time(
+            CLOCK_MONOTONIC_RAW, Hinawa.CycleTime.new()
+        )
+        finish_cycle = cycle_time.get_fields()[:2]
+
+    common.print_transaction_result(
+        addr, payload, initiate_cycle, sent_cycle, recv_cycle, finish_cycle
+    )
+
+
+def main() -> int:
+    if len(argv) < 2:
+        msg = (
+            "One argument is required for path to special file of Linux FireWire character "
+            "device"
+        )
+        common.print_help_with_msg(Path(__file__).name, msg)
+        return 1
+    cmd, literal = argv[:2]
+
+    try:
+        path = common.detect_fw_cdev(literal)
+    except Exception as e:
+        common.print_help_with_msg(cmd, str(e))
+        return 1
+
+    try:
+        run(async_main(path))
+    except GLib.Error as e:
+        error_domain_map = {
+            GLib.file_error_quark(): GLib.FileError,
+            Hinawa.fw_node_error_quark(): Hinawa.FwNodeError,
+            Hinawa.fw_req_error_quark(): Hinawa.FwReqError,
+        }
+        quark = GLib.quark_from_string(e.domain)
+        if quark in error_domain_map:
+            code_nick = error_domain_map[quark](e.code).value_nick
+            print(
+                f"GLib.Error exception: '{e.message}' due to '{code_nick}' in '{e.domain}'"
+            )
+            print()
+        traceback.print_exception(e)
+        return 1
+    except Exception as e:
+        traceback.print_exception(e)
+        return 1
+
+    return 0
+
+
+if __name__ == "__main__":
+    exit(main())
