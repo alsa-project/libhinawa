@@ -99,9 +99,6 @@ Sample scripts
 
 Some sample scripts are available under ``samples`` directory:
 
-- gtk3 - PyGObject is required.
-- gtk4 - PyGObject is required.
-- qt5 - PyQt5 is required.
 - read-quadlet - demonstration to read quadlet data from node in IEEE 1394 bus
 - read-quadlet-async - demonstration of the above example with asynchronous runtime
 
