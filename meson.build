@@ -9,7 +9,7 @@ major_version = version[0].to_int()
 minor_version = version[1].to_int()
 micro_version = version[2].to_int()
 
-# Detect support level in Linux sound subsystem.
+# Detect support level in Linux firewire subsystem.
 cc = meson.get_compiler('c')
 
 backport_header_dir = []
