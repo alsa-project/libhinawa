@@ -15,7 +15,7 @@
 /**
  * hinawa_fw_req_error_quark:
  *
- * Return the [alias@GLib.Quark] for [struct@GLib.Error] with code of [enum@FwRcode].
+ * Return the [alias@GLib.Quark] for [struct@GLib.Error] with code of [error@FwReqError].
  *
  * Since: 2.1
  *
